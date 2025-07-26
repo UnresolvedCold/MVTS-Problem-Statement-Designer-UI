@@ -37,6 +37,11 @@ const GridEditor = () => {
     setObjects([...objects, newObj]);
   };
 
+  // Remove object
+  const removeObject = (id) => {
+    setObjects((prev) => prev.filter((obj) => obj.id !== id));
+  };
+
   return (
     <div style={{ display: "flex" }}>
       {/* Toolbar */}
@@ -118,6 +123,57 @@ const GridEditor = () => {
           ))}
         </Layer>
       </Stage>
+
+      {/* Right Sidebar - Objects List */}
+      <div style={{ width: 250, padding: 10, borderLeft: "1px solid #ccc", backgroundColor: "#f8f9fa" }}>
+        <h3>Objects ({objects.length})</h3>
+        {objects.length === 0 ? (
+          <p style={{ color: "#666", fontStyle: "italic" }}>No objects created yet</p>
+        ) : (
+          <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+            {objects.map((obj, index) => (
+              <div
+                key={obj.id}
+                style={{
+                  padding: "8px",
+                  margin: "5px 0",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  backgroundColor: "white",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center"
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: "bold", textTransform: "capitalize" }}>
+                    {obj.type} #{index + 1}
+                  </div>
+                  <div style={{ fontSize: "12px", color: "#666" }}>
+                    Position: ({Math.floor(obj.x / cellSize)}, {Math.floor(obj.y / cellSize)})
+                  </div>
+                </div>
+                <button
+                  onClick={() => removeObject(obj.id)}
+                  style={{
+                    backgroundColor: "#dc3545",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "3px",
+                    padding: "4px 8px",
+                    cursor: "pointer",
+                    fontSize: "12px"
+                  }}
+                  onMouseOver={(e) => e.target.style.backgroundColor = "#c82333"}
+                  onMouseOut={(e) => e.target.style.backgroundColor = "#dc3545"}
+                >
+                  Delete
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

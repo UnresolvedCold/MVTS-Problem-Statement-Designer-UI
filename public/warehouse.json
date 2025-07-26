@@ -1,0 +1,61 @@
+{
+  "warehouse": {
+    "width": 10,
+    "height": 10,
+    "problem_statement": {
+      "task_list": null,
+      "start_time": null,
+      "request_id": null,
+      "pps_list": [
+        {
+          "coordinate": {
+            "x": 0,
+            "y": 0
+          },
+          "bin_details": [],
+          "queue_length": 0,
+          "id": 1,
+          "ranger_dock_coordinates": null,
+          "mode": null,
+          "pps_type": null,
+          "current_schedule": {
+            "cost": null,
+            "assignments": [],
+            "reserved_ranger_list": []
+          },
+          "connected_pps_list": null,
+          "can_assign_task": false,
+          "ranger_exit_coordinates": null,
+          "msio_bins": [],
+          "pps_status": "open",
+          "pps_logged_in": true,
+          "pps_login_time": 0
+        }
+      ],
+      "planning_duration_seconds": 0,
+      "transport_entity_list": null,
+      "maximizing_picks": false,
+      "ranger_list": [
+        {
+          "paused": false,
+          "available_at_time": null,
+          "coordinate": {
+            "x": 0,
+            "y": 0
+          },
+          "available_at_coordinate": null,
+          "total_capacity": 0,
+          "available_capacity": 0,
+          "id": 1,
+          "is_paused": false,
+          "status": null,
+          "version": null,
+          "ranger_schedule": [],
+          "current_aisle_info": null
+        }
+      ],
+      "conveyor_list": [],
+      "relay_point_list": []
+    }
+  }
+}

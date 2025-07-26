@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Stage, Layer, Rect, Image, Text } from "react-konva";
 import useImage from "use-image";
 
@@ -44,6 +44,63 @@ const GridEditor = () => {
 
   // Objects placed on grid
   const [objects, setObjects] = useState([]);
+  
+  // Warehouse data
+  const [warehouseData, setWarehouseData] = useState(null);
+
+  // Load warehouse data on component mount
+  useEffect(() => {
+    const loadWarehouseData = async () => {
+      try {
+        const response = await fetch('/warehouse.json');
+        const data = await response.json();
+        setWarehouseData(data);
+        
+        // Set grid dimensions from warehouse data
+        if (data.warehouse?.width && data.warehouse?.height) {
+          setCols(data.warehouse.width);
+          setRows(data.warehouse.height);
+        }
+        
+        // Load objects from warehouse data
+        const loadedObjects = [];
+        
+        // Add bots from ranger_list (if exists)
+        if (data.warehouse?.problem_statement?.ranger_list) {
+          data.warehouse.problem_statement.ranger_list.forEach((ranger, index) => {
+            if (ranger.coordinate?.x !== undefined && ranger.coordinate?.y !== undefined) {
+              loadedObjects.push({
+                id: `bot-${ranger.id || index}-${Date.now()}`,
+                type: 'bot',
+                x: ranger.coordinate.x * cellSize,
+                y: ranger.coordinate.y * cellSize
+              });
+            }
+          });
+        }
+        
+        // Add PPS from pps_list (if exists)
+        if (data.warehouse?.problem_statement?.pps_list) {
+          data.warehouse.problem_statement.pps_list.forEach((pps, index) => {
+            if (pps.coordinate?.x !== undefined && pps.coordinate?.y !== undefined) {
+              loadedObjects.push({
+                id: `pps-${pps.id || index}-${Date.now()}`,
+                type: 'pps',
+                x: pps.coordinate.x * cellSize,
+                y: pps.coordinate.y * cellSize
+              });
+            }
+          });
+        }
+        
+        setObjects(loadedObjects);
+      } catch (error) {
+        console.error('Error loading warehouse data:', error);
+      }
+    };
+
+    loadWarehouseData();
+  }, [cellSize]);
 
   // Add new object
   const addObject = (type) => {

@@ -61,8 +61,8 @@ const GridEditor = () => {
       {/* Toolbar */}
       <div style={{ width: 200, padding: 10, borderRight: "1px solid #ccc" }}>
         <h3>Toolbar</h3>
-        <button onClick={() => addObject("tree")}>Add Tree</button>
-        <button onClick={() => addObject("house")}>Add House</button>
+        <button onClick={() => addObject("bot")}>Add Bot</button>
+        <button onClick={() => addObject("pps")}>Add PPS</button>
         <hr />
         <div>
           <label>Rows: </label>
@@ -142,7 +142,7 @@ const GridEditor = () => {
               key={obj.id}
               x={obj.x}
               y={obj.y}
-              src={obj.type === "tree" ? "/tree.png" : "/house.png"}
+              src={obj.type === "bot" ? "/tree.png" : "/house.png"}
               gridWidth={cols * cellSize}
               gridHeight={rows * cellSize}
               cellSize={cellSize}

@@ -3,7 +3,7 @@ import { Stage, Layer, Rect, Image, Text } from "react-konva";
 import useImage from "use-image";
 
 // Component for object (tree/house)
-const ObjectImage = ({ x, y, src, onDragEnd, gridWidth, gridHeight, cellSize }) => {
+const ObjectImage = ({ x, y, src, onDragEnd, gridWidth, gridHeight, cellSize, isSelected, onClick }) => {
   const [image] = useImage(src);
   const objectSize = 50; // Size of the object image
   
@@ -15,6 +15,9 @@ const ObjectImage = ({ x, y, src, onDragEnd, gridWidth, gridHeight, cellSize }) 
       width={objectSize}
       height={objectSize}
       draggable
+      stroke={isSelected ? "#007bff" : "transparent"}
+      strokeWidth={isSelected ? 3 : 0}
+      onClick={onClick}
       dragBoundFunc={(pos) => {
         // Restrict dragging to within grid boundaries
         const newX = Math.max(0, Math.min(pos.x, gridWidth - objectSize));
@@ -45,6 +48,9 @@ const GridEditor = () => {
   // Objects placed on grid
   const [objects, setObjects] = useState([]);
   
+  // Selected object for property editing
+  const [selectedObject, setSelectedObject] = useState(null);
+  
   // Warehouse data
   const [warehouseData, setWarehouseData] = useState(null);
 
@@ -73,7 +79,8 @@ const GridEditor = () => {
                 id: `bot-${ranger.id || index}-${Date.now()}`,
                 type: 'bot',
                 x: ranger.coordinate.x * cellSize,
-                y: ranger.coordinate.y * cellSize
+                y: ranger.coordinate.y * cellSize,
+                properties: { ...ranger } // Store complete JSON data
               });
             }
           });
@@ -87,7 +94,8 @@ const GridEditor = () => {
                 id: `pps-${pps.id || index}-${Date.now()}`,
                 type: 'pps',
                 x: pps.coordinate.x * cellSize,
-                y: pps.coordinate.y * cellSize
+                y: pps.coordinate.y * cellSize,
+                properties: { ...pps } // Store complete JSON data
               });
             }
           });
@@ -104,7 +112,48 @@ const GridEditor = () => {
 
   // Add new object
   const addObject = (type) => {
-    const newObj = { id: Date.now(), type, x: 0, y: 0 };
+    const defaultProperties = type === 'bot' ? {
+      id: Date.now(),
+      coordinate: { x: 0, y: 0 },
+      paused: false,
+      available_at_time: null,
+      available_at_coordinate: null,
+      total_capacity: 0,
+      available_capacity: 0,
+      is_paused: false,
+      status: null,
+      version: null,
+      ranger_schedule: [],
+      current_aisle_info: null
+    } : {
+      id: Date.now(),
+      coordinate: { x: 0, y: 0 },
+      bin_details: [],
+      queue_length: 0,
+      ranger_dock_coordinates: null,
+      mode: null,
+      pps_type: null,
+      current_schedule: {
+        cost: null,
+        assignments: [],
+        reserved_ranger_list: []
+      },
+      connected_pps_list: null,
+      can_assign_task: false,
+      ranger_exit_coordinates: null,
+      msio_bins: [],
+      pps_status: "open",
+      pps_logged_in: true,
+      pps_login_time: 0
+    };
+
+    const newObj = { 
+      id: Date.now(), 
+      type, 
+      x: 0, 
+      y: 0, 
+      properties: defaultProperties 
+    };
     setObjects([...objects, newObj]);
   };
 
@@ -113,8 +162,21 @@ const GridEditor = () => {
     setObjects((prev) => prev.filter((obj) => obj.id !== id));
   };
 
+  // Update object properties
+  const updateObjectProperties = (objectId, newProperties) => {
+    setObjects((prev) =>
+      prev.map((obj) =>
+        obj.id === objectId ? { ...obj, properties: newProperties } : obj
+      )
+    );
+    // Update selected object as well
+    if (selectedObject?.id === objectId) {
+      setSelectedObject({ ...selectedObject, properties: newProperties });
+    }
+  };
+
   return (
-    <div style={{ display: "flex" }}>
+    <div style={{ display: "flex", height: "100vh" }}>
       {/* Toolbar */}
       <div style={{ width: 200, padding: 10, borderRight: "1px solid #ccc" }}>
         <h3>Toolbar</h3>
@@ -203,10 +265,40 @@ const GridEditor = () => {
               gridWidth={cols * cellSize}
               gridHeight={rows * cellSize}
               cellSize={cellSize}
+              isSelected={selectedObject?.id === obj.id}
+              onClick={() => setSelectedObject(obj)}
               onDragEnd={(x, y) => {
+                const gridX = Math.floor(x / cellSize);
+                const gridY = Math.floor(y / cellSize);
+                
                 setObjects((prev) =>
-                  prev.map((o) => (o.id === obj.id ? { ...o, x, y } : o))
+                  prev.map((o) => 
+                    o.id === obj.id 
+                      ? { 
+                          ...o, 
+                          x, 
+                          y,
+                          properties: {
+                            ...o.properties,
+                            coordinate: { x: gridX, y: gridY }
+                          }
+                        } 
+                      : o
+                  )
                 );
+                
+                // Update selected object position and properties as well
+                if (selectedObject?.id === obj.id) {
+                  setSelectedObject({
+                    ...selectedObject, 
+                    x, 
+                    y,
+                    properties: {
+                      ...selectedObject.properties,
+                      coordinate: { x: gridX, y: gridY }
+                    }
+                  });
+                }
               }}
             />
           ))}
@@ -226,13 +318,15 @@ const GridEditor = () => {
                 style={{
                   padding: "8px",
                   margin: "5px 0",
-                  border: "1px solid #ddd",
+                  border: selectedObject?.id === obj.id ? "2px solid #007bff" : "1px solid #ddd",
                   borderRadius: "4px",
-                  backgroundColor: "white",
+                  backgroundColor: selectedObject?.id === obj.id ? "#e3f2fd" : "white",
                   display: "flex",
                   justifyContent: "space-between",
-                  alignItems: "center"
+                  alignItems: "center",
+                  cursor: "pointer"
                 }}
+                onClick={() => setSelectedObject(obj)}
               >
                 <div>
                   <div style={{ fontWeight: "bold", textTransform: "capitalize" }}>
@@ -241,9 +335,20 @@ const GridEditor = () => {
                   <div style={{ fontSize: "12px", color: "#666" }}>
                     Position: ({Math.floor(obj.x / cellSize)}, {Math.floor(obj.y / cellSize)})
                   </div>
+                  {obj.properties?.id && (
+                    <div style={{ fontSize: "11px", color: "#888" }}>
+                      ID: {obj.properties.id}
+                    </div>
+                  )}
                 </div>
                 <button
-                  onClick={() => removeObject(obj.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeObject(obj.id);
+                    if (selectedObject?.id === obj.id) {
+                      setSelectedObject(null);
+                    }
+                  }}
                   style={{
                     backgroundColor: "#dc3545",
                     color: "white",
@@ -261,6 +366,71 @@ const GridEditor = () => {
               </div>
             ))}
           </div>
+        )}
+      </div>
+
+      {/* Property Editor Panel */}
+      <div style={{ width: 350, padding: 10, borderLeft: "1px solid #ccc", backgroundColor: "#f0f8ff", overflowY: "auto" }}>
+        <h3>Property Editor</h3>
+        {selectedObject ? (
+          <div>
+            <div style={{ marginBottom: "10px", padding: "8px", backgroundColor: "#e3f2fd", borderRadius: "4px" }}>
+              <strong>Selected: {selectedObject.type} (ID: {selectedObject.properties?.id || 'N/A'})</strong>
+            </div>
+            
+            <div style={{ marginBottom: "10px" }}>
+              <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
+                Properties (JSON):
+              </label>
+              <textarea
+                value={JSON.stringify(selectedObject.properties, null, 2)}
+                onChange={(e) => {
+                  try {
+                    const newProperties = JSON.parse(e.target.value);
+                    updateObjectProperties(selectedObject.id, newProperties);
+                  } catch (error) {
+                    // Invalid JSON, don't update yet
+                    console.log("Invalid JSON:", error);
+                  }
+                }}
+                style={{
+                  width: "100%",
+                  height: "400px",
+                  fontFamily: "monospace",
+                  fontSize: "12px",
+                  border: "1px solid #ccc",
+                  borderRadius: "4px",
+                  padding: "8px",
+                  resize: "vertical"
+                }}
+                placeholder="Edit JSON properties here..."
+              />
+            </div>
+            
+            <div style={{ fontSize: "12px", color: "#666", fontStyle: "italic" }}>
+              💡 Tip: Edit the JSON above to modify object properties. Invalid JSON won't be saved.
+            </div>
+            
+            <button
+              onClick={() => setSelectedObject(null)}
+              style={{
+                marginTop: "10px",
+                backgroundColor: "#6c757d",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "8px 16px",
+                cursor: "pointer",
+                width: "100%"
+              }}
+            >
+              Clear Selection
+            </button>
+          </div>
+        ) : (
+          <p style={{ color: "#666", fontStyle: "italic" }}>
+            Select an object to edit its properties
+          </p>
         )}
       </div>
     </div>

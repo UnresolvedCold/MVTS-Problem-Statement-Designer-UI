@@ -166,12 +166,73 @@ const GridEditor = () => {
   const updateObjectProperties = (objectId, newProperties) => {
     setObjects((prev) =>
       prev.map((obj) =>
-        obj.id === objectId ? { ...obj, properties: newProperties } : obj
+        obj.id === objectId 
+          ? { 
+              ...obj, 
+              properties: newProperties,
+              // Update visual position if coordinates changed
+              x: newProperties.coordinate?.x !== undefined ? newProperties.coordinate.x * cellSize : obj.x,
+              y: newProperties.coordinate?.y !== undefined ? newProperties.coordinate.y * cellSize : obj.y
+            } 
+          : obj
       )
     );
     // Update selected object as well
     if (selectedObject?.id === objectId) {
-      setSelectedObject({ ...selectedObject, properties: newProperties });
+      setSelectedObject({ 
+        ...selectedObject, 
+        properties: newProperties,
+        x: newProperties.coordinate?.x !== undefined ? newProperties.coordinate.x * cellSize : selectedObject.x,
+        y: newProperties.coordinate?.y !== undefined ? newProperties.coordinate.y * cellSize : selectedObject.y
+      });
+    }
+  };
+
+  // State for JSON editing
+  const [jsonEditValue, setJsonEditValue] = useState('');
+  const [jsonError, setJsonError] = useState(null);
+
+  // Update jsonEditValue when selectedObject changes
+  useEffect(() => {
+    if (selectedObject) {
+      setJsonEditValue(JSON.stringify(selectedObject.properties, null, 2));
+      setJsonError(null);
+    }
+  }, [selectedObject]);
+
+  // Handle JSON text change
+  const handleJsonChange = (value) => {
+    setJsonEditValue(value);
+    try {
+      const parsed = JSON.parse(value);
+      setJsonError(null);
+      
+      // Update object properties and position
+      setObjects((prev) =>
+        prev.map((obj) =>
+          obj.id === selectedObject.id 
+            ? { 
+                ...obj, 
+                properties: parsed,
+                // Update visual position if coordinates changed
+                x: parsed.coordinate?.x !== undefined ? parsed.coordinate.x * cellSize : obj.x,
+                y: parsed.coordinate?.y !== undefined ? parsed.coordinate.y * cellSize : obj.y
+              } 
+            : obj
+        )
+      );
+      
+      // Update selected object as well
+      if (selectedObject?.id) {
+        setSelectedObject({ 
+          ...selectedObject, 
+          properties: parsed,
+          x: parsed.coordinate?.x !== undefined ? parsed.coordinate.x * cellSize : selectedObject.x,
+          y: parsed.coordinate?.y !== undefined ? parsed.coordinate.y * cellSize : selectedObject.y
+        });
+      }
+    } catch (error) {
+      setJsonError(error.message);
     }
   };
 
@@ -382,33 +443,87 @@ const GridEditor = () => {
               <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
                 Properties (JSON):
               </label>
+              {jsonError && (
+                <div style={{ 
+                  color: "#dc3545", 
+                  fontSize: "12px", 
+                  marginBottom: "5px",
+                  padding: "4px",
+                  backgroundColor: "#f8d7da",
+                  border: "1px solid #f5c6cb",
+                  borderRadius: "3px"
+                }}>
+                  ❌ JSON Error: {jsonError}
+                </div>
+              )}
               <textarea
-                value={JSON.stringify(selectedObject.properties, null, 2)}
-                onChange={(e) => {
-                  try {
-                    const newProperties = JSON.parse(e.target.value);
-                    updateObjectProperties(selectedObject.id, newProperties);
-                  } catch (error) {
-                    // Invalid JSON, don't update yet
-                    console.log("Invalid JSON:", error);
-                  }
-                }}
+                value={jsonEditValue}
+                onChange={(e) => handleJsonChange(e.target.value)}
                 style={{
                   width: "100%",
                   height: "400px",
                   fontFamily: "monospace",
                   fontSize: "12px",
-                  border: "1px solid #ccc",
+                  border: jsonError ? "2px solid #dc3545" : "1px solid #ccc",
                   borderRadius: "4px",
                   padding: "8px",
-                  resize: "vertical"
+                  resize: "vertical",
+                  backgroundColor: jsonError ? "#fff5f5" : "white"
                 }}
                 placeholder="Edit JSON properties here..."
               />
             </div>
             
-            <div style={{ fontSize: "12px", color: "#666", fontStyle: "italic" }}>
-              💡 Tip: Edit the JSON above to modify object properties. Invalid JSON won't be saved.
+            <div style={{ 
+              fontSize: "12px", 
+              color: jsonError ? "#dc3545" : "#666", 
+              fontStyle: "italic",
+              marginBottom: "10px"
+            }}>
+              💡 Tip: Edit the JSON above to modify object properties. {jsonError ? "Fix the JSON syntax to save changes." : "Changes are saved automatically."}
+            </div>
+
+            <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
+              <button
+                onClick={() => {
+                  if (selectedObject) {
+                    setJsonEditValue(JSON.stringify(selectedObject.properties, null, 2));
+                    setJsonError(null);
+                  }
+                }}
+                style={{
+                  backgroundColor: "#17a2b8",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  padding: "6px 12px",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                  flex: 1
+                }}
+              >
+                Reset JSON
+              </button>
+              
+              <button
+                onClick={() => {
+                  const formatted = JSON.stringify(selectedObject.properties, null, 2);
+                  setJsonEditValue(formatted);
+                  setJsonError(null);
+                }}
+                style={{
+                  backgroundColor: "#28a745",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  padding: "6px 12px",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                  flex: 1
+                }}
+              >
+                Format JSON
+              </button>
             </div>
             
             <button

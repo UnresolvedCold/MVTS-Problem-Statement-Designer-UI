@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Stage, Layer, Rect, Image, Text } from "react-konva";
 import useImage from "use-image";
+import useWebSocket from "./hooks/useWebSocket";
 
 // Component for object (tree/house)
 const ObjectImage = ({ x, y, src, onDragEnd, gridWidth, gridHeight, cellSize, isSelected, onClick }) => {
@@ -54,61 +55,116 @@ const GridEditor = () => {
   // Warehouse data
   const [warehouseData, setWarehouseData] = useState(null);
 
-  // Load warehouse data on component mount
-  useEffect(() => {
-    const loadWarehouseData = async () => {
-      try {
-        const response = await fetch('/warehouse.json');
-        const data = await response.json();
-        setWarehouseData(data);
-        
-        // Set grid dimensions from warehouse data
-        if (data.warehouse?.width && data.warehouse?.height) {
-          setCols(data.warehouse.width);
-          setRows(data.warehouse.height);
+  // WebSocket message handler
+  const handleWebSocketMessage = (data) => {
+    console.log('Received WebSocket message:', data);
+    console.log('Type of received data:', typeof data);
+    console.log('Data keys:', Object.keys(data || {}));
+    
+    // Validate the data structure
+    if (!data || typeof data !== 'object') {
+      console.error('Invalid data received:', data);
+      return;
+    }
+    
+    // Handle different message types
+    if (data.type === 'WAREHOUSE_DATA_RESPONSE' && data.warehouse) {
+      console.log('Processing warehouse data response...');
+      setWarehouseData(data);
+      
+      // Set grid dimensions from warehouse data
+      if (data.warehouse.width && data.warehouse.height) {
+        console.log('Setting grid dimensions:', data.warehouse.width, 'x', data.warehouse.height);
+        setCols(data.warehouse.width);
+        setRows(data.warehouse.height);
+      }
+      
+      // Load objects from warehouse data
+      const loadedObjects = [];
+      
+      // Add bots from ranger_list
+      if (data.warehouse.problem_statement?.ranger_list) {
+        console.log('Loading rangers:', data.warehouse.problem_statement.ranger_list.length);
+        data.warehouse.problem_statement.ranger_list.forEach((ranger, index) => {
+          if (ranger.coordinate?.x !== undefined && ranger.coordinate?.y !== undefined) {
+            loadedObjects.push({
+              id: `bot-${ranger.id || index}-${Date.now()}`,
+              type: 'bot',
+              x: ranger.coordinate.x * cellSize,
+              y: ranger.coordinate.y * cellSize,
+              properties: { ...ranger }
+            });
+          }
+        });
+      }
+      
+      // Add PPS from pps_list
+      if (data.warehouse.problem_statement?.pps_list) {
+        console.log('Loading PPS:', data.warehouse.problem_statement.pps_list.length);
+        data.warehouse.problem_statement.pps_list.forEach((pps, index) => {
+          if (pps.coordinate?.x !== undefined && pps.coordinate?.y !== undefined) {
+            loadedObjects.push({
+              id: `pps-${pps.id || index}-${Date.now()}`,
+              type: 'pps',
+              x: pps.coordinate.x * cellSize,
+              y: pps.coordinate.y * cellSize,
+              properties: { ...pps }
+            });
+          }
+        });
+      }
+      
+      console.log('Loaded objects:', loadedObjects);
+      setObjects(loadedObjects);
+    } else if (data.type === 'CONNECTION_ESTABLISHED') {
+      console.log('Connection established:', data.message);
+    } else if (data.type === 'ERROR') {
+      console.error('Server error:', data.message);
+    } else {
+      console.warn('Unknown message type or format:', data);
+    }
+  };
+
+  // Initialize WebSocket connection
+  const { sendMessage } = useWebSocket(handleWebSocketMessage);
+
+  // Send warehouse data update when objects change
+  const sendWarehouseUpdate = (updatedObjects) => {
+    if (!warehouseData) return;
+
+    const updatedWarehouseData = {
+      ...warehouseData,
+      warehouse: {
+        ...warehouseData.warehouse,
+        problem_statement: {
+          ...warehouseData.warehouse.problem_statement,
+          ranger_list: updatedObjects
+            .filter(obj => obj.type === 'bot')
+            .map(obj => ({
+              ...obj.properties,
+              coordinate: {
+                x: Math.floor(obj.x / cellSize),
+                y: Math.floor(obj.y / cellSize)
+              }
+            })),
+          pps_list: updatedObjects
+            .filter(obj => obj.type === 'pps')
+            .map(obj => ({
+              ...obj.properties,
+              coordinate: {
+                x: Math.floor(obj.x / cellSize),
+                y: Math.floor(obj.y / cellSize)
+              }
+            }))
         }
-        
-        // Load objects from warehouse data
-        const loadedObjects = [];
-        
-        // Add bots from ranger_list (if exists)
-        if (data.warehouse?.problem_statement?.ranger_list) {
-          data.warehouse.problem_statement.ranger_list.forEach((ranger, index) => {
-            if (ranger.coordinate?.x !== undefined && ranger.coordinate?.y !== undefined) {
-              loadedObjects.push({
-                id: `bot-${ranger.id || index}-${Date.now()}`,
-                type: 'bot',
-                x: ranger.coordinate.x * cellSize,
-                y: ranger.coordinate.y * cellSize,
-                properties: { ...ranger } // Store complete JSON data
-              });
-            }
-          });
-        }
-        
-        // Add PPS from pps_list (if exists)
-        if (data.warehouse?.problem_statement?.pps_list) {
-          data.warehouse.problem_statement.pps_list.forEach((pps, index) => {
-            if (pps.coordinate?.x !== undefined && pps.coordinate?.y !== undefined) {
-              loadedObjects.push({
-                id: `pps-${pps.id || index}-${Date.now()}`,
-                type: 'pps',
-                x: pps.coordinate.x * cellSize,
-                y: pps.coordinate.y * cellSize,
-                properties: { ...pps } // Store complete JSON data
-              });
-            }
-          });
-        }
-        
-        setObjects(loadedObjects);
-      } catch (error) {
-        console.error('Error loading warehouse data:', error);
       }
     };
 
-    loadWarehouseData();
-  }, [cellSize]);
+    sendMessage({
+      type: 'UPDATE_WAREHOUSE_DATA',
+      data: updatedWarehouseData
+    });
+  };
 
   // Add new object
   const addObject = (type) => {
@@ -154,29 +210,43 @@ const GridEditor = () => {
       y: 0, 
       properties: defaultProperties 
     };
-    setObjects([...objects, newObj]);
+    const updatedObjects = [...objects, newObj];
+    setObjects(updatedObjects);
+    
+    // Send update to server via WebSocket
+    sendWarehouseUpdate(updatedObjects);
   };
 
   // Remove object
   const removeObject = (id) => {
-    setObjects((prev) => prev.filter((obj) => obj.id !== id));
+    const updatedObjects = objects.filter((obj) => obj.id !== id);
+    setObjects(updatedObjects);
+    
+    // Clear selection if the removed object was selected
+    if (selectedObject?.id === id) {
+      setSelectedObject(null);
+    }
+    
+    // Send update to server via WebSocket
+    sendWarehouseUpdate(updatedObjects);
   };
 
   // Update object properties
   const updateObjectProperties = (objectId, newProperties) => {
-    setObjects((prev) =>
-      prev.map((obj) =>
-        obj.id === objectId 
-          ? { 
-              ...obj, 
-              properties: newProperties,
-              // Update visual position if coordinates changed
-              x: newProperties.coordinate?.x !== undefined ? newProperties.coordinate.x * cellSize : obj.x,
-              y: newProperties.coordinate?.y !== undefined ? newProperties.coordinate.y * cellSize : obj.y
-            } 
-          : obj
-      )
+    const updatedObjects = objects.map((obj) =>
+      obj.id === objectId 
+        ? { 
+            ...obj, 
+            properties: newProperties,
+            // Update visual position if coordinates changed
+            x: newProperties.coordinate?.x !== undefined ? newProperties.coordinate.x * cellSize : obj.x,
+            y: newProperties.coordinate?.y !== undefined ? newProperties.coordinate.y * cellSize : obj.y
+          } 
+        : obj
     );
+    
+    setObjects(updatedObjects);
+    
     // Update selected object as well
     if (selectedObject?.id === objectId) {
       setSelectedObject({ 
@@ -186,6 +256,9 @@ const GridEditor = () => {
         y: newProperties.coordinate?.y !== undefined ? newProperties.coordinate.y * cellSize : selectedObject.y
       });
     }
+    
+    // Send update to server via WebSocket
+    sendWarehouseUpdate(updatedObjects);
   };
 
   // State for JSON editing
@@ -332,21 +405,21 @@ const GridEditor = () => {
                 const gridX = Math.floor(x / cellSize);
                 const gridY = Math.floor(y / cellSize);
                 
-                setObjects((prev) =>
-                  prev.map((o) => 
-                    o.id === obj.id 
-                      ? { 
-                          ...o, 
-                          x, 
-                          y,
-                          properties: {
-                            ...o.properties,
-                            coordinate: { x: gridX, y: gridY }
-                          }
-                        } 
-                      : o
-                  )
+                const updatedObjects = objects.map((o) => 
+                  o.id === obj.id 
+                    ? { 
+                        ...o, 
+                        x, 
+                        y,
+                        properties: {
+                          ...o.properties,
+                          coordinate: { x: gridX, y: gridY }
+                        }
+                      } 
+                    : o
                 );
+                
+                setObjects(updatedObjects);
                 
                 // Update selected object position and properties as well
                 if (selectedObject?.id === obj.id) {
@@ -360,6 +433,9 @@ const GridEditor = () => {
                     }
                   });
                 }
+                
+                // Send update to server via WebSocket
+                sendWarehouseUpdate(updatedObjects);
               }}
             />
           ))}

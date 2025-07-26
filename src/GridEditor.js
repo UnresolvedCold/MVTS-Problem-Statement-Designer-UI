@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Stage, Layer, Rect, Image } from "react-konva";
+import { Stage, Layer, Rect, Image, Text } from "react-konva";
 import useImage from "use-image";
 
 // Component for object (tree/house)
@@ -118,6 +118,21 @@ const GridEditor = () => {
               fill="grey"
             />
           ))}
+          
+          {/* Draw grid coordinates */}
+          {[...Array(cols)].map((_, i) => 
+            [...Array(rows)].map((_, j) => (
+              <Text
+                key={`coord-${i}-${j}`}
+                x={i * cellSize + 5}
+                y={j * cellSize + 5}
+                text={`(${i},${j})`}
+                fontSize={Math.min(cellSize / 4, 10)}
+                fill="lightgray"
+                fontFamily="Arial"
+              />
+            ))
+          )}
         </Layer>
 
         {/* Objects Layer */}

@@ -3,19 +3,33 @@ import { Stage, Layer, Rect, Image } from "react-konva";
 import useImage from "use-image";
 
 // Component for object (tree/house)
-const ObjectImage = ({ x, y, src, onDragEnd }) => {
+const ObjectImage = ({ x, y, src, onDragEnd, gridWidth, gridHeight, cellSize }) => {
   const [image] = useImage(src);
+  const objectSize = 50; // Size of the object image
+  
   return (
     <Image
       image={image}
       x={x}
       y={y}
-      width={50}
-      height={50}
+      width={objectSize}
+      height={objectSize}
       draggable
+      dragBoundFunc={(pos) => {
+        // Restrict dragging to within grid boundaries
+        const newX = Math.max(0, Math.min(pos.x, gridWidth - objectSize));
+        const newY = Math.max(0, Math.min(pos.y, gridHeight - objectSize));
+        return { x: newX, y: newY };
+      }}
       onDragEnd={(e) => {
-        const snappedX = Math.floor(e.target.x() / 50) * 50;
-        const snappedY = Math.floor(e.target.y() / 50) * 50;
+        let snappedX = Math.floor(e.target.x() / cellSize) * cellSize;
+        let snappedY = Math.floor(e.target.y() / cellSize) * cellSize;
+        
+        // Restrict position to be within grid boundaries
+        // Make sure the object doesn't go outside the canvas
+        snappedX = Math.max(0, Math.min(snappedX, gridWidth - objectSize));
+        snappedY = Math.max(0, Math.min(snappedY, gridHeight - objectSize));
+        
         onDragEnd(snappedX, snappedY);
       }}
     />
@@ -114,6 +128,9 @@ const GridEditor = () => {
               x={obj.x}
               y={obj.y}
               src={obj.type === "tree" ? "/tree.png" : "/house.png"}
+              gridWidth={cols * cellSize}
+              gridHeight={rows * cellSize}
+              cellSize={cellSize}
               onDragEnd={(x, y) => {
                 setObjects((prev) =>
                   prev.map((o) => (o.id === obj.id ? { ...o, x, y } : o))

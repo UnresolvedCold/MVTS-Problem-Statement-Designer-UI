@@ -60,10 +60,24 @@ const GridEditor = () => {
       console.log('WebSocket connection established');
       setIsLoading(false);
       setLoadingMessage('');
+    } else if (data.type === 'PROBLEM_STATEMENT_SOLVED') {
+      console.log('Problem statement solved successfully:', data);
+      setIsLoading(false);
+      setLoadingMessage('');
+      
+      // You can handle the solution result here
+      if (data.solution) {
+        alert(`Problem solved! Solution received: ${JSON.stringify(data.solution, null, 2)}`);
+      } else {
+        alert('Problem statement solved successfully!');
+      }
     } else if (data.type === 'ERROR') {
       console.error('Server error:', data.message);
       setIsLoading(false);
       setLoadingMessage('');
+      
+      // Show error message to user
+      alert(`Error: ${data.message || 'Unknown error occurred'}`);
     }
   };
 
@@ -106,6 +120,25 @@ const GridEditor = () => {
   const handleObjectSelect = (object) => {
     setSelectedObject(object);
     setSelectedTask(null);
+  };
+
+  // Handle solve problem statement
+  const handleSolveProblem = () => {
+    if (!warehouseData || !warehouseData.warehouse) {
+      alert('No warehouse data available. Please create some objects and tasks first.');
+      return;
+    }
+
+    // Set loading state
+    setIsLoading(true);
+    setLoadingMessage('Solving problem statement...');
+
+    // Send SOLVE_PROBLEM_STATEMENT event to server
+    if (sendWarehouseUpdate) {
+      sendWarehouseUpdate({
+        type: 'SOLVE_PROBLEM_STATEMENT'
+      });
+    }
   };
 
   return (
@@ -208,6 +241,7 @@ const GridEditor = () => {
               onSelectTask={handleTaskSelect}
               onRemoveTask={removeTask}
               onAddTask={addTask}
+              onSolveProblem={handleSolveProblem}
               availablePPS={objects.filter(obj => obj.type === 'pps').map(obj => obj.properties)}
               availableMSU={objects.filter(obj => obj.type === 'msu').map(obj => obj.properties)}
             />

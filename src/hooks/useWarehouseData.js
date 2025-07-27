@@ -107,6 +107,13 @@ export const useWarehouseData = (sendMessage) => {
         };
         break;
 
+      case 'SOLVE_PROBLEM_STATEMENT':
+        // Send SOLVE_PROBLEM_STATEMENT request to server
+        sendMessage({
+          type: 'SOLVE_PROBLEM_STATEMENT'
+        });
+        return; // Exit early, don't send UPDATE_WAREHOUSE_DATA
+
       default:
         console.warn('Unknown update type:', updateData.type);
         return;

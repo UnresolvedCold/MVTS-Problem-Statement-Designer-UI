@@ -6,6 +6,7 @@ const TasksList = ({
   onSelectTask, 
   onRemoveTask,
   onAddTask,
+  onSolveProblem,
   availablePPS = [],
   availableMSU = []
 }) => {
@@ -44,22 +45,41 @@ const TasksList = ({
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
         <h3 style={{ margin: 0 }}>Tasks</h3>
-        {!showAddForm && (
+        <div style={{ display: "flex", gap: "5px" }}>
+          {!showAddForm && (
+            <button 
+              onClick={() => setShowAddForm(true)}
+              style={{
+                padding: "5px 10px",
+                backgroundColor: "#28a745",
+                color: "white",
+                border: "none",
+                borderRadius: "3px",
+                cursor: "pointer",
+                fontSize: "12px"
+              }}
+            >
+              + Add Task
+            </button>
+          )}
           <button 
-            onClick={() => setShowAddForm(true)}
+            onClick={onSolveProblem}
             style={{
               padding: "5px 10px",
-              backgroundColor: "#28a745",
+              backgroundColor: "#dc3545",
               color: "white",
               border: "none",
               borderRadius: "3px",
               cursor: "pointer",
-              fontSize: "12px"
+              fontSize: "12px",
+              fontWeight: "500"
             }}
+            onMouseOver={(e) => e.target.style.backgroundColor = "#c82333"}
+            onMouseOut={(e) => e.target.style.backgroundColor = "#dc3545"}
           >
-            + Add Task
+            🚀 Run
           </button>
-        )}
+        </div>
       </div>
       
       {/* Add Task Form */}

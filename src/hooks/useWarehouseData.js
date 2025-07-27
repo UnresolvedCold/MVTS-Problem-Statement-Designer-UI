@@ -23,6 +23,14 @@ export const useWarehouseData = (sendMessage) => {
         });
         return; // Exit early, don't send UPDATE_WAREHOUSE_DATA
 
+      case 'ADD_MSU':
+        // Send ADD_MSU request to server - no local state update needed
+        sendMessage({
+          type: 'ADD_MSU',
+          objectData: updateData.objectData || {}
+        });
+        return; // Exit early, don't send UPDATE_WAREHOUSE_DATA
+
       case 'REMOVE_OBJECT':
         // Remove object from the appropriate list
         if (!warehouseData) return;
@@ -36,6 +44,10 @@ export const useWarehouseData = (sendMessage) => {
               ...(updateData.objectType === 'bot' ? {
                 ranger_list: warehouseData.warehouse.problem_statement.ranger_list?.filter(
                   ranger => ranger.id !== updateData.objectId
+                ) || []
+              } : updateData.objectType === 'msu' ? {
+                transport_entity_list: warehouseData.warehouse.problem_statement.transport_entity_list?.filter(
+                  msu => msu.id !== updateData.objectId
                 ) || []
               } : {
                 pps_list: warehouseData.warehouse.problem_statement.pps_list?.filter(
@@ -58,7 +70,8 @@ export const useWarehouseData = (sendMessage) => {
             problem_statement: {
               ...warehouseData.warehouse.problem_statement,
               ranger_list: updateData.data.ranger_list || warehouseData.warehouse.problem_statement.ranger_list || [],
-              pps_list: updateData.data.pps_list || warehouseData.warehouse.problem_statement.pps_list || []
+              pps_list: updateData.data.pps_list || warehouseData.warehouse.problem_statement.pps_list || [],
+              transport_entity_list: updateData.data.transport_entity_list || warehouseData.warehouse.problem_statement.transport_entity_list || []
             }
           }
         };

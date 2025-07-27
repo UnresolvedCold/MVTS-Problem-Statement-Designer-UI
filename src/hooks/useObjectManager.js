@@ -2,40 +2,57 @@ import { useState, useCallback } from 'react';
 
 // Default properties for new objects
 const getDefaultProperties = (type) => {
-  return type === 'bot' ? {
-    id: Date.now(),
-    coordinate: { x: 0, y: 0 },
-    paused: false,
-    available_at_time: null,
-    available_at_coordinate: null,
-    total_capacity: 0,
-    available_capacity: 0,
-    is_paused: false,
-    status: null,
-    version: null,
-    ranger_schedule: [],
-    current_aisle_info: null
-  } : {
-    id: Date.now(),
-    coordinate: { x: 0, y: 0 },
-    bin_details: [],
-    queue_length: 0,
-    ranger_dock_coordinates: null,
-    mode: null,
-    pps_type: null,
-    current_schedule: {
-      cost: null,
-      assignments: [],
-      reserved_ranger_list: []
-    },
-    connected_pps_list: null,
-    can_assign_task: false,
-    ranger_exit_coordinates: null,
-    msio_bins: [],
-    pps_status: "open",
-    pps_logged_in: true,
-    pps_login_time: 0
-  };
+  if (type === 'bot') {
+    return {
+      id: Date.now(),
+      coordinate: { x: 0, y: 0 },
+      paused: false,
+      available_at_time: null,
+      available_at_coordinate: null,
+      total_capacity: 0,
+      available_capacity: 0,
+      is_paused: false,
+      status: null,
+      version: null,
+      ranger_schedule: [],
+      current_aisle_info: null
+    };
+  } else if (type === 'msu') {
+    return {
+      id: Date.now(),
+      coordinate: { x: 0, y: 0 },
+      transport_entity_type: "msu",
+      capacity: 0,
+      current_load: 0,
+      status: "idle",
+      assigned_tasks: [],
+      route: [],
+      last_updated: null,
+      operational: true
+    };
+  } else {
+    return {
+      id: Date.now(),
+      coordinate: { x: 0, y: 0 },
+      bin_details: [],
+      queue_length: 0,
+      ranger_dock_coordinates: null,
+      mode: null,
+      pps_type: null,
+      current_schedule: {
+        cost: null,
+        assignments: [],
+        reserved_ranger_list: []
+      },
+      connected_pps_list: null,
+      can_assign_task: false,
+      ranger_exit_coordinates: null,
+      msio_bins: [],
+      pps_status: "open",
+      pps_logged_in: true,
+      pps_login_time: 0
+    };
+  }
 };
 
 export const useObjectManager = (cellSize, onWarehouseUpdate, loadingHandlers = {}) => {
@@ -52,10 +69,19 @@ export const useObjectManager = (cellSize, onWarehouseUpdate, loadingHandlers = 
       setLoadingMessage(`Adding ${type}...`);
     }
     
-    // Send ADD_BOT or ADD_PPS event to server instead of adding locally
+    // Send ADD_BOT, ADD_PPS, or ADD_MSU event to server instead of adding locally
     if (onWarehouseUpdate) {
+      let updateType;
+      if (type === 'bot') {
+        updateType = 'ADD_BOT';
+      } else if (type === 'msu') {
+        updateType = 'ADD_MSU';
+      } else {
+        updateType = 'ADD_PPS';
+      }
+      
       onWarehouseUpdate({
-        type: type === 'bot' ? 'ADD_BOT' : 'ADD_PPS',
+        type: updateType,
         objectData: {
           ...defaultProperties,
           coordinate: {
@@ -117,6 +143,7 @@ export const useObjectManager = (cellSize, onWarehouseUpdate, loadingHandlers = 
       console.log('Updated objects:', updatedObjects);
       console.log('Filtered bots:', updatedObjects.filter(obj => obj.type === 'bot'));
       console.log('Filtered pps:', updatedObjects.filter(obj => obj.type === 'pps'));
+      console.log('Filtered msu:', updatedObjects.filter(obj => obj.type === 'msu'));
       
       // Send update to server using the fresh updatedObjects
       if (onWarehouseUpdate) {
@@ -132,14 +159,22 @@ export const useObjectManager = (cellSize, onWarehouseUpdate, loadingHandlers = 
             ...obj.properties
           }));
         
+        const transportEntityList = updatedObjects
+          .filter(obj => obj.type === 'msu')
+          .map(obj => ({
+            ...obj.properties
+          }));
+        
         console.log('Sending ranger_list:', rangerList);
         console.log('Sending pps_list:', ppsList);
+        console.log('Sending transport_entity_list:', transportEntityList);
         
         onWarehouseUpdate({
           type: 'UPDATE_WAREHOUSE_DATA',
           data: {
             ranger_list: rangerList,
-            pps_list: ppsList
+            pps_list: ppsList,
+            transport_entity_list: transportEntityList
           }
         });
       }
@@ -187,6 +222,11 @@ export const useObjectManager = (cellSize, onWarehouseUpdate, loadingHandlers = 
               .filter(obj => obj.type === 'pps')
               .map(obj => ({
                 ...obj.properties
+              })),
+            transport_entity_list: updatedObjects
+              .filter(obj => obj.type === 'msu')
+              .map(obj => ({
+                ...obj.properties
               }))
           }
         });
@@ -224,6 +264,21 @@ export const useObjectManager = (cellSize, onWarehouseUpdate, loadingHandlers = 
             x: pps.coordinate.x * cellSize,
             y: pps.coordinate.y * cellSize,
             properties: { ...pps }
+          });
+        }
+      });
+    }
+    
+    // Load MSU from transport_entity_list
+    if (warehouseData.warehouse.problem_statement?.transport_entity_list) {
+      warehouseData.warehouse.problem_statement.transport_entity_list.forEach((msu, index) => {
+        if (msu.coordinate?.x !== undefined && msu.coordinate?.y !== undefined) {
+          loadedObjects.push({
+            id: `msu-${msu.id || index}-${Date.now()}`,
+            type: 'msu',
+            x: msu.coordinate.x * cellSize,
+            y: msu.coordinate.y * cellSize,
+            properties: { ...msu }
           });
         }
       });

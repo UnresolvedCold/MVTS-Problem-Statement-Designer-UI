@@ -14,6 +14,7 @@ const Toolbar = ({
       <h3>Toolbar</h3>
       <button onClick={() => onAddObject("bot")}>Add Bot</button>
       <button onClick={() => onAddObject("pps")}>Add PPS</button>
+      <button onClick={() => onAddObject("msu")}>Add MSU</button>
       <hr />
       <div>
         <label>Rows: </label>

@@ -58,20 +58,31 @@ const GridCanvas = ({
 
       {/* Objects Layer */}
       <Layer>
-        {objects.map((obj) => (
-          <ObjectImage
-            key={obj.id}
-            x={obj.x}
-            y={obj.y}
-            src={obj.type === "bot" ? "/tree.png" : "/house.png"}
-            gridWidth={cols * cellSize}
-            gridHeight={rows * cellSize}
-            cellSize={cellSize}
-            isSelected={selectedObject?.id === obj.id}
-            onClick={() => onObjectClick(obj)}
-            onDragEnd={(x, y) => onObjectDragEnd(obj.id, x, y)}
-          />
-        ))}
+        {objects.map((obj) => {
+          let imageSrc;
+          if (obj.type === "bot") {
+            imageSrc = "/tree.png";
+          } else if (obj.type === "msu") {
+            imageSrc = "/logo192.png"; // Using React logo for MSU objects
+          } else {
+            imageSrc = "/house.png"; // PPS
+          }
+          
+          return (
+            <ObjectImage
+              key={obj.id}
+              x={obj.x}
+              y={obj.y}
+              src={imageSrc}
+              gridWidth={cols * cellSize}
+              gridHeight={rows * cellSize}
+              cellSize={cellSize}
+              isSelected={selectedObject?.id === obj.id}
+              onClick={() => onObjectClick(obj)}
+              onDragEnd={(x, y) => onObjectDragEnd(obj.id, x, y)}
+            />
+          );
+        })}
       </Layer>
     </Stage>
   );

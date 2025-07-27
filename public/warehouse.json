@@ -3,7 +3,28 @@
     "width": 10,
     "height": 10,
     "problem_statement": {
-      "task_list": null,
+      "task_list": [
+        {
+          "task_key": "task-1",
+          "serviced_orders": null,
+          "serviced_bins": null,
+          "destination": null,
+          "destination_id": 1,
+          "transport_entity_id": 1,
+          "transport_entity_type": null,
+          "task_type": null,
+          "status": null,
+          "task_subtype": "unknown",
+          "assigned_ranger_id": null,
+          "aisle_info": {
+            "aisle_id": 0,
+            "aisle_coordinate": [
+              0,
+              0
+            ]
+          }
+        }
+      ],
       "start_time": null,
       "request_id": null,
       "pps_list": [
@@ -12,20 +33,44 @@
             "x": 0,
             "y": 0
           },
-          "bin_details": [],
-          "queue_length": 0,
+          "bin_details": [
+            {
+              "virtualBin": false,
+              "msio": true,
+              "bin_id": "1-1",
+              "is_msio": true,
+              "is_virtual_bin_used": false
+            }
+          ],
+          "queue_length": 1,
           "id": 1,
-          "ranger_dock_coordinates": null,
-          "mode": null,
-          "pps_type": null,
+          "ranger_dock_coordinates": [
+            {
+              "coordinate": {
+                "x": 0,
+                "y": 0
+              },
+              "type": "rtp_pps_location"
+            }
+          ],
+          "mode": "pick",
+          "pps_type": "RTP",
           "current_schedule": {
             "cost": null,
             "assignments": [],
             "reserved_ranger_list": []
           },
-          "connected_pps_list": null,
-          "can_assign_task": false,
-          "ranger_exit_coordinates": null,
+          "connected_pps_list": [],
+          "can_assign_task": true,
+          "ranger_exit_coordinates": [
+            {
+              "coordinate": {
+                "x": 0,
+                "y": 0
+              },
+              "type": "rtp_pps_location"
+            }
+          ],
           "msio_bins": [],
           "pps_status": "open",
           "pps_logged_in": true,
@@ -33,25 +78,51 @@
         }
       ],
       "planning_duration_seconds": 0,
-      "transport_entity_list": null,
-      "maximizing_picks": false,
-      "ranger_list": [
+      "transport_entity_list": [
         {
-          "paused": false,
-          "available_at_time": null,
+          "id": 1,
+          "type": null,
           "coordinate": {
             "x": 0,
             "y": 0
           },
           "available_at_coordinate": null,
-          "total_capacity": 0,
-          "available_capacity": 0,
+          "depth": 0,
+          "height": 0,
+          "direction": 0,
+          "available": false,
+          "lifted_ranger_id": null,
+          "current_location_type": null,
+          "aisle_info": null
+        }
+      ],
+      "maximizing_picks": false,
+      "ranger_list": [
+        {
+          "paused": false,
+          "available_at_time": 1753632477949,
+          "coordinate": {
+            "x": 0,
+            "y": 0
+          },
+          "available_at_coordinate": {
+            "x": 0,
+            "y": 0
+          },
+          "total_capacity": 1,
+          "available_capacity": 1,
           "id": 1,
           "is_paused": false,
-          "status": null,
-          "version": null,
+          "status": "ready",
+          "version": "ttp_demo",
           "ranger_schedule": [],
-          "current_aisle_info": null
+          "current_aisle_info": {
+            "aisle_id": 0,
+            "aisle_coordinate": [
+              0,
+              0
+            ]
+          }
         }
       ],
       "conveyor_list": [],

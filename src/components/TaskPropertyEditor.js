@@ -22,7 +22,7 @@ const TaskPropertyEditor = ({
   const handleFormChange = (key, value) => {
     const updatedValues = { ...formValues, [key]: value };
     setFormValues(updatedValues);
-    onUpdateProperties(selectedTask.id, updatedValues);
+    onUpdateProperties(selectedTask.task_key || selectedTask.id, updatedValues);
   };
 
   if (!selectedTask) {
@@ -61,12 +61,12 @@ const TaskPropertyEditor = ({
 
       <div style={{ marginBottom: 15 }}>
         <label style={{ display: "block", fontWeight: "bold", marginBottom: 5 }}>
-          Task ID:
+          Task Key:
         </label>
         <input
           type="text"
-          value={formValues.id || ''}
-          onChange={(e) => handleFormChange('id', e.target.value)}
+          value={formValues.task_key || ''}
+          onChange={(e) => handleFormChange('task_key', e.target.value)}
           style={{
             width: "100%",
             padding: "8px",
@@ -78,11 +78,11 @@ const TaskPropertyEditor = ({
 
       <div style={{ marginBottom: 15 }}>
         <label style={{ display: "block", fontWeight: "bold", marginBottom: 5 }}>
-          Destination (PPS ID):
+          Destination ID (PPS ID):
         </label>
         <select
           value={formValues.destination_id || ''}
-          onChange={(e) => handleFormChange('destination_id', e.target.value)}
+          onChange={(e) => handleFormChange('destination_id', parseInt(e.target.value) || null)}
           style={{
             width: "100%",
             padding: "8px",
@@ -101,11 +101,11 @@ const TaskPropertyEditor = ({
 
       <div style={{ marginBottom: 15 }}>
         <label style={{ display: "block", fontWeight: "bold", marginBottom: 5 }}>
-          Transport Entity (MSU ID):
+          Transport Entity ID (MSU ID):
         </label>
         <select
           value={formValues.transport_entity_id || ''}
-          onChange={(e) => handleFormChange('transport_entity_id', e.target.value)}
+          onChange={(e) => handleFormChange('transport_entity_id', parseInt(e.target.value) || null)}
           style={{
             width: "100%",
             padding: "8px",
@@ -124,45 +124,19 @@ const TaskPropertyEditor = ({
 
       <div style={{ marginBottom: 15 }}>
         <label style={{ display: "block", fontWeight: "bold", marginBottom: 5 }}>
-          Priority:
+          Transport Entity Type:
         </label>
-        <select
-          value={formValues.priority || 'medium'}
-          onChange={(e) => handleFormChange('priority', e.target.value)}
+        <input
+          type="text"
+          value={formValues.transport_entity_type || ''}
+          onChange={(e) => handleFormChange('transport_entity_type', e.target.value)}
           style={{
             width: "100%",
             padding: "8px",
             border: "1px solid #ccc",
             borderRadius: "4px"
           }}
-        >
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-          <option value="urgent">Urgent</option>
-        </select>
-      </div>
-
-      <div style={{ marginBottom: 15 }}>
-        <label style={{ display: "block", fontWeight: "bold", marginBottom: 5 }}>
-          Status:
-        </label>
-        <select
-          value={formValues.status || 'pending'}
-          onChange={(e) => handleFormChange('status', e.target.value)}
-          style={{
-            width: "100%",
-            padding: "8px",
-            border: "1px solid #ccc",
-            borderRadius: "4px"
-          }}
-        >
-          <option value="pending">Pending</option>
-          <option value="assigned">Assigned</option>
-          <option value="in_progress">In Progress</option>
-          <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
-        </select>
+        />
       </div>
 
       <div style={{ marginBottom: 15 }}>
@@ -184,30 +158,12 @@ const TaskPropertyEditor = ({
 
       <div style={{ marginBottom: 15 }}>
         <label style={{ display: "block", fontWeight: "bold", marginBottom: 5 }}>
-          Description:
-        </label>
-        <textarea
-          value={formValues.description || ''}
-          onChange={(e) => handleFormChange('description', e.target.value)}
-          rows={3}
-          style={{
-            width: "100%",
-            padding: "8px",
-            border: "1px solid #ccc",
-            borderRadius: "4px",
-            resize: "vertical"
-          }}
-        />
-      </div>
-
-      <div style={{ marginBottom: 15 }}>
-        <label style={{ display: "block", fontWeight: "bold", marginBottom: 5 }}>
-          Deadline:
+          Status:
         </label>
         <input
-          type="datetime-local"
-          value={formValues.deadline ? new Date(formValues.deadline).toISOString().slice(0, 16) : ''}
-          onChange={(e) => handleFormChange('deadline', e.target.value ? new Date(e.target.value).toISOString() : null)}
+          type="text"
+          value={formValues.status || ''}
+          onChange={(e) => handleFormChange('status', e.target.value)}
           style={{
             width: "100%",
             padding: "8px",
@@ -219,20 +175,123 @@ const TaskPropertyEditor = ({
 
       <div style={{ marginBottom: 15 }}>
         <label style={{ display: "block", fontWeight: "bold", marginBottom: 5 }}>
-          Created At:
+          Task Subtype:
         </label>
-        <input
-          type="text"
-          value={formValues.created_at ? new Date(formValues.created_at).toLocaleString() : ''}
-          disabled
+        <select
+          value={formValues.task_subtype || 'unknown'}
+          onChange={(e) => handleFormChange('task_subtype', e.target.value)}
           style={{
             width: "100%",
             padding: "8px",
             border: "1px solid #ccc",
-            borderRadius: "4px",
-            backgroundColor: "#f5f5f5"
+            borderRadius: "4px"
+          }}
+        >
+          <option value="unknown">Unknown</option>
+          <option value="pick">Pick</option>
+          <option value="place">Place</option>
+          <option value="transport">Transport</option>
+          <option value="delivery">Delivery</option>
+        </select>
+      </div>
+
+      <div style={{ marginBottom: 15 }}>
+        <label style={{ display: "block", fontWeight: "bold", marginBottom: 5 }}>
+          Assigned Ranger ID:
+        </label>
+        <input
+          type="number"
+          value={formValues.assigned_ranger_id || ''}
+          onChange={(e) => handleFormChange('assigned_ranger_id', parseInt(e.target.value) || null)}
+          style={{
+            width: "100%",
+            padding: "8px",
+            border: "1px solid #ccc",
+            borderRadius: "4px"
           }}
         />
+      </div>
+
+      <div style={{ marginBottom: 15 }}>
+        <label style={{ display: "block", fontWeight: "bold", marginBottom: 5 }}>
+          Destination:
+        </label>
+        <input
+          type="text"
+          value={formValues.destination || ''}
+          onChange={(e) => handleFormChange('destination', e.target.value)}
+          style={{
+            width: "100%",
+            padding: "8px",
+            border: "1px solid #ccc",
+            borderRadius: "4px"
+          }}
+        />
+      </div>
+
+      <div style={{ marginBottom: 15 }}>
+        <label style={{ display: "block", fontWeight: "bold", marginBottom: 5 }}>
+          Aisle Info:
+        </label>
+        <div style={{ display: "flex", gap: "10px" }}>
+          <div style={{ flex: 1 }}>
+            <label style={{ fontSize: "11px", color: "#666" }}>Aisle ID:</label>
+            <input
+              type="number"
+              value={formValues.aisle_info?.aisle_id || 0}
+              onChange={(e) => handleFormChange('aisle_info', {
+                ...formValues.aisle_info,
+                aisle_id: parseInt(e.target.value) || 0
+              })}
+              style={{
+                width: "100%",
+                padding: "4px",
+                border: "1px solid #ccc",
+                borderRadius: "3px"
+              }}
+            />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label style={{ fontSize: "11px", color: "#666" }}>X Coord:</label>
+            <input
+              type="number"
+              value={formValues.aisle_info?.aisle_coordinate?.[0] || 0}
+              onChange={(e) => {
+                const currentCoord = formValues.aisle_info?.aisle_coordinate || [0, 0];
+                handleFormChange('aisle_info', {
+                  ...formValues.aisle_info,
+                  aisle_coordinate: [parseInt(e.target.value) || 0, currentCoord[1]]
+                });
+              }}
+              style={{
+                width: "100%",
+                padding: "4px",
+                border: "1px solid #ccc",
+                borderRadius: "3px"
+              }}
+            />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label style={{ fontSize: "11px", color: "#666" }}>Y Coord:</label>
+            <input
+              type="number"
+              value={formValues.aisle_info?.aisle_coordinate?.[1] || 0}
+              onChange={(e) => {
+                const currentCoord = formValues.aisle_info?.aisle_coordinate || [0, 0];
+                handleFormChange('aisle_info', {
+                  ...formValues.aisle_info,
+                  aisle_coordinate: [currentCoord[0], parseInt(e.target.value) || 0]
+                });
+              }}
+              style={{
+                width: "100%",
+                padding: "4px",
+                border: "1px solid #ccc",
+                borderRadius: "3px"
+              }}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

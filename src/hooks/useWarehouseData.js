@@ -53,7 +53,7 @@ export const useWarehouseData = (sendMessage) => {
             problem_statement: {
               ...warehouseData.warehouse.problem_statement,
               task_list: warehouseData.warehouse.problem_statement.task_list?.filter(
-                task => task.id !== updateData.taskId
+                task => (task.task_key || task.id) !== updateData.taskId
               ) || []
             }
           }

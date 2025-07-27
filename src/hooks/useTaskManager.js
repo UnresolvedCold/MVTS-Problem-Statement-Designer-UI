@@ -3,16 +3,21 @@ import { useState, useCallback } from 'react';
 // Default properties for new tasks
 const getDefaultTaskProperties = () => {
   return {
-    id: Date.now(),
+    task_key: `task-${Date.now()}`,
+    serviced_orders: null,
+    serviced_bins: null,
+    destination: null,
     destination_id: null,
     transport_entity_id: null,
-    priority: "medium",
-    status: "pending",
-    created_at: new Date().toISOString(),
-    deadline: null,
-    task_type: "transport",
-    description: "",
-    requirements: []
+    transport_entity_type: null,
+    task_type: null,
+    status: null,
+    task_subtype: "unknown",
+    assigned_ranger_id: null,
+    aisle_info: {
+      aisle_id: 0,
+      aisle_coordinate: [0, 0]
+    }
   };
 };
 
@@ -48,7 +53,7 @@ export const useTaskManager = (onWarehouseUpdate, loadingHandlers = {}) => {
     }
 
     // Clear selection if the removed task was selected
-    if (selectedTask?.id === taskId) {
+    if (selectedTask?.task_key === taskId || selectedTask?.id === taskId) {
       setSelectedTask(null);
     }
     
@@ -65,13 +70,13 @@ export const useTaskManager = (onWarehouseUpdate, loadingHandlers = {}) => {
     // Update local tasks state
     setTasks(currentTasks => {
       const updatedTasks = currentTasks.map((task) =>
-        task.id === taskId 
+        (task.task_key === taskId || task.id === taskId)
           ? { ...task, ...newProperties } 
           : task
       );
       
       // Update selected task if it's the one being edited
-      if (selectedTask?.id === taskId) {
+      if (selectedTask?.task_key === taskId || selectedTask?.id === taskId) {
         setSelectedTask({ ...selectedTask, ...newProperties });
       }
       

@@ -169,20 +169,20 @@ const TasksList = ({
         <div>
           {tasks.map((task, index) => (
             <div
-              key={task.id || index}
+              key={task.task_key || task.id || index}
               onClick={() => onSelectTask(task)}
               style={{
                 padding: "8px",
                 marginBottom: "5px",
-                border: selectedTask?.id === task.id ? "2px solid #007bff" : "1px solid #ddd",
+                border: selectedTask?.task_key === task.task_key ? "2px solid #007bff" : "1px solid #ddd",
                 borderRadius: "4px",
                 cursor: "pointer",
-                backgroundColor: selectedTask?.id === task.id ? "#e3f2fd" : "white",
+                backgroundColor: selectedTask?.task_key === task.task_key ? "#e3f2fd" : "white",
                 fontSize: "12px"
               }}
             >
               <div style={{ fontWeight: "bold", marginBottom: "4px" }}>
-                Task #{task.id || index + 1}
+                {task.task_key || `Task #${index + 1}`}
               </div>
               
               <div style={{ marginBottom: "2px" }}>
@@ -193,15 +193,21 @@ const TasksList = ({
                 <strong>Transport Entity:</strong> MSU-{task.transport_entity_id || 'N/A'}
               </div>
               
-              {task.priority && (
+              {task.task_subtype && (
                 <div style={{ marginBottom: "2px" }}>
-                  <strong>Priority:</strong> {task.priority}
+                  <strong>Subtype:</strong> {task.task_subtype}
                 </div>
               )}
               
               {task.status && (
                 <div style={{ marginBottom: "2px" }}>
                   <strong>Status:</strong> {task.status}
+                </div>
+              )}
+              
+              {task.assigned_ranger_id && (
+                <div style={{ marginBottom: "2px" }}>
+                  <strong>Assigned Ranger:</strong> {task.assigned_ranger_id}
                 </div>
               )}
               
@@ -232,7 +238,7 @@ const TasksList = ({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onRemoveTask(task.id || index);
+                    onRemoveTask(task.task_key || task.id || index);
                   }}
                   style={{
                     padding: "2px 6px",

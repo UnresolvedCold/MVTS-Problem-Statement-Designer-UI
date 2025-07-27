@@ -31,6 +31,12 @@ const GridEditorModular = () => {
       loadObjectsFromWarehouse(data);
     } else if (data.type === 'WAREHOUSE_DATA_UPDATED') {
       console.log('Warehouse data updated successfully');
+      
+      // Server sends the updated warehouse data, reload objects
+      if (data.warehouse) {
+        setWarehouseData(data);
+        loadObjectsFromWarehouse(data);
+      }
     } else if (data.type === 'CONNECTION_ESTABLISHED') {
       console.log('WebSocket connection established');
     } else if (data.type === 'ERROR') {

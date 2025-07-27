@@ -33,52 +33,7 @@ const GridEditor = () => {
     // Handle different message types
     if (data.type === 'WAREHOUSE_DATA_RESPONSE' && data.warehouse) {
       console.log('Processing warehouse data response...');
-      setWarehouseData(data);
-      
-      // Set grid dimensions from warehouse data
-      if (data.warehouse.width && data.warehouse.height) {
-        console.log('Setting grid dimensions:', data.warehouse.width, 'x', data.warehouse.height);
-        setCols(data.warehouse.width);
-        setRows(data.warehouse.height);
-      }
-      
-      // Load objects from warehouse data
-      const loadedObjects = [];
-      
-      // Add bots from ranger_list
-      if (data.warehouse.problem_statement?.ranger_list) {
-        console.log('Loading rangers:', data.warehouse.problem_statement.ranger_list.length);
-        data.warehouse.problem_statement.ranger_list.forEach((ranger, index) => {
-          if (ranger.coordinate?.x !== undefined && ranger.coordinate?.y !== undefined) {
-            loadedObjects.push({
-              id: `bot-${ranger.id || index}-${Date.now()}`,
-              type: 'bot',
-              x: ranger.coordinate.x * cellSize,
-              y: ranger.coordinate.y * cellSize,
-              properties: { ...ranger }
-            });
-          }
-        });
-      }
-      
-      // Add PPS from pps_list
-      if (data.warehouse.problem_statement?.pps_list) {
-        console.log('Loading PPS:', data.warehouse.problem_statement.pps_list.length);
-        data.warehouse.problem_statement.pps_list.forEach((pps, index) => {
-          if (pps.coordinate?.x !== undefined && pps.coordinate?.y !== undefined) {
-            loadedObjects.push({
-              id: `pps-${pps.id || index}-${Date.now()}`,
-              type: 'pps',
-              x: pps.coordinate.x * cellSize,
-              y: pps.coordinate.y * cellSize,
-              properties: { ...pps }
-            });
-          }
-        });
-      }
-      
-      console.log('Loaded objects:', loadedObjects);
-      setObjects(loadedObjects);
+      processWarehouseData(data);
     } else if (data.type === 'CONNECTION_ESTABLISHED') {
       console.log('Connection established:', data.message);
     } else if (data.type === 'ERROR') {
@@ -86,6 +41,56 @@ const GridEditor = () => {
     } else {
       console.warn('Unknown message type or format:', data);
     }
+  };
+
+  // Process warehouse data and update state
+  const processWarehouseData = (data) => {
+    setWarehouseData(data);
+    
+    // Set grid dimensions from warehouse data
+    if (data.warehouse.width && data.warehouse.height) {
+      console.log('Setting grid dimensions:', data.warehouse.width, 'x', data.warehouse.height);
+      setCols(data.warehouse.width);
+      setRows(data.warehouse.height);
+    }
+    
+    // Load objects from warehouse data
+    const loadedObjects = [];
+    
+    // Add bots from ranger_list
+    if (data.warehouse.problem_statement?.ranger_list) {
+      console.log('Loading rangers:', data.warehouse.problem_statement.ranger_list.length);
+      data.warehouse.problem_statement.ranger_list.forEach((ranger, index) => {
+        if (ranger.coordinate?.x !== undefined && ranger.coordinate?.y !== undefined) {
+          loadedObjects.push({
+            id: `bot-${ranger.id || index}-${Date.now()}`,
+            type: 'bot',
+            x: ranger.coordinate.x * cellSize,
+            y: ranger.coordinate.y * cellSize,
+            properties: { ...ranger }
+          });
+        }
+      });
+    }
+    
+    // Add PPS from pps_list
+    if (data.warehouse.problem_statement?.pps_list) {
+      console.log('Loading PPS:', data.warehouse.problem_statement.pps_list.length);
+      data.warehouse.problem_statement.pps_list.forEach((pps, index) => {
+        if (pps.coordinate?.x !== undefined && pps.coordinate?.y !== undefined) {
+          loadedObjects.push({
+            id: `pps-${pps.id || index}-${Date.now()}`,
+            type: 'pps',
+            x: pps.coordinate.x * cellSize,
+            y: pps.coordinate.y * cellSize,
+            properties: { ...pps }
+          });
+        }
+      });
+    }
+    
+    console.log('Loaded objects:', loadedObjects);
+    setObjects(loadedObjects);
   };
 
   // Initialize WebSocket connection
@@ -129,7 +134,7 @@ const GridEditor = () => {
     });
   };
 
-  // Add new object
+  // Add new object - Send request to server
   const addObject = (type) => {
     const defaultProperties = type === 'bot' ? {
       id: Date.now(),
@@ -166,18 +171,12 @@ const GridEditor = () => {
       pps_login_time: 0
     };
 
-    const newObj = { 
-      id: Date.now(), 
-      type, 
-      x: 0, 
-      y: 0, 
-      properties: defaultProperties 
-    };
-    const updatedObjects = [...objects, newObj];
-    setObjects(updatedObjects);
-    
-    // Send update to server via WebSocket
-    sendWarehouseUpdate(updatedObjects);
+    // Send request to server to add object
+    const messageType = type === 'bot' ? 'ADD_BOT' : 'ADD_PPS';
+    sendMessage({
+      type: messageType,
+      objectData: defaultProperties
+    });
   };
 
   // Remove object

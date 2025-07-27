@@ -45,12 +45,17 @@ export const useObjectManager = (cellSize, onWarehouseUpdate) => {
   const addObject = useCallback((type) => {
     const defaultProperties = getDefaultProperties(type);
     
-    // Send add request to server instead of adding locally
+    // Send ADD_BOT or ADD_PPS event to server instead of adding locally
     if (onWarehouseUpdate) {
       onWarehouseUpdate({
-        type: 'ADD_OBJECT',
-        objectType: type,
-        objectData: defaultProperties
+        type: type === 'bot' ? 'ADD_BOT' : 'ADD_PPS',
+        objectData: {
+          ...defaultProperties,
+          coordinate: {
+            x: 0, // Default grid position
+            y: 0
+          }
+        }
       });
     }
   }, [onWarehouseUpdate]);

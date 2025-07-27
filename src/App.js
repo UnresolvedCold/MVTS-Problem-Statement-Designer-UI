@@ -1,7 +1,7 @@
-import GridEditor from "./GridEditor";
+import GridEditorModular from "./GridEditorModular";
 
 function App() {
-  return <GridEditor />;
+  return <GridEditorModular />;
 }
 
 export default App;

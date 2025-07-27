@@ -4,67 +4,56 @@ export const useWarehouseData = (sendMessage) => {
   const [warehouseData, setWarehouseData] = useState(null);
 
   const sendWarehouseUpdate = useCallback((updateData) => {
-    if (!warehouseData) return;
-
     let updatedWarehouseData;
 
     switch (updateData.type) {
-      case 'ADD_OBJECT':
-        // Add new object to the appropriate list
-        updatedWarehouseData = {
-          ...warehouseData,
-          warehouse: {
-            ...warehouseData.warehouse,
-            problem_statement: {
-              ...warehouseData.warehouse.problem_statement,
-              ...(updateData.objectType === 'bot' ? {
-                ranger_list: [
-                  ...(warehouseData.warehouse.problem_statement.ranger_list || []),
-                  updateData.objectData
-                ]
-              } : {
-                pps_list: [
-                  ...(warehouseData.warehouse.problem_statement.pps_list || []),
-                  updateData.objectData
-                ]
-              })
-            }
-          }
-        };
-        break;
+      case 'ADD_BOT':
+        // Send ADD_BOT request to server - no local state update needed
+        sendMessage({
+          type: 'ADD_BOT',
+          objectData: updateData.objectData || {}
+        });
+        return; // Exit early, don't send UPDATE_WAREHOUSE_DATA
+
+      case 'ADD_PPS':
+        // Send ADD_PPS request to server - no local state update needed
+        sendMessage({
+          type: 'ADD_PPS',
+          objectData: updateData.objectData || {}
+        });
+        return; // Exit early, don't send UPDATE_WAREHOUSE_DATA
 
       case 'REMOVE_OBJECT':
         // Remove object from the appropriate list
+        if (!warehouseData) return;
+        
         updatedWarehouseData = {
-          ...warehouseData,
-          warehouse: {
-            ...warehouseData.warehouse,
-            problem_statement: {
-              ...warehouseData.warehouse.problem_statement,
-              ...(updateData.objectType === 'bot' ? {
-                ranger_list: warehouseData.warehouse.problem_statement.ranger_list?.filter(
-                  ranger => ranger.id !== updateData.objectId
-                ) || []
-              } : {
-                pps_list: warehouseData.warehouse.problem_statement.pps_list?.filter(
-                  pps => pps.id !== updateData.objectId
-                ) || []
-              })
-            }
+          ...warehouseData.warehouse, // Only use the warehouse part, not the entire response
+          problem_statement: {
+            ...warehouseData.warehouse.problem_statement,
+            ...(updateData.objectType === 'bot' ? {
+              ranger_list: warehouseData.warehouse.problem_statement.ranger_list?.filter(
+                ranger => ranger.id !== updateData.objectId
+              ) || []
+            } : {
+              pps_list: warehouseData.warehouse.problem_statement.pps_list?.filter(
+                pps => pps.id !== updateData.objectId
+              ) || []
+            })
           }
         };
         break;
 
       case 'UPDATE_WAREHOUSE_DATA':
-        // Update entire warehouse data
+        // Update warehouse data with new object lists
+        if (!warehouseData) return;
+        
         updatedWarehouseData = {
-          ...warehouseData,
-          warehouse: {
-            ...warehouseData.warehouse,
-            problem_statement: {
-              ...warehouseData.warehouse.problem_statement,
-              ...updateData.data
-            }
+          ...warehouseData.warehouse, // Only use the warehouse part, not the entire response
+          problem_statement: {
+            ...warehouseData.warehouse.problem_statement,
+            ranger_list: updateData.data.ranger_list || warehouseData.warehouse.problem_statement.ranger_list || [],
+            pps_list: updateData.data.pps_list || warehouseData.warehouse.problem_statement.pps_list || []
           }
         };
         break;
@@ -74,7 +63,7 @@ export const useWarehouseData = (sendMessage) => {
         return;
     }
 
-    // Send to server
+    // Send to server only for cases that modify existing data
     sendMessage({
       type: 'UPDATE_WAREHOUSE_DATA',
       data: updatedWarehouseData

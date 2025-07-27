@@ -31,6 +31,35 @@ export const useWarehouseData = (sendMessage) => {
         });
         return; // Exit early, don't send UPDATE_WAREHOUSE_DATA
 
+      case 'ADD_TASK':
+        // Send ADD_TASK request to server with pps_id and msu_id
+        sendMessage({
+          type: 'ADD_TASK',
+          data: {
+            pps_id: updateData.taskData.pps_id,
+            msu_id: updateData.taskData.msu_id
+          }
+        });
+        return; // Exit early, don't send UPDATE_WAREHOUSE_DATA
+
+      case 'REMOVE_TASK':
+        // Remove task from task_list
+        if (!warehouseData) return;
+        
+        updatedWarehouseData = {
+          ...warehouseData,
+          warehouse: {
+            ...warehouseData.warehouse,
+            problem_statement: {
+              ...warehouseData.warehouse.problem_statement,
+              task_list: warehouseData.warehouse.problem_statement.task_list?.filter(
+                task => task.id !== updateData.taskId
+              ) || []
+            }
+          }
+        };
+        break;
+
       case 'REMOVE_OBJECT':
         // Remove object from the appropriate list
         if (!warehouseData) return;
@@ -71,7 +100,8 @@ export const useWarehouseData = (sendMessage) => {
               ...warehouseData.warehouse.problem_statement,
               ranger_list: updateData.data.ranger_list || warehouseData.warehouse.problem_statement.ranger_list || [],
               pps_list: updateData.data.pps_list || warehouseData.warehouse.problem_statement.pps_list || [],
-              transport_entity_list: updateData.data.transport_entity_list || warehouseData.warehouse.problem_statement.transport_entity_list || []
+              transport_entity_list: updateData.data.transport_entity_list || warehouseData.warehouse.problem_statement.transport_entity_list || [],
+              task_list: updateData.data.task_list || warehouseData.warehouse.problem_statement.task_list || []
             }
           }
         };

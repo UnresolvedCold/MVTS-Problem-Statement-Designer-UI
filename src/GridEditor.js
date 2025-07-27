@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import useWebSocket from "./hooks/useWebSocket";
 import { useObjectManager } from "./hooks/useObjectManager";
+import { useTaskManager } from "./hooks/useTaskManager";
 import { useWarehouseData } from "./hooks/useWarehouseData";
 import Toolbar from "./components/Toolbar";
 import GridCanvas from "./components/GridCanvas";
 import ObjectsList from "./components/ObjectsList";
+import TasksList from "./components/TasksList";
 import PropertyEditor from "./components/PropertyEditor";
+import TaskPropertyEditor from "./components/TaskPropertyEditor";
 import ProblemStatementViewer from "./components/ProblemStatementViewer";
 import { GRID_CONFIG } from "./utils/constants";
 
@@ -38,6 +41,7 @@ const GridEditor = () => {
       
       // Load objects from warehouse data
       loadObjectsFromWarehouse(data);
+      loadTasksFromWarehouse(data);
       setIsLoading(false);
       setLoadingMessage('');
     } else if (data.type === 'WAREHOUSE_DATA_UPDATED') {
@@ -48,6 +52,7 @@ const GridEditor = () => {
         setLoadingMessage('Updating warehouse data...');
         setWarehouseData(data);
         loadObjectsFromWarehouse(data);
+        loadTasksFromWarehouse(data);
         setIsLoading(false);
         setLoadingMessage('');
       }
@@ -79,6 +84,29 @@ const GridEditor = () => {
     updateObjectProperties,
     loadObjectsFromWarehouse
   } = useObjectManager(cellSize, sendWarehouseUpdate, { setIsLoading, setLoadingMessage });
+
+  // Initialize task management
+  const {
+    tasks,
+    selectedTask,
+    setSelectedTask,
+    addTask,
+    removeTask,
+    updateTaskProperties,
+    loadTasksFromWarehouse
+  } = useTaskManager(sendWarehouseUpdate, { setIsLoading, setLoadingMessage });
+
+  // Handle task selection (clear object selection)
+  const handleTaskSelect = (task) => {
+    setSelectedTask(task);
+    setSelectedObject(null);
+  };
+
+  // Handle object selection (clear task selection)
+  const handleObjectSelect = (object) => {
+    setSelectedObject(object);
+    setSelectedTask(null);
+  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
@@ -171,23 +199,49 @@ const GridEditor = () => {
               cellSize={cellSize}
               objects={objects}
               selectedObject={selectedObject}
-              onObjectClick={setSelectedObject}
+              onObjectClick={handleObjectSelect}
               onObjectDragEnd={updateObjectPosition}
+            />
+
+            <TasksList
+              tasks={tasks}
+              selectedTask={selectedTask}
+              onSelectTask={handleTaskSelect}
+              onRemoveTask={removeTask}
+              onAddTask={addTask}
+              availablePPS={objects.filter(obj => obj.type === 'pps').map(obj => obj.properties)}
+              availableMSU={objects.filter(obj => obj.type === 'msu').map(obj => obj.properties)}
             />
 
             <ObjectsList
               objects={objects}
               selectedObject={selectedObject}
-              onSelectObject={setSelectedObject}
+              onSelectObject={handleObjectSelect}
               onRemoveObject={removeObject}
               cellSize={cellSize}
             />
 
-            <PropertyEditor
-              selectedObject={selectedObject}
-              onUpdateProperties={updateObjectProperties}
-              onClose={() => setSelectedObject(null)}
-            />
+            {selectedTask ? (
+              <TaskPropertyEditor
+                selectedTask={selectedTask}
+                onUpdateProperties={updateTaskProperties}
+                onClose={() => {
+                  setSelectedTask(null);
+                  setSelectedObject(null);
+                }}
+                availablePPS={objects.filter(obj => obj.type === 'pps').map(obj => obj.properties)}
+                availableMSU={objects.filter(obj => obj.type === 'msu').map(obj => obj.properties)}
+              />
+            ) : (
+              <PropertyEditor
+                selectedObject={selectedObject}
+                onUpdateProperties={updateObjectProperties}
+                onClose={() => {
+                  setSelectedObject(null);
+                  setSelectedTask(null);
+                }}
+              />
+            )}
           </div>
         ) : (
           // JSON Viewer

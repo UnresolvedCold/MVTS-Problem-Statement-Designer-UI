@@ -184,7 +184,6 @@ const GridEditor = () => {
           // Grid Editor View
           <div style={{ display: "flex", height: "100%" }}>
             <Toolbar
-              onAddObject={addObject}
               rows={rows}
               cols={cols}
               cellSize={cellSize}
@@ -218,6 +217,7 @@ const GridEditor = () => {
               selectedObject={selectedObject}
               onSelectObject={handleObjectSelect}
               onRemoveObject={removeObject}
+              onAddObject={addObject}
               cellSize={cellSize}
             />
 

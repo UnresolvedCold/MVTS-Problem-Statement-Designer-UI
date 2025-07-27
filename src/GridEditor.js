@@ -6,6 +6,7 @@ import Toolbar from "./components/Toolbar";
 import GridCanvas from "./components/GridCanvas";
 import ObjectsList from "./components/ObjectsList";
 import PropertyEditor from "./components/PropertyEditor";
+import ProblemStatementViewer from "./components/ProblemStatementViewer";
 import { GRID_CONFIG } from "./utils/constants";
 
 const GridEditor = () => {
@@ -17,6 +18,9 @@ const GridEditor = () => {
   // Loading state
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
+  
+  // Tab state
+  const [activeTab, setActiveTab] = useState('grid'); // 'grid' or 'json'
 
   // WebSocket message handler
   const handleWebSocketMessage = (data) => {
@@ -77,7 +81,44 @@ const GridEditor = () => {
   } = useObjectManager(cellSize, sendWarehouseUpdate, { setIsLoading, setLoadingMessage });
 
   return (
-    <div style={{ display: "flex", position: "relative" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+      {/* Tab Navigation */}
+      <div style={{
+        display: "flex",
+        borderBottom: "1px solid #ccc",
+        backgroundColor: "#f8f9fa",
+        padding: "0 10px"
+      }}>
+        <button
+          onClick={() => setActiveTab('grid')}
+          style={{
+            padding: "10px 20px",
+            border: "none",
+            borderBottom: activeTab === 'grid' ? "3px solid #007bff" : "3px solid transparent",
+            backgroundColor: "transparent",
+            cursor: "pointer",
+            fontWeight: activeTab === 'grid' ? "bold" : "normal",
+            color: activeTab === 'grid' ? "#007bff" : "#666"
+          }}
+        >
+          🏗️ Grid Editor
+        </button>
+        <button
+          onClick={() => setActiveTab('json')}
+          style={{
+            padding: "10px 20px",
+            border: "none",
+            borderBottom: activeTab === 'json' ? "3px solid #007bff" : "3px solid transparent",
+            backgroundColor: "transparent",
+            cursor: "pointer",
+            fontWeight: activeTab === 'json' ? "bold" : "normal",
+            color: activeTab === 'json' ? "#007bff" : "#666"
+          }}
+        >
+          📄 Problem Statement JSON
+        </button>
+      </div>
+
       {/* Loading Overlay */}
       {isLoading && (
         <div style={{
@@ -109,39 +150,53 @@ const GridEditor = () => {
         </div>
       )}
       
-      <Toolbar
-        onAddObject={addObject}
-        rows={rows}
-        cols={cols}
-        cellSize={cellSize}
-        onRowsChange={setRows}
-        onColsChange={setCols}
-        onCellSizeChange={setCellSize}
-      />
+      {/* Tab Content */}
+      <div style={{ flex: 1, overflow: "hidden" }}>
+        {activeTab === 'grid' ? (
+          // Grid Editor View
+          <div style={{ display: "flex", height: "100%" }}>
+            <Toolbar
+              onAddObject={addObject}
+              rows={rows}
+              cols={cols}
+              cellSize={cellSize}
+              onRowsChange={setRows}
+              onColsChange={setCols}
+              onCellSizeChange={setCellSize}
+            />
 
-      <GridCanvas
-        rows={rows}
-        cols={cols}
-        cellSize={cellSize}
-        objects={objects}
-        selectedObject={selectedObject}
-        onObjectClick={setSelectedObject}
-        onObjectDragEnd={updateObjectPosition}
-      />
+            <GridCanvas
+              rows={rows}
+              cols={cols}
+              cellSize={cellSize}
+              objects={objects}
+              selectedObject={selectedObject}
+              onObjectClick={setSelectedObject}
+              onObjectDragEnd={updateObjectPosition}
+            />
 
-      <ObjectsList
-        objects={objects}
-        selectedObject={selectedObject}
-        onSelectObject={setSelectedObject}
-        onRemoveObject={removeObject}
-        cellSize={cellSize}
-      />
+            <ObjectsList
+              objects={objects}
+              selectedObject={selectedObject}
+              onSelectObject={setSelectedObject}
+              onRemoveObject={removeObject}
+              cellSize={cellSize}
+            />
 
-      <PropertyEditor
-        selectedObject={selectedObject}
-        onUpdateProperties={updateObjectProperties}
-        onClose={() => setSelectedObject(null)}
-      />
+            <PropertyEditor
+              selectedObject={selectedObject}
+              onUpdateProperties={updateObjectProperties}
+              onClose={() => setSelectedObject(null)}
+            />
+          </div>
+        ) : (
+          // JSON Viewer
+          <ProblemStatementViewer
+            warehouseData={warehouseData}
+            onClose={() => setActiveTab('grid')}
+          />
+        )}
+      </div>
     </div>
   );
 };

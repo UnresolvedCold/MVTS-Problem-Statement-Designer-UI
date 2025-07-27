@@ -13,12 +13,17 @@ const GridEditor = () => {
   const [rows, setRows] = useState(GRID_CONFIG.DEFAULT_ROWS);
   const [cols, setCols] = useState(GRID_CONFIG.DEFAULT_COLS);
   const [cellSize, setCellSize] = useState(GRID_CONFIG.DEFAULT_CELL_SIZE);
+  
+  // Loading state
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('');
 
   // WebSocket message handler
   const handleWebSocketMessage = (data) => {
     console.log('Received WebSocket message:', data);
     
     if (data.type === 'WAREHOUSE_DATA_RESPONSE' && data.warehouse) {
+      setLoadingMessage('Loading warehouse data...');
       setWarehouseData(data);
       
       // Update grid dimensions if provided
@@ -29,18 +34,27 @@ const GridEditor = () => {
       
       // Load objects from warehouse data
       loadObjectsFromWarehouse(data);
+      setIsLoading(false);
+      setLoadingMessage('');
     } else if (data.type === 'WAREHOUSE_DATA_UPDATED') {
       console.log('Warehouse data updated successfully');
       
       // Server sends the updated warehouse data, reload objects
       if (data.warehouse) {
+        setLoadingMessage('Updating warehouse data...');
         setWarehouseData(data);
         loadObjectsFromWarehouse(data);
+        setIsLoading(false);
+        setLoadingMessage('');
       }
     } else if (data.type === 'CONNECTION_ESTABLISHED') {
       console.log('WebSocket connection established');
+      setIsLoading(false);
+      setLoadingMessage('');
     } else if (data.type === 'ERROR') {
       console.error('Server error:', data.message);
+      setIsLoading(false);
+      setLoadingMessage('');
     }
   };
 
@@ -60,10 +74,41 @@ const GridEditor = () => {
     updateObjectPosition,
     updateObjectProperties,
     loadObjectsFromWarehouse
-  } = useObjectManager(cellSize, sendWarehouseUpdate);
+  } = useObjectManager(cellSize, sendWarehouseUpdate, { setIsLoading, setLoadingMessage });
 
   return (
-    <div style={{ display: "flex" }}>
+    <div style={{ display: "flex", position: "relative" }}>
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 1000,
+          color: "white",
+          fontSize: "18px",
+          fontWeight: "bold"
+        }}>
+          <div style={{
+            backgroundColor: "rgba(0, 0, 0, 0.8)",
+            padding: "20px",
+            borderRadius: "8px",
+            textAlign: "center"
+          }}>
+            <div>⏳ {loadingMessage || 'Loading...'}</div>
+            <div style={{ fontSize: "14px", marginTop: "10px", fontWeight: "normal" }}>
+              Please wait while the operation completes...
+            </div>
+          </div>
+        </div>
+      )}
+      
       <Toolbar
         onAddObject={addObject}
         rows={rows}

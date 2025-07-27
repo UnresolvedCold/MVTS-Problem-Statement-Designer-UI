@@ -28,18 +28,21 @@ export const useWarehouseData = (sendMessage) => {
         if (!warehouseData) return;
         
         updatedWarehouseData = {
-          ...warehouseData.warehouse, // Only use the warehouse part, not the entire response
-          problem_statement: {
-            ...warehouseData.warehouse.problem_statement,
-            ...(updateData.objectType === 'bot' ? {
-              ranger_list: warehouseData.warehouse.problem_statement.ranger_list?.filter(
-                ranger => ranger.id !== updateData.objectId
-              ) || []
-            } : {
-              pps_list: warehouseData.warehouse.problem_statement.pps_list?.filter(
-                pps => pps.id !== updateData.objectId
-              ) || []
-            })
+          ...warehouseData, // Keep the entire structure including type
+          warehouse: {
+            ...warehouseData.warehouse,
+            problem_statement: {
+              ...warehouseData.warehouse.problem_statement,
+              ...(updateData.objectType === 'bot' ? {
+                ranger_list: warehouseData.warehouse.problem_statement.ranger_list?.filter(
+                  ranger => ranger.id !== updateData.objectId
+                ) || []
+              } : {
+                pps_list: warehouseData.warehouse.problem_statement.pps_list?.filter(
+                  pps => pps.id !== updateData.objectId
+                ) || []
+              })
+            }
           }
         };
         break;
@@ -49,11 +52,14 @@ export const useWarehouseData = (sendMessage) => {
         if (!warehouseData) return;
         
         updatedWarehouseData = {
-          ...warehouseData.warehouse, // Only use the warehouse part, not the entire response
-          problem_statement: {
-            ...warehouseData.warehouse.problem_statement,
-            ranger_list: updateData.data.ranger_list || warehouseData.warehouse.problem_statement.ranger_list || [],
-            pps_list: updateData.data.pps_list || warehouseData.warehouse.problem_statement.pps_list || []
+          ...warehouseData, // Keep the entire structure including type
+          warehouse: {
+            ...warehouseData.warehouse,
+            problem_statement: {
+              ...warehouseData.warehouse.problem_statement,
+              ranger_list: updateData.data.ranger_list || warehouseData.warehouse.problem_statement.ranger_list || [],
+              pps_list: updateData.data.pps_list || warehouseData.warehouse.problem_statement.pps_list || []
+            }
           }
         };
         break;
@@ -66,11 +72,17 @@ export const useWarehouseData = (sendMessage) => {
     // Send to server only for cases that modify existing data
     sendMessage({
       type: 'UPDATE_WAREHOUSE_DATA',
-      data: updatedWarehouseData
+      data: {
+        height: updatedWarehouseData.warehouse.height,
+        width: updatedWarehouseData.warehouse.width,
+        problem_statement: updatedWarehouseData.warehouse.problem_statement
+      }
     });
 
     // Update local state
-    setWarehouseData(updatedWarehouseData);
+    setWarehouseData({
+      ...updatedWarehouseData
+    });
   }, [warehouseData, sendMessage]);
 
   return {

@@ -26,7 +26,7 @@ const ObjectsList = ({ objects, selectedObject, onSelectObject, onRemoveObject, 
             >
               <div>
                 <div style={{ fontWeight: "bold", textTransform: "capitalize" }}>
-                  {obj.type} #{index + 1}
+                  {obj.type} #{obj.properties?.id || 'Unknown'}
                 </div>
                 <div style={{ fontSize: "12px", color: "#666" }}>
                   Position: ({Math.floor(obj.x / cellSize)}, {Math.floor(obj.y / cellSize)})

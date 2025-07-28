@@ -35,8 +35,13 @@ const ObjectImage = ({
         return { x: newX, y: newY };
       }}
       onDragEnd={(e) => {
-        let snappedX = Math.floor(e.target.x() / cellSize) * cellSize;
-        let snappedY = Math.floor(e.target.y() / cellSize) * cellSize;
+        // Calculate the center of the object
+        const centerX = e.target.x() + objectSize / 2;
+        const centerY = e.target.y() + objectSize / 2;
+        
+        // Snap based on which grid cell the center is in
+        let snappedX = Math.floor(centerX / cellSize) * cellSize;
+        let snappedY = Math.floor(centerY / cellSize) * cellSize;
         
         // Restrict position to be within grid boundaries
         // Make sure the object doesn't go outside the canvas

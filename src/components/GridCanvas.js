@@ -69,18 +69,37 @@ const GridCanvas = ({
           }
           
           return (
-            <ObjectImage
-              key={obj.id}
-              x={obj.x}
-              y={obj.y}
-              src={imageSrc}
-              gridWidth={cols * cellSize}
-              gridHeight={rows * cellSize}
-              cellSize={cellSize}
-              isSelected={selectedObject?.id === obj.id}
-              onClick={() => onObjectClick(obj)}
-              onDragEnd={(x, y) => onObjectDragEnd(obj.id, x, y)}
-            />
+            <React.Fragment key={obj.id}>
+              <ObjectImage
+                x={obj.x}
+                y={obj.y}
+                src={imageSrc}
+                gridWidth={cols * cellSize}
+                gridHeight={rows * cellSize}
+                cellSize={cellSize}
+                isSelected={selectedObject?.id === obj.id}
+                onClick={() => onObjectClick(obj)}
+                onDragEnd={(x, y) => onObjectDragEnd(obj.id, x, y)}
+              />
+              {/* ID Label overlay on the object */}
+              <Text
+                x={obj.x + 25} // Center horizontally (objectSize/2 = 50/2 = 25)
+                y={obj.y + 15} // Center vertically, slightly above center
+                text={obj.properties?.id?.toString() || obj.id.toString()}
+                fontSize={12}
+                fontFamily="Arial"
+                fontStyle="bold"
+                fill="white"
+                stroke="black"
+                strokeWidth={1}
+                offsetX={6} // Offset to center the text (approximate half of text width)
+                offsetY={6} // Offset to center the text vertically
+                shadowColor="black"
+                shadowBlur={2}
+                shadowOpacity={0.8}
+                listening={false} // Make text non-interactive
+              />
+            </React.Fragment>
           );
         })}
       </Layer>

@@ -1,5 +1,49 @@
 import React, { useState, useEffect } from 'react';
 
+// Component for editing JSON objects in textarea
+const JsonTextArea = ({ value, onChange }) => {
+  const [textValue, setTextValue] = useState(JSON.stringify(value, null, 2));
+  const [hasError, setHasError] = useState(false);
+
+  // Update text value when the actual value changes from outside
+  useEffect(() => {
+    setTextValue(JSON.stringify(value, null, 2));
+    setHasError(false);
+  }, [value]);
+
+  const handleChange = (e) => {
+    const newTextValue = e.target.value;
+    setTextValue(newTextValue); // Always update the display
+    
+    try {
+      const parsed = JSON.parse(newTextValue);
+      setHasError(false);
+      onChange(parsed); // Only update the actual value if JSON is valid
+    } catch (error) {
+      setHasError(true);
+      // Don't update the parent value while there's a JSON error
+    }
+  };
+
+  return (
+    <textarea
+      value={textValue}
+      onChange={handleChange}
+      style={{
+        width: "100%",
+        height: "60px",
+        fontFamily: "monospace",
+        fontSize: "11px",
+        padding: "4px",
+        border: hasError ? "1px solid #dc3545" : "1px solid #ccc",
+        borderRadius: "3px",
+        resize: "vertical",
+        backgroundColor: hasError ? "#fff5f5" : "white"
+      }}
+    />
+  );
+};
+
 const PropertyEditor = ({ 
   selectedObject, 
   onUpdateProperties,
@@ -130,30 +174,8 @@ const PropertyEditor = ({
           </div>
         );
       } else {
-        // For complex objects, show as JSON text
-        return (
-          <textarea
-            value={JSON.stringify(value, null, 2)}
-            onChange={(e) => {
-              try {
-                const parsed = JSON.parse(e.target.value);
-                onChange(parsed);
-              } catch (error) {
-                // Ignore parsing errors while typing
-              }
-            }}
-            style={{
-              width: "100%",
-              height: "60px",
-              fontFamily: "monospace",
-              fontSize: "11px",
-              padding: "4px",
-              border: "1px solid #ccc",
-              borderRadius: "3px",
-              resize: "vertical"
-            }}
-          />
-        );
+        // For complex objects, use the JsonTextArea component
+        return <JsonTextArea value={value} onChange={onChange} />;
       }
     } else {
       return (

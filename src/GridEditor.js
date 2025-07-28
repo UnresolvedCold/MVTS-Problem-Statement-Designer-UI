@@ -12,7 +12,7 @@ import TaskPropertyEditor from "./components/TaskPropertyEditor";
 import ProblemStatementViewer from "./components/ProblemStatementViewer";
 import { GRID_CONFIG } from "./utils/constants";
 
-const GridEditor = () => {
+const GridEditor = ({ onNavigateToConfig }) => {
   // Grid settings
   const [rows, setRows] = useState(GRID_CONFIG.DEFAULT_ROWS);
   const [cols, setCols] = useState(GRID_CONFIG.DEFAULT_COLS);
@@ -317,6 +317,23 @@ const GridEditor = () => {
         >
           📄 Problem Statement JSON
         </button>
+        {onNavigateToConfig && (
+          <button
+            onClick={onNavigateToConfig}
+            style={{
+              padding: "10px 20px",
+              border: "none",
+              borderBottom: "3px solid transparent",
+              backgroundColor: "transparent",
+              cursor: "pointer",
+              fontWeight: "normal",
+              color: "#666",
+              marginLeft: "auto"
+            }}
+          >
+            ⚙️ Config
+          </button>
+        )}
       </div>
 
       {/* Loading Overlay */}

@@ -6,6 +6,14 @@ export const WEBSOCKET_CONFIG = {
   ENDPOINT: '/ws'
 };
 
+// MVTS API configuration
+export const MVTS_CONFIG = {
+  DEFAULT_PORT: 8080,
+  DEFAULT_HOST: 'localhost',
+  DEFAULT_PROTOCOL: 'http',
+  CONFIG_ENDPOINT: '/mvts/config'
+};
+
 // Grid configuration
 export const GRID_CONFIG = {
   DEFAULT_ROWS: 10,

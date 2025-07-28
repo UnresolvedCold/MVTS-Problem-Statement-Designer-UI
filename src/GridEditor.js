@@ -10,6 +10,7 @@ import TasksList from "./components/TasksList";
 import PropertyEditor from "./components/PropertyEditor";
 import TaskPropertyEditor from "./components/TaskPropertyEditor";
 import ProblemStatementViewer from "./components/ProblemStatementViewer";
+import SolutionViewer from "./components/SolutionViewer";
 import { GRID_CONFIG } from "./utils/constants";
 
 const GridEditor = ({ onNavigateToConfig }) => {
@@ -21,6 +22,9 @@ const GridEditor = ({ onNavigateToConfig }) => {
   // Loading state
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
+  
+  // Solution data state
+  const [solutionData, setSolutionData] = useState(null);
   
   // Tab state
   const [activeTab, setActiveTab] = useState('grid'); // 'grid' or 'json'
@@ -114,6 +118,27 @@ const GridEditor = ({ onNavigateToConfig }) => {
       }
       
       alert('Assignment added successfully!');
+    } else if (data.type === 'NEW_ASSIGNMENTS') {
+      console.log('New assignments received:', data);
+      setIsLoading(false);
+      setLoadingMessage('');
+      
+      // Store the solution data for the SolutionViewer
+      setSolutionData(data);
+      
+      // Parse assignments to show count
+      try {
+        const parsed = typeof data.assignments === 'string' 
+          ? JSON.parse(data.assignments)
+          : data.assignments;
+        const assignmentCount = parsed.schedule?.assignments?.length || 0;
+        
+        // Show success notification
+        alert(`✅ Solution received! Found ${assignmentCount} assignment(s). Check the Solution panel on the right.`);
+      } catch (error) {
+        console.warn('Could not parse assignment count:', error);
+        alert('✅ Solution received! Check the Solution panel on the right.');
+      }
     } else if (data.type === 'ERROR') {
       console.error('Server error:', data.message);
       setIsLoading(false);
@@ -171,6 +196,9 @@ const GridEditor = ({ onNavigateToConfig }) => {
       alert('No warehouse data available. Please create some objects and tasks first.');
       return;
     }
+
+    // Clear previous solution data
+    setSolutionData(null);
 
     // Set loading state
     setIsLoading(true);
@@ -432,6 +460,13 @@ const GridEditor = ({ onNavigateToConfig }) => {
                   setSelectedObject(null);
                   setSelectedTask(null);
                 }}
+              />
+            )}
+
+            {solutionData && (
+              <SolutionViewer
+                solutionData={solutionData}
+                onClose={() => setSolutionData(null)}
               />
             )}
           </div>

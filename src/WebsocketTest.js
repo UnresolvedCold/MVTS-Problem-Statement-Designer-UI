@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { WEBSOCKET_CONFIG } from "./utils/constants";
 
 export default function WebSocketTest() {
   const [socket, setSocket] = useState(null);
@@ -6,7 +7,15 @@ export default function WebSocketTest() {
   const [input, setInput] = useState("");
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8080/ws");
+    // Get WebSocket configuration from environment variables or use defaults
+    const port = process.env.REACT_APP_WEBSOCKET_PORT || WEBSOCKET_CONFIG.DEFAULT_PORT;
+    const host = process.env.REACT_APP_WEBSOCKET_HOST || WEBSOCKET_CONFIG.DEFAULT_HOST;
+    const protocol = process.env.REACT_APP_WEBSOCKET_PROTOCOL || WEBSOCKET_CONFIG.DEFAULT_PROTOCOL;
+    const endpoint = WEBSOCKET_CONFIG.ENDPOINT;
+    
+    const wsUrl = `${protocol}://${host}:${port}${endpoint}`;
+    console.log(`Connecting to WebSocket at: ${wsUrl}`);
+    const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
       console.log("✅ Connected to WebSocket server");

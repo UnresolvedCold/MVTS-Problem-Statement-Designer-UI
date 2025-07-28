@@ -1,10 +1,16 @@
 // src/hooks/useWebSocket.js
 import { useEffect, useRef, useCallback } from "react";
+import { WEBSOCKET_CONFIG } from "../utils/constants";
 
 export default function useWebSocket(onMessage) {
   const socketRef = useRef(null);
   const onMessageRef = useRef(onMessage);
-  const port = process.env.REACT_APP_WEBSOCKET_PORT || 8080;
+  
+  // Get WebSocket configuration from environment variables or use defaults
+  const port = process.env.REACT_APP_WEBSOCKET_PORT || WEBSOCKET_CONFIG.DEFAULT_PORT;
+  const host = process.env.REACT_APP_WEBSOCKET_HOST || WEBSOCKET_CONFIG.DEFAULT_HOST;
+  const protocol = process.env.REACT_APP_WEBSOCKET_PROTOCOL || WEBSOCKET_CONFIG.DEFAULT_PROTOCOL;
+  const endpoint = WEBSOCKET_CONFIG.ENDPOINT;
 
   // Update the ref when onMessage changes
   useEffect(() => {
@@ -21,8 +27,8 @@ export default function useWebSocket(onMessage) {
   }, []);
 
   useEffect(() => {
-    console.log("Establishing WebSocket connection...");
-    const socket = new WebSocket(`ws://localhost:${port}/ws`);
+    console.log(`Establishing WebSocket connection to ${protocol}://${host}:${port}${endpoint}...`);
+    const socket = new WebSocket(`${protocol}://${host}:${port}${endpoint}`);
     socketRef.current = socket;
 
     socket.onopen = () => {
@@ -87,7 +93,7 @@ export default function useWebSocket(onMessage) {
         socket.close();
       }
     };
-  }, [port]);
+  }, [port, host, protocol, endpoint]);
 
   return { sendMessage };
 }

@@ -1,3 +1,11 @@
+// WebSocket configuration
+export const WEBSOCKET_CONFIG = {
+  DEFAULT_PORT: 8089,
+  DEFAULT_HOST: 'localhost',
+  DEFAULT_PROTOCOL: 'ws',
+  ENDPOINT: '/ws'
+};
+
 // Grid configuration
 export const GRID_CONFIG = {
   DEFAULT_ROWS: 10,

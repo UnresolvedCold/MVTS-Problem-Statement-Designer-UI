@@ -71,6 +71,19 @@ const GridEditor = () => {
       } else {
         alert('Problem statement solved successfully!');
       }
+    } else if (data.type === 'ASSIGNMENT_ADDED') {
+      console.log('Assignment added successfully:', data);
+      setIsLoading(false);
+      setLoadingMessage('');
+      
+      // Reload warehouse data to get updated assignments
+      if (data.warehouse) {
+        setWarehouseData(data);
+        loadObjectsFromWarehouse(data);
+        loadTasksFromWarehouse(data);
+      }
+      
+      alert('Assignment added successfully!');
     } else if (data.type === 'ERROR') {
       console.error('Server error:', data.message);
       setIsLoading(false);
@@ -137,6 +150,26 @@ const GridEditor = () => {
     if (sendWarehouseUpdate) {
       sendWarehouseUpdate({
         type: 'SOLVE_PROBLEM_STATEMENT'
+      });
+    }
+  };
+
+  // Handle add assignment
+  const handleAddAssignment = (assignmentData) => {
+    if (!warehouseData || !warehouseData.warehouse) {
+      alert('No warehouse data available. Please create some objects and tasks first.');
+      return;
+    }
+
+    // Set loading state
+    setIsLoading(true);
+    setLoadingMessage('Adding assignment...');
+
+    // Send ADD_ASSIGNMENT event to server
+    if (sendWarehouseUpdate) {
+      sendWarehouseUpdate({
+        type: 'ADD_ASSIGNMENT',
+        assignmentData: assignmentData
       });
     }
   };
@@ -241,9 +274,11 @@ const GridEditor = () => {
               onSelectTask={handleTaskSelect}
               onRemoveTask={removeTask}
               onAddTask={addTask}
+              onAddAssignment={handleAddAssignment}
               onSolveProblem={handleSolveProblem}
               availablePPS={objects.filter(obj => obj.type === 'pps').map(obj => obj.properties)}
               availableMSU={objects.filter(obj => obj.type === 'msu').map(obj => obj.properties)}
+              availableBots={objects.filter(obj => obj.type === 'bot').map(obj => obj.properties)}
             />
 
             <ObjectsList

@@ -42,6 +42,19 @@ export const useWarehouseData = (sendMessage) => {
         });
         return; // Exit early, don't send UPDATE_WAREHOUSE_DATA
 
+      case 'ADD_ASSIGNMENT':
+        // Send ADD_ASSIGNMENT request to server
+        sendMessage({
+          type: 'ADD_ASSIGNMENT',
+          data: {
+            pps_id: updateData.assignmentData.pps_id,
+            msu_id: updateData.assignmentData.msu_id,
+            task_id: updateData.assignmentData.task_id,
+            bot_id: updateData.assignmentData.bot_id
+          }
+        });
+        return; // Exit early, don't send UPDATE_WAREHOUSE_DATA
+
       case 'REMOVE_TASK':
         // Remove task from task_list
         if (!warehouseData) return;

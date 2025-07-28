@@ -6,14 +6,23 @@ const TasksList = ({
   onSelectTask, 
   onRemoveTask,
   onAddTask,
+  onAddAssignment,
   onSolveProblem,
   availablePPS = [],
-  availableMSU = []
+  availableMSU = [],
+  availableBots = []
 }) => {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showAssignmentForm, setShowAssignmentForm] = useState(false);
   const [newTaskData, setNewTaskData] = useState({
     pps_id: '',
     msu_id: ''
+  });
+  const [newAssignmentData, setNewAssignmentData] = useState({
+    pps_id: '',
+    msu_id: '',
+    task_id: '',
+    bot_id: ''
   });
 
   const handleAddTask = () => {
@@ -34,6 +43,26 @@ const TasksList = ({
     setShowAddForm(false);
   };
 
+  const handleAddAssignment = () => {
+    if (newAssignmentData.pps_id && newAssignmentData.msu_id && newAssignmentData.task_id && newAssignmentData.bot_id) {
+      onAddAssignment({
+        pps_id: newAssignmentData.pps_id,
+        msu_id: newAssignmentData.msu_id,
+        task_id: newAssignmentData.task_id,
+        bot_id: newAssignmentData.bot_id
+      });
+      setNewAssignmentData({ pps_id: '', msu_id: '', task_id: '', bot_id: '' });
+      setShowAssignmentForm(false);
+    } else {
+      alert('Please select PPS, MSU, Task, and Bot');
+    }
+  };
+
+  const cancelAddAssignment = () => {
+    setNewAssignmentData({ pps_id: '', msu_id: '', task_id: '', bot_id: '' });
+    setShowAssignmentForm(false);
+  };
+
   return (
     <div style={{ 
       width: 250, 
@@ -45,22 +74,38 @@ const TasksList = ({
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
         <h3 style={{ margin: 0 }}>Tasks</h3>
-        <div style={{ display: "flex", gap: "5px" }}>
-          {!showAddForm && (
-            <button 
-              onClick={() => setShowAddForm(true)}
-              style={{
-                padding: "5px 10px",
-                backgroundColor: "#28a745",
-                color: "white",
-                border: "none",
-                borderRadius: "3px",
-                cursor: "pointer",
-                fontSize: "12px"
-              }}
-            >
-              + Add Task
-            </button>
+        <div style={{ display: "flex", gap: "5px", flexWrap: "wrap" }}>
+          {!showAddForm && !showAssignmentForm && (
+            <>
+              <button 
+                onClick={() => setShowAddForm(true)}
+                style={{
+                  padding: "5px 10px",
+                  backgroundColor: "#28a745",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "3px",
+                  cursor: "pointer",
+                  fontSize: "12px"
+                }}
+              >
+                + Add Task
+              </button>
+              <button 
+                onClick={() => setShowAssignmentForm(true)}
+                style={{
+                  padding: "5px 10px",
+                  backgroundColor: "#17a2b8",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "3px",
+                  cursor: "pointer",
+                  fontSize: "12px"
+                }}
+              >
+                + Add Assignment
+              </button>
+            </>
           )}
           <button 
             onClick={onSolveProblem}
@@ -159,6 +204,143 @@ const TasksList = ({
             </button>
             <button
               onClick={cancelAdd}
+              style={{
+                flex: 1,
+                padding: "5px",
+                backgroundColor: "#6c757d",
+                color: "white",
+                border: "none",
+                borderRadius: "3px",
+                cursor: "pointer",
+                fontSize: "11px"
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {/* Add Assignment Form */}
+      {showAssignmentForm && (
+        <div style={{
+          padding: "10px",
+          border: "2px solid #17a2b8",
+          borderRadius: "5px",
+          marginBottom: "10px",
+          backgroundColor: "white"
+        }}>
+          <h4 style={{ margin: "0 0 10px 0", fontSize: "14px" }}>Create New Assignment</h4>
+          
+          <div style={{ marginBottom: "8px" }}>
+            <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", marginBottom: "3px" }}>
+              PPS:
+            </label>
+            <select
+              value={newAssignmentData.pps_id}
+              onChange={(e) => setNewAssignmentData({ ...newAssignmentData, pps_id: e.target.value })}
+              style={{
+                width: "100%",
+                padding: "4px",
+                border: "1px solid #ccc",
+                borderRadius: "3px",
+                fontSize: "12px"
+              }}
+            >
+              <option value="">Select PPS</option>
+              {availablePPS.map((pps) => (
+                <option key={pps.id} value={pps.id}>
+                  PPS-{pps.id}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ marginBottom: "8px" }}>
+            <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", marginBottom: "3px" }}>
+              MSU:
+            </label>
+            <select
+              value={newAssignmentData.msu_id}
+              onChange={(e) => setNewAssignmentData({ ...newAssignmentData, msu_id: e.target.value })}
+              style={{
+                width: "100%",
+                padding: "4px",
+                border: "1px solid #ccc",
+                borderRadius: "3px",
+                fontSize: "12px"
+              }}
+            >
+              <option value="">Select MSU</option>
+              {availableMSU.map((msu) => (
+                <option key={msu.id} value={msu.id}>
+                  MSU-{msu.id}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ marginBottom: "8px" }}>
+            <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", marginBottom: "3px" }}>
+              Task ID:
+            </label>
+            <input
+              type="text"
+              value={newAssignmentData.task_id}
+              onChange={(e) => setNewAssignmentData({ ...newAssignmentData, task_id: e.target.value })}
+              placeholder="Enter task ID"
+              style={{
+                width: "100%",
+                padding: "4px",
+                border: "1px solid #ccc",
+                borderRadius: "3px",
+                fontSize: "12px"
+              }}
+            />
+          </div>
+
+          <div style={{ marginBottom: "10px" }}>
+            <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", marginBottom: "3px" }}>
+              Bot:
+            </label>
+            <select
+              value={newAssignmentData.bot_id}
+              onChange={(e) => setNewAssignmentData({ ...newAssignmentData, bot_id: e.target.value })}
+              style={{
+                width: "100%",
+                padding: "4px",
+                border: "1px solid #ccc",
+                borderRadius: "3px",
+                fontSize: "12px"
+              }}
+            >
+              <option value="">Select Bot</option>
+              {availableBots.map((bot) => (
+                <option key={bot.id} value={bot.id}>
+                  Bot-{bot.id}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ display: "flex", gap: "5px" }}>
+            <button
+              onClick={handleAddAssignment}
+              style={{
+                flex: 1,
+                padding: "5px",
+                backgroundColor: "#17a2b8",
+                color: "white",
+                border: "none",
+                borderRadius: "3px",
+                cursor: "pointer",
+                fontSize: "11px"
+              }}
+            >
+              Create Assignment
+            </button>
+            <button
+              onClick={cancelAddAssignment}
               style={{
                 flex: 1,
                 padding: "5px",

@@ -61,11 +61,11 @@ const GridCanvas = ({
         {objects.map((obj) => {
           let imageSrc;
           if (obj.type === "bot") {
-            imageSrc = "/tree.png";
+            imageSrc = "/bot.png";
           } else if (obj.type === "msu") {
-            imageSrc = "/logo192.png"; // Using React logo for MSU objects
+            imageSrc = "/msu.png"; // Using React logo for MSU objects
           } else {
-            imageSrc = "/house.png"; // PPS
+            imageSrc = "/pps.png"; // PPS
           }
           
           return (

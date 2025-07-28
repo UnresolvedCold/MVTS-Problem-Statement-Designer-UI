@@ -31,8 +31,8 @@ export const WS_MESSAGE_TYPES = {
 
 // Object images
 export const OBJECT_IMAGES = {
-  [OBJECT_TYPES.BOT]: '/tree.png',
-  [OBJECT_TYPES.PPS]: '/house.png'
+  [OBJECT_TYPES.BOT]: '/bot.png',
+  [OBJECT_TYPES.PPS]: '/pps.png'
 };
 
 // Grid colors

@@ -75,6 +75,17 @@ const GridEditor = () => {
         loadObjectsFromWarehouse(data);
         loadTasksFromWarehouse(data);
       }
+    } else if (data.type === 'PROBLEM_STATEMENT_UPDATED') {
+      console.log('Problem statement updated successfully:', data);
+      setIsLoading(false);
+      setLoadingMessage('');
+      
+      // Update warehouse data from server response
+      if (data.warehouse) {
+        setWarehouseData(data);
+        loadObjectsFromWarehouse(data);
+        loadTasksFromWarehouse(data);
+      }
     } else if (data.type === 'CONNECTION_ESTABLISHED') {
       console.log('WebSocket connection established');
       setIsLoading(false);
@@ -232,6 +243,43 @@ const GridEditor = () => {
     }
   };
 
+  // Handle JSON problem statement save
+  const handleJsonSave = (updatedProblemStatement) => {
+    if (!warehouseData || !warehouseData.warehouse) {
+      alert('No warehouse data available to update.');
+      return;
+    }
+
+    // Set loading state
+    setIsLoading(true);
+    setLoadingMessage('Updating problem statement...');
+
+    // Create updated warehouse data
+    const updatedWarehouseData = {
+      ...warehouseData,
+      warehouse: {
+        ...warehouseData.warehouse,
+        problem_statement: updatedProblemStatement
+      }
+    };
+
+    // Send the updated warehouse data to server
+    if (sendWarehouseUpdate) {
+      sendWarehouseUpdate({
+        type: 'UPDATE_PROBLEM_STATEMENT',
+        warehouse: updatedWarehouseData.warehouse
+      });
+    }
+
+    // Update local state immediately for better UX
+    setWarehouseData(updatedWarehouseData);
+    loadObjectsFromWarehouse(updatedWarehouseData);
+    loadTasksFromWarehouse(updatedWarehouseData);
+    
+    setIsLoading(false);
+    setLoadingMessage('');
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       {/* Tab Navigation */}
@@ -375,6 +423,7 @@ const GridEditor = () => {
           <ProblemStatementViewer
             warehouseData={warehouseData}
             onClose={() => setActiveTab('grid')}
+            onSave={handleJsonSave}
           />
         )}
       </div>

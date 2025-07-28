@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const ProblemStatementViewer = ({ warehouseData, onClose }) => {
+const ProblemStatementViewer = ({ warehouseData, onClose, onSave }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
   const [jsonError, setJsonError] = useState(null);
@@ -97,19 +97,53 @@ const ProblemStatementViewer = ({ warehouseData, onClose }) => {
           >
             💾 Download
           </button>
+          {isEditing && (
+            <button
+              onClick={() => {
+                if (!jsonError) {
+                  try {
+                    const parsedJson = JSON.parse(editValue);
+                    // Call the onSave callback to update the warehouse data
+                    if (onSave) {
+                      onSave(parsedJson);
+                    }
+                    setIsEditing(false);
+                  } catch (error) {
+                    setJsonError(error.message);
+                  }
+                }
+              }}
+              disabled={!!jsonError}
+              style={{
+                padding: "8px 16px",
+                border: "none",
+                borderRadius: "5px",
+                backgroundColor: jsonError ? "#6c757d" : "#28a745",
+                color: "#fff",
+                cursor: jsonError ? "not-allowed" : "pointer",
+                fontSize: "14px",
+                fontWeight: "bold",
+                minWidth: "120px"
+              }}
+            >
+              💾 Save Changes
+            </button>
+          )}
           <button
             onClick={handleEditToggle}
             style={{
-              padding: "6px 12px",
-              border: "1px solid #ccc",
-              borderRadius: "3px",
+              padding: "8px 16px",
+              border: isEditing ? "2px solid #dc3545" : "2px solid #28a745",
+              borderRadius: "5px",
               backgroundColor: isEditing ? "#dc3545" : "#28a745",
               color: "#fff",
               cursor: "pointer",
-              fontSize: "12px"
+              fontSize: "14px",
+              fontWeight: "bold",
+              minWidth: "120px"
             }}
           >
-            {isEditing ? "Cancel Edit" : "✏️ Edit"}
+            {isEditing ? "❌ Cancel Edit" : "✏️ Edit JSON"}
           </button>
           <button 
             onClick={onClose}
@@ -134,12 +168,23 @@ const ProblemStatementViewer = ({ warehouseData, onClose }) => {
         flexShrink: 0
       }}>
         {warehouseData ? (
-          <>
-            <strong>Warehouse:</strong> {warehouseData.warehouse.width}×{warehouseData.warehouse.height} | 
-            <strong> Bots:</strong> {warehouseData.warehouse.problem_statement?.ranger_list?.length || 0} | 
-            <strong> PPS:</strong> {warehouseData.warehouse.problem_statement?.pps_list?.length || 0} | 
-            <strong> MSU:</strong> {warehouseData.warehouse.problem_statement?.transport_entity_list?.length || 0}
-          </>
+          <div>
+            <div style={{ marginBottom: "5px" }}>
+              <strong>Warehouse:</strong> {warehouseData.warehouse.width}×{warehouseData.warehouse.height} | 
+              <strong> Bots:</strong> {warehouseData.warehouse.problem_statement?.ranger_list?.length || 0} | 
+              <strong> PPS:</strong> {warehouseData.warehouse.problem_statement?.pps_list?.length || 0} | 
+              <strong> MSU:</strong> {warehouseData.warehouse.problem_statement?.transport_entity_list?.length || 0}
+            </div>
+            {!isEditing && (
+              <div style={{ 
+                fontSize: "12px", 
+                color: "#007bff",
+                fontStyle: "italic"
+              }}>
+                💡 Click "✏️ Edit JSON" button above to modify the problem statement
+              </div>
+            )}
+          </div>
         ) : (
           "No warehouse data available"
         )}
@@ -183,46 +228,6 @@ const ProblemStatementViewer = ({ warehouseData, onClose }) => {
                 <strong>JSON Error:</strong> {jsonError}
               </div>
             )}
-            <div style={{ 
-              marginTop: 10,
-              display: 'flex',
-              gap: '10px'
-            }}>
-              <button
-                onClick={() => {
-                  if (!jsonError) {
-                    // Here you could implement saving the edited JSON
-                    console.log('Save edited JSON:', editValue);
-                    setIsEditing(false);
-                  }
-                }}
-                disabled={!!jsonError}
-                style={{
-                  padding: "8px 16px",
-                  border: "none",
-                  borderRadius: "3px",
-                  backgroundColor: jsonError ? "#ccc" : "#28a745",
-                  color: "#fff",
-                  cursor: jsonError ? "not-allowed" : "pointer",
-                  fontSize: "12px"
-                }}
-              >
-                💾 Save Changes
-              </button>
-              <button
-                onClick={() => setIsEditing(false)}
-                style={{
-                  padding: "8px 16px",
-                  border: "1px solid #ccc",
-                  borderRadius: "3px",
-                  backgroundColor: "#fff",
-                  cursor: "pointer",
-                  fontSize: "12px"
-                }}
-              >
-                Cancel
-              </button>
-            </div>
           </>
         ) : (
           <pre style={{

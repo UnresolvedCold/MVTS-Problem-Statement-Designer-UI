@@ -120,6 +120,14 @@ export const useWarehouseData = (sendMessage) => {
         };
         break;
 
+      case 'UPDATE_SIZE':
+        // Send UPDATE_SIZE request to server
+        sendMessage({
+          type: 'UPDATE_SIZE',
+          data: updateData.data // Should be [rows, columns] array
+        });
+        return; // Exit early, don't send UPDATE_WAREHOUSE_DATA
+
       case 'SOLVE_PROBLEM_STATEMENT':
         // Send SOLVE_PROBLEM_STATEMENT request to server
         sendMessage({

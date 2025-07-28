@@ -56,6 +56,25 @@ const GridEditor = () => {
         setIsLoading(false);
         setLoadingMessage('');
       }
+    } else if (data.type === 'SIZE_UPDATED') {
+      console.log('Grid size updated successfully:', data);
+      setIsLoading(false);
+      setLoadingMessage('');
+      
+      // Update grid dimensions from server response
+      if (data.warehouse) {
+        setWarehouseData(data);
+        
+        // Update local grid dimensions
+        if (data.warehouse.width && data.warehouse.height) {
+          setCols(data.warehouse.width);
+          setRows(data.warehouse.height);
+        }
+        
+        // Reload objects and tasks with new warehouse data
+        loadObjectsFromWarehouse(data);
+        loadTasksFromWarehouse(data);
+      }
     } else if (data.type === 'CONNECTION_ESTABLISHED') {
       console.log('WebSocket connection established');
       setIsLoading(false);
@@ -174,6 +193,45 @@ const GridEditor = () => {
     }
   };
 
+  // Handle grid size changes - send UPDATE_SIZE event to server
+  const handleRowsChange = (newRows) => {
+    if (newRows <= 0 || newRows > 50) {
+      alert('Rows must be between 1 and 50');
+      return;
+    }
+
+    // Set loading state
+    setIsLoading(true);
+    setLoadingMessage('Updating grid size...');
+
+    // Send UPDATE_SIZE event to server
+    if (sendWarehouseUpdate) {
+      sendWarehouseUpdate({
+        type: 'UPDATE_SIZE',
+        data: [newRows, cols] // [rows, columns] array
+      });
+    }
+  };
+
+  const handleColsChange = (newCols) => {
+    if (newCols <= 0 || newCols > 50) {
+      alert('Columns must be between 1 and 50');
+      return;
+    }
+
+    // Set loading state
+    setIsLoading(true);
+    setLoadingMessage('Updating grid size...');
+
+    // Send UPDATE_SIZE event to server
+    if (sendWarehouseUpdate) {
+      sendWarehouseUpdate({
+        type: 'UPDATE_SIZE',
+        data: [rows, newCols] // [rows, columns] array
+      });
+    }
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       {/* Tab Navigation */}
@@ -253,8 +311,8 @@ const GridEditor = () => {
               rows={rows}
               cols={cols}
               cellSize={cellSize}
-              onRowsChange={setRows}
-              onColsChange={setCols}
+              onRowsChange={handleRowsChange}
+              onColsChange={handleColsChange}
               onCellSizeChange={setCellSize}
             />
 

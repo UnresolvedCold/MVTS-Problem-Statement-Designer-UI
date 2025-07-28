@@ -35,6 +35,8 @@ const ObjectImage = ({
         return { x: newX, y: newY };
       }}
       onDragEnd={(e) => {
+        console.log('ObjectImage onDragEnd triggered');
+        
         // Calculate the center of the object
         const centerX = e.target.x() + objectSize / 2;
         const centerY = e.target.y() + objectSize / 2;
@@ -48,6 +50,7 @@ const ObjectImage = ({
         snappedX = Math.max(0, Math.min(snappedX, gridWidth - objectSize));
         snappedY = Math.max(0, Math.min(snappedY, gridHeight - objectSize));
         
+        console.log('Calling onDragEnd with position:', snappedX, snappedY);
         onDragEnd(snappedX, snappedY);
       }}
     />

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 // Default properties for new objects
 const getDefaultProperties = (type) => {
@@ -59,6 +59,8 @@ export const useObjectManager = (cellSize, onWarehouseUpdate, loadingHandlers = 
   const { setIsLoading, setLoadingMessage } = loadingHandlers;
   const [objects, setObjects] = useState([]);
   const [selectedObject, setSelectedObject] = useState(null);
+  const lastUpdateRef = useRef(null);
+  const debounceTimeoutRef = useRef(null);
 
   const addObject = useCallback((type) => {
     const defaultProperties = getDefaultProperties(type);
@@ -118,7 +120,72 @@ export const useObjectManager = (cellSize, onWarehouseUpdate, loadingHandlers = 
     }
   }, [objects, selectedObject, onWarehouseUpdate, setIsLoading, setLoadingMessage]);
 
+  // Helper function to send warehouse data update to server with debouncing
+  const sendWarehouseDataUpdate = useCallback((updatedObjects) => {
+    console.log('sendWarehouseDataUpdate called with objects:', updatedObjects.length);
+    
+    // Create a hash of the current state to compare with the last update
+    const currentStateHash = JSON.stringify(updatedObjects.map(obj => ({
+      id: obj.id,
+      type: obj.type,
+      coordinate: obj.properties?.coordinate
+    })));
+    
+    // If this is the same as the last update, skip it
+    if (lastUpdateRef.current === currentStateHash) {
+      console.log('Duplicate update detected, skipping...');
+      return;
+    }
+    
+    // Clear any existing timeout
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    
+    // Set a new timeout to send the update after a brief delay
+    debounceTimeoutRef.current = setTimeout(() => {
+      if (onWarehouseUpdate) {
+        const rangerList = updatedObjects
+          .filter(obj => obj.type === 'bot')
+          .map(obj => ({
+            ...obj.properties
+          }));
+        
+        const ppsList = updatedObjects
+          .filter(obj => obj.type === 'pps')
+          .map(obj => ({
+            ...obj.properties
+          }));
+        
+        const transportEntityList = updatedObjects
+          .filter(obj => obj.type === 'msu')
+          .map(obj => ({
+            ...obj.properties
+          }));
+        
+        console.log('Sending UPDATE_WAREHOUSE_DATA event');
+        console.log('Sending ranger_list:', rangerList);
+        console.log('Sending pps_list:', ppsList);
+        console.log('Sending transport_entity_list:', transportEntityList);
+        
+        onWarehouseUpdate({
+          type: 'UPDATE_WAREHOUSE_DATA',
+          data: {
+            ranger_list: rangerList,
+            pps_list: ppsList,
+            transport_entity_list: transportEntityList
+          }
+        });
+        
+        // Update the last update hash
+        lastUpdateRef.current = currentStateHash;
+      }
+    }, 100); // 100ms debounce delay
+  }, [onWarehouseUpdate]);
+
   const updateObjectPosition = useCallback((objectId, x, y) => {
+    console.log('updateObjectPosition called for object:', objectId, 'position:', x, y);
+    
     // Use functional state update to ensure we have the latest objects
     setObjects(currentObjects => {
       const updatedObjects = currentObjects.map((obj) =>
@@ -139,51 +206,19 @@ export const useObjectManager = (cellSize, onWarehouseUpdate, loadingHandlers = 
       );
       
       // Debug logging
-      console.log('Current objects:', currentObjects);
-      console.log('Updated objects:', updatedObjects);
+      console.log('UPDATE_WAREHOUSE_DATA being sent from updateObjectPosition');
       console.log('Filtered bots:', updatedObjects.filter(obj => obj.type === 'bot'));
       console.log('Filtered pps:', updatedObjects.filter(obj => obj.type === 'pps'));
       console.log('Filtered msu:', updatedObjects.filter(obj => obj.type === 'msu'));
       
       // Send update to server using the fresh updatedObjects
-      if (onWarehouseUpdate) {
-        const rangerList = updatedObjects
-          .filter(obj => obj.type === 'bot')
-          .map(obj => ({
-            ...obj.properties
-          }));
-        
-        const ppsList = updatedObjects
-          .filter(obj => obj.type === 'pps')
-          .map(obj => ({
-            ...obj.properties
-          }));
-        
-        const transportEntityList = updatedObjects
-          .filter(obj => obj.type === 'msu')
-          .map(obj => ({
-            ...obj.properties
-          }));
-        
-        console.log('Sending ranger_list:', rangerList);
-        console.log('Sending pps_list:', ppsList);
-        console.log('Sending transport_entity_list:', transportEntityList);
-        
-        onWarehouseUpdate({
-          type: 'UPDATE_WAREHOUSE_DATA',
-          data: {
-            ranger_list: rangerList,
-            pps_list: ppsList,
-            transport_entity_list: transportEntityList
-          }
-        });
-      }
+      sendWarehouseDataUpdate(updatedObjects);
       
       return updatedObjects;
     });
-  }, [cellSize, onWarehouseUpdate]);
+  }, [cellSize, sendWarehouseDataUpdate]);
 
-  const updateObjectProperties = useCallback((objectId, newProperties) => {
+  const updateObjectProperties = useCallback((objectId, newProperties, shouldSendUpdate = true) => {
     // Use functional state update to ensure we have the latest objects
     setObjects(currentObjects => {
       const updatedObjects = currentObjects.map((obj) =>
@@ -208,33 +243,14 @@ export const useObjectManager = (cellSize, onWarehouseUpdate, loadingHandlers = 
         });
       }
       
-      // Send update to server using the fresh updatedObjects
-      if (onWarehouseUpdate) {
-        onWarehouseUpdate({
-          type: 'UPDATE_WAREHOUSE_DATA',
-          data: {
-            ranger_list: updatedObjects
-              .filter(obj => obj.type === 'bot')
-              .map(obj => ({
-                ...obj.properties
-              })),
-            pps_list: updatedObjects
-              .filter(obj => obj.type === 'pps')
-              .map(obj => ({
-                ...obj.properties
-              })),
-            transport_entity_list: updatedObjects
-              .filter(obj => obj.type === 'msu')
-              .map(obj => ({
-                ...obj.properties
-              }))
-          }
-        });
+      // Only send update to server if explicitly requested (for property editor changes, not drag operations)
+      if (shouldSendUpdate) {
+        sendWarehouseDataUpdate(updatedObjects);
       }
       
       return updatedObjects;
     });
-  }, [selectedObject, cellSize, onWarehouseUpdate]);
+  }, [selectedObject, cellSize, sendWarehouseDataUpdate]);
 
   const loadObjectsFromWarehouse = useCallback((warehouseData) => {
     const loadedObjects = [];
@@ -286,6 +302,15 @@ export const useObjectManager = (cellSize, onWarehouseUpdate, loadingHandlers = 
     
     setObjects(loadedObjects);
   }, [cellSize]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return {
     objects,

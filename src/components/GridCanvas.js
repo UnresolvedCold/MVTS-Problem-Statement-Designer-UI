@@ -9,6 +9,7 @@ const GridCanvas = ({
   objects, 
   selectedObject,
   onObjectClick,
+  onObjectDragStart,
   onObjectDragEnd 
 }) => {
   return (
@@ -79,6 +80,7 @@ const GridCanvas = ({
                 cellSize={cellSize}
                 isSelected={selectedObject?.id === obj.id}
                 onClick={() => onObjectClick(obj)}
+                onDragStart={() => onObjectDragStart && onObjectDragStart(obj)}
                 onDragEnd={(x, y) => onObjectDragEnd(obj.id, x, y)}
               />
               {/* ID Label overlay on the object */}

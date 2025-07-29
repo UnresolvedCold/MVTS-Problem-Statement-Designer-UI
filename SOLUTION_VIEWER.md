@@ -10,7 +10,6 @@ The Solution Viewer is a new component that displays solution assignments receiv
 - Displays a summary of all assignments with key information:
   - Task ID (task_key)
   - Bot ID (assigned_ranger_id)
-  - Duration (startTime - endTime)
   - Transport Entity details
   - PPS information
 - Color-coded assignment cards with hover effects

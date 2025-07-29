@@ -190,6 +190,13 @@ const GridEditor = ({ onNavigateToConfig }) => {
     setSelectedTask(null);
   };
 
+  // Handle object drag start (close property editor)
+  const handleObjectDragStart = (object) => {
+    console.log('Drag started for object:', object.id);
+    setSelectedObject(null);
+    setSelectedTask(null);
+  };
+
   // Handle solve problem statement
   const handleSolveProblem = () => {
     if (!warehouseData || !warehouseData.warehouse) {
@@ -416,6 +423,7 @@ const GridEditor = ({ onNavigateToConfig }) => {
               objects={objects}
               selectedObject={selectedObject}
               onObjectClick={handleObjectSelect}
+              onObjectDragStart={handleObjectDragStart}
               onObjectDragEnd={updateObjectPosition}
             />
 

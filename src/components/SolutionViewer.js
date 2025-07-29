@@ -229,19 +229,15 @@ const SolutionViewer = ({ solutionData, onClose }) => {
                     <strong>🤖 Bot ID:</strong> {assignment.assigned_ranger_id || 'N/A'}
                   </div>
                   
-                  <div style={{ marginBottom: "3px" }}>
-                    <strong>⏰ Duration:</strong> {assignment.startTime || 0}ms - {assignment.endTime || 0}ms
-                  </div>
-                  
                   {assignment.transport_entity_id && (
                     <div style={{ marginBottom: "3px" }}>
-                      <strong>📦 Entity:</strong> {assignment.transport_entity_type}-{assignment.transport_entity_id}
+                      <strong>📦 Msu ID:</strong> {assignment.transport_entity_type}-{assignment.transport_entity_id}
                     </div>
                   )}
                   
                   {assignment.dock_pps_id && (
                     <div>
-                      <strong>🏭 PPS:</strong> {assignment.dock_pps_id}
+                      <strong>🏭 PPS ID:</strong> {assignment.dock_pps_id}
                     </div>
                   )}
                 </div>

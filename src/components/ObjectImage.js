@@ -7,6 +7,7 @@ const ObjectImage = ({
   x, 
   y, 
   src, 
+  onDragStart,
   onDragEnd, 
   gridWidth, 
   gridHeight, 
@@ -28,6 +29,12 @@ const ObjectImage = ({
       stroke={isSelected ? "#007bff" : "transparent"}
       strokeWidth={isSelected ? 3 : 0}
       onClick={onClick}
+      onDragStart={(e) => {
+        console.log('ObjectImage onDragStart triggered');
+        if (onDragStart) {
+          onDragStart();
+        }
+      }}
       dragBoundFunc={(pos) => {
         // Restrict dragging to within grid boundaries
         const newX = Math.max(0, Math.min(pos.x, gridWidth - objectSize));

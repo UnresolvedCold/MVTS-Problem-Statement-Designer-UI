@@ -3,6 +3,7 @@ package com.greyorange.mvts.designer;
 import com.greyorange.multifleetplanner.core.ApplicationProperties;
 import com.greyorange.multifleetplanner.core.Config;
 import com.greyorange.multifleetplanner.multifleet.Driver;
+import com.greyorange.multifleetplanner.multifleet.cache.GoingToPPSCache;
 import com.greyorange.multifleetplanner.pojo.*;
 import com.greyorange.multifleetplanner.structure.MsuMap;
 import com.greyorange.mvts.designer.pojo.Warehouse;
@@ -320,6 +321,11 @@ public class ProblemStatementStudio {
 
   public SchedulerResponse solveProblemStatement() throws Exception {
     Driver driver = new Driver();
+
+    // todo: clear the current state
+    // Or maybe add a event to clear the state instead
+
+    GoingToPPSCache.getInstance().clear();
     Optimizer.setUseOptaPlanner(true);
     com.greyorange.mvts.core.Optimizer.setUseOptaPlanner(true);
     SchedulerResponse response = driver.getSchedule(warehouse.getInputMessage());

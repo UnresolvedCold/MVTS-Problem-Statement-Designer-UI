@@ -65,7 +65,7 @@ public class PSStudioWebSocketHandler {
       }
 
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      System.err.println(e.getStackTrace());
     }
   }
 
@@ -161,14 +161,14 @@ public class PSStudioWebSocketHandler {
 
   private void handleSizeUpdate(Session session, WSData data) throws Exception {
 
-      int row = data.getDataNode().get(0).asInt();
-      int col = data.getDataNode().get(1).asInt();
-      ProblemStatementStudio.getInstance().updateSize(row, col);
+    int row = data.getDataNode().get(0).asInt();
+    int col = data.getDataNode().get(1).asInt();
+    ProblemStatementStudio.getInstance().updateSize(row, col);
 
-      String jsonResponse = Helper.getObjectMapper().writeValueAsString(Map.of(
-          "type", WSEvent.WAREHOUSE_DATA_RESPONSE,
-          "warehouse", ProblemStatementStudio.getInstance().getWarehouse()
-      ));
+    String jsonResponse = Helper.getObjectMapper().writeValueAsString(Map.of(
+        "type", WSEvent.WAREHOUSE_DATA_RESPONSE,
+        "warehouse", ProblemStatementStudio.getInstance().getWarehouse()
+    ));
     session.getRemote().sendString(jsonResponse);
   }
 

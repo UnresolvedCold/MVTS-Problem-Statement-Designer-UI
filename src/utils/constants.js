@@ -6,6 +6,14 @@ export const WEBSOCKET_CONFIG = {
   ENDPOINT: '/ws'
 };
 
+// REST API configuration for schemas
+export const REST_API_CONFIG = {
+  DEFAULT_PORT: 8089,
+  DEFAULT_HOST: 'localhost',
+  DEFAULT_PROTOCOL: 'http',
+  SCHEMAS_ENDPOINT: '/api/schemas'
+};
+
 // MVTS API configuration
 export const MVTS_CONFIG = {
   DEFAULT_PORT: 8080,
@@ -20,10 +28,10 @@ export const GRID_CONFIG = {
   DEFAULT_COLS: 10,
   DEFAULT_CELL_SIZE: 50,
   OBJECT_SIZE: 50,
-  MIN_GRID_SIZE: 5,
-  MAX_GRID_SIZE: 50,
+  MIN_GRID_SIZE: 1,
+  MAX_GRID_SIZE: 1000, // Increased from 50 to allow much larger grids
   MIN_CELL_SIZE: 20,
-  MAX_CELL_SIZE: 100
+  MAX_CELL_SIZE: 200  // Increased from 100 to allow larger cell sizes
 };
 
 // Object types

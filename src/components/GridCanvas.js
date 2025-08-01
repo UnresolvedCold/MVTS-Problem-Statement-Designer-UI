@@ -16,7 +16,6 @@ const GridCanvas = ({
     <Stage
       width={cols * cellSize}
       height={rows * cellSize}
-      style={{ border: "1px solid black" }}
     >
       <Layer>
         {/* Draw grid lines */}

@@ -1,6 +1,25 @@
-# Getting Started with Create React App
+# MVTS Problem Statement Generator
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is a React-based application for creating and managing Multi-Vehicle Task Scheduling (MVTS) problem statements. The application now features a **local-first architecture** with browser-based state management and server-side template provision and problem solving.
+
+## New Architecture (v2.0)
+
+### Local-First Design
+- **Local State Management**: All warehouse data, objects, and tasks are maintained in the browser
+- **Persistent Storage**: Data is automatically saved to browser localStorage
+- **Offline Capable**: Works offline after initial template loading
+- **Server for Templates**: Server provides demo/template data for new entities
+- **Server for Solving**: Only the final problem statement is sent to the server for solving
+
+### Key Features
+- 🏗️ **Local State Management**: Complete warehouse state maintained in browser
+- 📁 **Import/Export**: Full JSON import/export capabilities
+- 🔧 **Template System**: Server-provided templates for objects and tasks
+- 🚀 **Problem Solving**: Send completed problems to server for solution
+- 💾 **Auto-Save**: Automatic browser storage persistence
+- 🎯 **Visual Grid Editor**: Interactive grid-based object placement
+- 📊 **JSON Editor**: Direct problem statement editing
+- 🔄 **Real-time Updates**: Immediate visual feedback for all changes
 
 ## Available Scripts
 
@@ -27,17 +46,115 @@ It correctly bundles React in production mode and optimizes the build for the be
 The build is minified and the filenames include the hashes.\
 Your app is ready to be deployed!
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## How to Use
 
-### `npm run eject`
+### 1. First Time Setup
+1. Start the application with `npm start`
+2. Click "🔧 Manage Templates" in the toolbar
+3. Connect to the server to load templates (optional - defaults are available)
+4. Start creating your warehouse layout
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### 2. Creating Objects
+- **Bots (Rangers)**: Click on the grid to place bots
+- **PPS (Pick/Pack Stations)**: Right-click to add PPS
+- **MSU (Mobile Storage Units)**: Shift+click to add MSU
+- Each object uses templates from the server or built-in defaults
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### 3. Managing Tasks
+- Add tasks using the Tasks panel
+- Configure task properties in the property editor
+- Tasks are automatically linked to available objects
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### 4. Editing Properties
+- Select any object or task to edit its properties
+- Changes are immediately saved to local storage
+- Use the JSON editor for bulk modifications
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### 5. Solving Problems
+- Click "🚀 Solve Problem" to send the problem statement to the server
+- View solutions in the popup modal
+- Download or copy solutions for further analysis
+
+### 6. Data Management
+- **Export**: Save your work as JSON files
+- **Import**: Load previously saved warehouse configurations
+- **Clear**: Reset all data (with confirmation)
+
+## Technical Architecture
+
+### Frontend (React)
+- **Local State**: `useLocalStateManager` hook for browser-based state
+- **Server API**: `useServerAPI` hook for template and solving requests
+- **Object Management**: Local object lifecycle management
+- **Task Management**: Local task creation and editing
+- **Persistence**: Automatic localStorage integration
+
+### Server Communication
+- **Templates**: GET requests for object/task templates
+- **Problem Solving**: POST problem statement for solution
+- **Minimal Payloads**: Only necessary data exchanged
+- **Error Handling**: Graceful fallbacks to default templates
+
+### Data Flow
+1. **Initialization**: Load templates from server (or use defaults)
+2. **Creation**: Use templates to create local instances
+3. **Management**: All CRUD operations happen locally
+4. **Solving**: Send final problem statement to server
+5. **Persistence**: Auto-save to browser storage
+
+## Browser Storage
+
+The application automatically saves your work to browser localStorage:
+- **Key**: `mvts-warehouse-data`
+- **Format**: Complete warehouse JSON structure
+- **Persistence**: Survives browser restarts
+- **Privacy**: Data stays on your device
+
+## Server API Endpoints
+
+Expected server endpoints for full functionality:
+
+```
+GET /templates/bot        - Bot template
+GET /templates/pps        - PPS template  
+GET /templates/msu        - MSU template
+GET /templates/task       - Task template
+GET /templates/problem    - Problem statement template
+POST /solve               - Solve problem statement
+```
+
+## Development
+
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+
+### Dependencies
+- **React 19**: Core framework
+- **Konva & React-Konva**: Canvas-based grid rendering
+- **WebSocket**: Real-time server communication
+
+### Project Structure
+```
+src/
+├── hooks/
+│   ├── useLocalStateManager.js    # Local state management
+│   ├── useServerAPI.js            # Server communication
+│   ├── useLocalObjectManager.js   # Object lifecycle
+│   └── useLocalTaskManager.js     # Task management
+├── components/
+│   ├── TemplateManager.js         # Template management UI
+│   ├── SolutionDisplay.js         # Solution viewer
+│   ├── Toolbar.js                 # Enhanced toolbar
+│   └── ...                        # Other UI components
+└── utils/
+    └── constants.js                # Configuration constants
+```
+
+### Environment Variables
+```bash
+REACT_APP_WEBSOCKET_HOST=localhost
+REACT_APP_WEBSOCKET_PORT=8089
+REACT_APP_WEBSOCKET_PROTOCOL=ws
+```
 
 ## Learn More
 

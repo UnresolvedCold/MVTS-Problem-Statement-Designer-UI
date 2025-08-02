@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ObjectsList = ({ objects, selectedObject, onSelectObject, onRemoveObject, onAddObject, cellSize }) => {
+const ObjectsList = ({ objects, selectedObject, onObjectSelect, onRemoveObject, onAddObject, cellSize }) => {
   return (
     <div style={{ width: 250, padding: 10, borderLeft: "1px solid #ccc", backgroundColor: "#f8f9fa" }}>
       <h3>Objects ({objects.length})</h3>
@@ -77,7 +77,7 @@ const ObjectsList = ({ objects, selectedObject, onSelectObject, onRemoveObject, 
                 alignItems: "center",
                 cursor: "pointer"
               }}
-              onClick={() => onSelectObject(obj)}
+              onClick={() => onObjectSelect(obj)}
             >
               <div>
                 <div style={{ fontWeight: "bold", textTransform: "capitalize" }}>

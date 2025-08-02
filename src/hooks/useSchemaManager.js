@@ -69,6 +69,21 @@ export const useSchemaManager = () => {
     return initializeSchemas();
   }, [initializeSchemas]);
 
+  // Update a specific schema locally
+  const updateSchema = useCallback((type, newSchema) => {
+    setSchemas(prev => ({
+      ...prev,
+      [type]: newSchema
+    }));
+    console.log(`Schema updated for type: ${type}`, newSchema);
+  }, []);
+
+  // Update all schemas at once
+  const updateSchemas = useCallback((newSchemas) => {
+    setSchemas(newSchemas);
+    console.log('All schemas updated:', newSchemas);
+  }, []);
+
   return {
     schemas,
     isInitialized,
@@ -79,6 +94,8 @@ export const useSchemaManager = () => {
     getTemplate,
     hasSchemas,
     refreshSchemas,
-    initializeSchemas
+    initializeSchemas,
+    updateSchema,
+    updateSchemas
   };
 };

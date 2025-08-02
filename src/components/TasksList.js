@@ -153,7 +153,7 @@ const TasksList = ({
                 fontSize: "12px"
               }}
             >
-              <option value="">Select PPS</option>
+              <option value="">Select PPS ({availablePPS.length} available)</option>
               {availablePPS.map((pps) => (
                 <option key={pps.id} value={pps.id}>
                   PPS-{pps.id}

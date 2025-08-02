@@ -33,7 +33,6 @@ const GridEditor = ({ onNavigateToConfig }) => {
   // Initialize schema manager for client-side schemas
   const schemaManager = useSchemaManager();
   const { 
-    isInitialized: schemasInitialized, 
     initializationError: schemaError,
     isLoading: schemasLoading,
     loadingMessage: schemaLoadingMessage
@@ -150,6 +149,74 @@ const GridEditor = ({ onNavigateToConfig }) => {
     } catch (error) {
       console.error('Failed to solve problem statement:', error);
       alert(`Failed to solve problem statement: ${error.message}`);
+    }
+  };
+
+  // Handler to add a new assignment to the selected PPS
+  const handleAddAssignment = (assignmentData) => {
+    try {
+      console.log('Creating assignment with data:', assignmentData);
+      
+      if (!localWarehouseData || !localWarehouseData.warehouse.problem_statement) {
+        alert('No problem statement data available!');
+        return;
+      }
+
+      const problemStatement = localWarehouseData.warehouse.problem_statement;
+      
+      // Find the PPS by ID
+      const targetPPS = problemStatement.pps_list.find(p => p.id === parseInt(assignmentData.pps_id));
+      if (!targetPPS) {
+        alert('PPS not found!');
+        return;
+      }
+
+      // Find bot and MSU by IDs
+      const targetBot = problemStatement.ranger_list.find(b => b.id === parseInt(assignmentData.bot_id));
+      const targetMSU = problemStatement.transport_entity_list.find(m => m.id === parseInt(assignmentData.msu_id));
+      
+      if (!targetBot) {
+        alert('Bot not found!');
+        return;
+      }
+      
+      if (!targetMSU) {
+        alert('MSU not found!');
+        return;
+      }
+
+      // Create the assignment object
+      const assignment = {
+        task_id: assignmentData.task_id,
+        bot_id: parseInt(assignmentData.bot_id),
+        msu_id: parseInt(assignmentData.msu_id)
+      };
+
+      // Add to PPS current_schedule.assignments
+      if (!targetPPS.current_schedule) {
+        targetPPS.current_schedule = { assignments: [] };
+      }
+      if (!targetPPS.current_schedule.assignments) {
+        targetPPS.current_schedule.assignments = [];
+      }
+
+      targetPPS.current_schedule.assignments.push(assignment);
+      
+      // Update the problem statement
+      const updatedProblemStatement = {
+        ...problemStatement,
+        pps_list: problemStatement.pps_list.map(p => 
+          p.id === targetPPS.id ? targetPPS : p
+        )
+      };
+
+      // Save to local state
+      localStateManager.updateProblemStatementInLocal(updatedProblemStatement);
+      console.log('Assignment added to PPS:', targetPPS.id, assignment);
+      
+    } catch (error) {
+      console.error('Error adding assignment:', error);
+      alert('Failed to add assignment. Please check the console for details.');
     }
   };
 
@@ -326,7 +393,7 @@ const GridEditor = ({ onNavigateToConfig }) => {
             <div style={{ flex: 1, overflow: "auto", borderBottom: "1px solid #ccc" }}>
               <ObjectsList
                 objects={objects}
-                onSelectObject={handleObjectSelect}
+                onObjectSelect={handleObjectSelect}
                 onRemoveObject={removeObject}
                 onAddObject={handleAddObjectFromList}
                 selectedObject={selectedObject}
@@ -341,6 +408,8 @@ const GridEditor = ({ onNavigateToConfig }) => {
                 onSelectTask={handleTaskSelect}
                 onAddTask={addTask}
                 onRemoveTask={removeTask}
+                onAddAssignment={handleAddAssignment}
+                onSolveProblem={handleSolveProblem}
                 selectedTask={selectedTask}
                 availablePPS={objects.filter(obj => obj.type === 'pps').map(obj => ({
                   id: obj.properties?.id || obj.id,
@@ -367,7 +436,7 @@ const GridEditor = ({ onNavigateToConfig }) => {
               ) : selectedTask ? (
                 <TaskPropertyEditor
                   selectedTask={selectedTask}
-                  onPropertiesChange={(props) => updateTaskProperties(selectedTask.task_key || selectedTask.id, props)}
+                  onUpdateProperties={(props) => updateTaskProperties(selectedTask.task_key || selectedTask.id, props)}
                 />
               ) : (
                 <div style={{ padding: 20, textAlign: "center", color: "#666" }}>

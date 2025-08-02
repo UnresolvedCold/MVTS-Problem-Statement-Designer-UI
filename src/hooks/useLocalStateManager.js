@@ -3,16 +3,11 @@ import { useState, useCallback, useEffect } from 'react';
 
 // Default problem statement template
 const DEFAULT_PROBLEM_STATEMENT = {
-  task_list: [],
-  start_time: null,
-  request_id: null,
-  pps_list: [],
-  planning_duration_seconds: 0,
-  transport_entity_list: [],
-  maximizing_picks: false,
-  ranger_list: [],
-  conveyor_list: [],
-  relay_point_list: []
+  bot: [],
+  pps: [],
+  msu: [],
+  relay: [],
+  task_list: []
 };
 
 export const useLocalStateManager = () => {
@@ -82,6 +77,9 @@ export const useLocalStateManager = () => {
           break;
         case 'relay':
           listKey = 'relay_point_list';
+          break;
+        case 'assignment':
+          listKey = 'assignment_list';
           break;
         default:
           console.warn('Unknown object type:', objectType);

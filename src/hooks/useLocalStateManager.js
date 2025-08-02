@@ -1,12 +1,13 @@
 // src/hooks/useLocalStateManager.js
 import { useState, useCallback, useEffect } from 'react';
+import { GRID_CONFIG } from '../utils/constants';
 
 // Default problem statement template
 const DEFAULT_PROBLEM_STATEMENT = {
-  bot: [],
-  pps: [],
-  msu: [],
-  relay: [],
+  ranger_list: [],
+  pps_list: [],
+  transport_entity_list: [],
+  relay_point_list: [],
   task_list: []
 };
 
@@ -26,8 +27,8 @@ export const useLocalStateManager = () => {
     // Return default structure
     return {
       warehouse: {
-        width: 10,
-        height: 10,
+        width: GRID_CONFIG.DEFAULT_COLS,
+        height: GRID_CONFIG.DEFAULT_ROWS,
         problem_statement: { ...DEFAULT_PROBLEM_STATEMENT }
       }
     };
@@ -123,6 +124,15 @@ export const useLocalStateManager = () => {
         case 'msu':
           listKey = 'transport_entity_list';
           break;
+        case 'task':
+          listKey = 'task_list';
+          break;
+        case 'relay':
+          listKey = 'relay_point_list';
+          break;
+        case 'assignment':
+          listKey = 'assignment_list';
+          break;
         default:
           console.warn('Unknown object type:', objectType);
           return prevData;
@@ -135,7 +145,13 @@ export const useLocalStateManager = () => {
           problem_statement: {
             ...problemStatement,
             [listKey]: (problemStatement[listKey] || []).filter(
-              item => item.id !== objectId
+              item => {
+                if (objectType === 'task') {
+                  return (item.task_key || item.id) !== objectId;
+                } else {
+                  return item.id !== objectId;
+                }
+              }
             )
           }
         }
@@ -164,6 +180,15 @@ export const useLocalStateManager = () => {
         case 'msu':
           listKey = 'transport_entity_list';
           break;
+        case 'task':
+          listKey = 'task_list';
+          break;
+        case 'relay':
+          listKey = 'relay_point_list';
+          break;
+        case 'assignment':
+          listKey = 'assignment_list';
+          break;
         default:
           console.warn('Unknown object type:', objectType);
           return prevData;
@@ -175,9 +200,13 @@ export const useLocalStateManager = () => {
           ...prevData.warehouse,
           problem_statement: {
             ...problemStatement,
-            [listKey]: (problemStatement[listKey] || []).map(item =>
-              item.id === objectId ? { ...item, ...newProperties } : item
-            )
+            [listKey]: (problemStatement[listKey] || []).map(item => {
+              if (objectType === 'task') {
+                return (item.task_key || item.id) === objectId ? { ...item, ...newProperties } : item;
+              } else {
+                return item.id === objectId ? { ...item, ...newProperties } : item;
+              }
+            })
           }
         }
       };
@@ -306,8 +335,8 @@ export const useLocalStateManager = () => {
   const clearLocalData = useCallback(() => {
     const defaultData = {
       warehouse: {
-        width: 10,
-        height: 10,
+        width: GRID_CONFIG.DEFAULT_COLS,
+        height: GRID_CONFIG.DEFAULT_ROWS,
         problem_statement: { ...DEFAULT_PROBLEM_STATEMENT }
       }
     };

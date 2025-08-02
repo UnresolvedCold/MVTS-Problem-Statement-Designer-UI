@@ -58,7 +58,9 @@ const GridCanvas = ({
 
       {/* Objects Layer */}
       <Layer>
-        {objects.map((obj) => {
+        {objects
+          .filter(obj => obj.x !== null && obj.y !== null && obj.x !== undefined && obj.y !== undefined)
+          .map((obj) => {
           let imageSrc;
           if (obj.type === "bot") {
             imageSrc = "/bot.png";

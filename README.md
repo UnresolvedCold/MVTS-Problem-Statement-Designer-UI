@@ -85,8 +85,7 @@ Your app is ready to be deployed!
 ### Frontend (React)
 - **Local State**: `useLocalStateManager` hook for browser-based state
 - **Server API**: `useServerAPI` hook for template and solving requests
-- **Object Management**: Local object lifecycle management
-- **Task Management**: Local task creation and editing
+- **Unified Management**: `useLocalObjectManager` handles all entities (objects, tasks, assignments)
 - **Persistence**: Automatic localStorage integration
 
 ### Server Communication
@@ -138,8 +137,7 @@ src/
 ├── hooks/
 │   ├── useLocalStateManager.js    # Local state management
 │   ├── useServerAPI.js            # Server communication
-│   ├── useLocalObjectManager.js   # Object lifecycle
-│   └── useLocalTaskManager.js     # Task management
+│   └── useLocalObjectManager.js   # Unified object/task lifecycle
 ├── components/
 │   ├── TemplateManager.js         # Template management UI
 │   ├── SolutionDisplay.js         # Solution viewer

@@ -3,7 +3,6 @@ import { useLocalStateManager } from "./hooks/useLocalStateManager";
 import { useServerAPI } from "./hooks/useServerAPI";
 import { useSchemaManager } from "./hooks/useSchemaManager";
 import { useLocalObjectManager } from "./hooks/useLocalObjectManager";
-import { useLocalTaskManager } from "./hooks/useLocalTaskManager";
 import Toolbar from "./components/Toolbar";
 import GridCanvas from "./components/GridCanvas";
 import ObjectsList from "./components/ObjectsList";
@@ -42,7 +41,7 @@ const GridEditor = ({ onNavigateToConfig }) => {
   const serverAPI = useServerAPI();
   const { solveProblemStatement } = serverAPI;
 
-  // Initialize object management with local state and schema manager
+  // Initialize object management with local state and schema manager (includes tasks)
   const objectManager = useLocalObjectManager(cellSize, localStateManager, schemaManager);
   const {
     objects,
@@ -55,17 +54,12 @@ const GridEditor = ({ onNavigateToConfig }) => {
     loadObjectsFromWarehouse
   } = objectManager;
 
-  // Initialize task management with local state
-  const taskManager = useLocalTaskManager(localStateManager, schemaManager);
-  const {
-    tasks,
-    selectedTask,
-    setSelectedTask,
-    addTask,
-    removeTask,
-    updateTaskProperties,
-    loadTasksFromWarehouse
-  } = taskManager;
+  // Separate tasks, assignments, and visual objects for different UI components
+  const tasks = objects.filter(obj => obj.type === 'task');
+  const assignments = objects.filter(obj => obj.type === 'assignment');
+  const visualObjects = objects.filter(obj => obj.type !== 'task' && obj.type !== 'assignment');
+  const selectedTask = selectedObject?.type === 'task' ? selectedObject : null;
+  const selectedAssignment = selectedObject?.type === 'assignment' ? selectedObject : null;
 
   // Load objects and tasks when local warehouse data changes
   useEffect(() => {
@@ -76,22 +70,19 @@ const GridEditor = ({ onNavigateToConfig }) => {
         setRows(localWarehouseData.warehouse.height);
       }
       
-      // Load objects and tasks
+      // Load objects and tasks (unified)
       loadObjectsFromWarehouse(localWarehouseData);
-      loadTasksFromWarehouse(localWarehouseData);
     }
-  }, [localWarehouseData, loadObjectsFromWarehouse, loadTasksFromWarehouse]);
+  }, [localWarehouseData, loadObjectsFromWarehouse]);
 
-  // Handle task selection (clear object selection)
+  // Handle task selection (tasks are now objects)
   const handleTaskSelect = (task) => {
-    setSelectedTask(task);
-    setSelectedObject(null);
+    setSelectedObject(task);
   };
 
-  // Handle object selection (clear task selection)
+  // Handle object selection
   const handleObjectSelect = (obj) => {
     setSelectedObject(obj);
-    setSelectedTask(null);
   };
 
   // Handle object adding from ObjectsList (default position)
@@ -152,67 +143,45 @@ const GridEditor = ({ onNavigateToConfig }) => {
     }
   };
 
-  // Handler to add a new assignment to the selected PPS
-  const handleAddAssignment = (assignmentData) => {
+  // Handler to add a new task
+  const handleAddTask = async (taskData) => {
+    try {
+      console.log('Creating task with data:', taskData);
+      
+      // Create task object with the provided data
+      const taskProperties = {
+        pps_id: parseInt(taskData.pps_id),
+        msu_id: parseInt(taskData.msu_id),
+        created_at: new Date().toISOString()
+      };
+
+      // Add task as an object (no visual position) with custom data
+      await addObject('task', null, null, taskProperties);
+      
+      console.log('Task added successfully');
+      
+    } catch (error) {
+      console.error('Error adding task:', error);
+      alert('Failed to add task. Please check the console for details.');
+    }
+  };
+  const handleAddAssignment = async (assignmentData) => {
     try {
       console.log('Creating assignment with data:', assignmentData);
       
-      if (!localWarehouseData || !localWarehouseData.warehouse.problem_statement) {
-        alert('No problem statement data available!');
-        return;
-      }
-
-      const problemStatement = localWarehouseData.warehouse.problem_statement;
-      
-      // Find the PPS by ID
-      const targetPPS = problemStatement.pps_list.find(p => p.id === parseInt(assignmentData.pps_id));
-      if (!targetPPS) {
-        alert('PPS not found!');
-        return;
-      }
-
-      // Find bot and MSU by IDs
-      const targetBot = problemStatement.ranger_list.find(b => b.id === parseInt(assignmentData.bot_id));
-      const targetMSU = problemStatement.transport_entity_list.find(m => m.id === parseInt(assignmentData.msu_id));
-      
-      if (!targetBot) {
-        alert('Bot not found!');
-        return;
-      }
-      
-      if (!targetMSU) {
-        alert('MSU not found!');
-        return;
-      }
-
-      // Create the assignment object
-      const assignment = {
+      // Create assignment object with the provided data
+      const assignmentProperties = {
         task_id: assignmentData.task_id,
         bot_id: parseInt(assignmentData.bot_id),
-        msu_id: parseInt(assignmentData.msu_id)
+        pps_id: parseInt(assignmentData.pps_id),
+        msu_id: parseInt(assignmentData.msu_id),
+        created_at: new Date().toISOString()
       };
 
-      // Add to PPS current_schedule.assignments
-      if (!targetPPS.current_schedule) {
-        targetPPS.current_schedule = { assignments: [] };
-      }
-      if (!targetPPS.current_schedule.assignments) {
-        targetPPS.current_schedule.assignments = [];
-      }
-
-      targetPPS.current_schedule.assignments.push(assignment);
+      // Add assignment as an object (no visual position) with custom data
+      await addObject('assignment', null, null, assignmentProperties);
       
-      // Update the problem statement
-      const updatedProblemStatement = {
-        ...problemStatement,
-        pps_list: problemStatement.pps_list.map(p => 
-          p.id === targetPPS.id ? targetPPS : p
-        )
-      };
-
-      // Save to local state
-      localStateManager.updateProblemStatementInLocal(updatedProblemStatement);
-      console.log('Assignment added to PPS:', targetPPS.id, assignment);
+      console.log('Assignment added successfully');
       
     } catch (error) {
       console.error('Error adding assignment:', error);
@@ -225,7 +194,6 @@ const GridEditor = ({ onNavigateToConfig }) => {
     if (window.confirm('Are you sure you want to clear all data? This cannot be undone.')) {
       localStateManager.clearLocalData();
       setSelectedObject(null);
-      setSelectedTask(null);
     }
   };
 
@@ -370,7 +338,7 @@ const GridEditor = ({ onNavigateToConfig }) => {
               rows={rows}
               cols={cols}
               cellSize={cellSize}
-              objects={objects}
+              objects={visualObjects}
               selectedObject={selectedObject}
               onObjectClick={handleObjectSelect}
               onObjectDragStart={(obj) => {
@@ -392,7 +360,7 @@ const GridEditor = ({ onNavigateToConfig }) => {
             {/* Objects List */}
             <div style={{ flex: 1, overflow: "auto", borderBottom: "1px solid #ccc" }}>
               <ObjectsList
-                objects={objects}
+                objects={visualObjects}
                 onObjectSelect={handleObjectSelect}
                 onRemoveObject={removeObject}
                 onAddObject={handleAddObjectFromList}
@@ -406,20 +374,20 @@ const GridEditor = ({ onNavigateToConfig }) => {
               <TasksList
                 tasks={tasks}
                 onSelectTask={handleTaskSelect}
-                onAddTask={addTask}
-                onRemoveTask={removeTask}
+                onAddTask={handleAddTask}
+                onRemoveTask={removeObject}
                 onAddAssignment={handleAddAssignment}
                 onSolveProblem={handleSolveProblem}
                 selectedTask={selectedTask}
-                availablePPS={objects.filter(obj => obj.type === 'pps').map(obj => ({
+                availablePPS={visualObjects.filter(obj => obj.type === 'pps').map(obj => ({
                   id: obj.properties?.id || obj.id,
                   ...obj.properties
                 }))}
-                availableMSU={objects.filter(obj => obj.type === 'msu').map(obj => ({
+                availableMSU={visualObjects.filter(obj => obj.type === 'msu').map(obj => ({
                   id: obj.properties?.id || obj.id,
                   ...obj.properties
                 }))}
-                availableBots={objects.filter(obj => obj.type === 'bot').map(obj => ({
+                availableBots={visualObjects.filter(obj => obj.type === 'bot').map(obj => ({
                   id: obj.properties?.id || obj.id,
                   ...obj.properties
                 }))}
@@ -436,7 +404,7 @@ const GridEditor = ({ onNavigateToConfig }) => {
               ) : selectedTask ? (
                 <TaskPropertyEditor
                   selectedTask={selectedTask}
-                  onUpdateProperties={(props) => updateTaskProperties(selectedTask.task_key || selectedTask.id, props)}
+                  onUpdateProperties={(props) => updateObjectProperties(selectedTask.id, props)}
                 />
               ) : (
                 <div style={{ padding: 20, textAlign: "center", color: "#666" }}>

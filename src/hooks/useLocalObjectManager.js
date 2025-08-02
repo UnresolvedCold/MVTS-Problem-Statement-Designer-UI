@@ -16,11 +16,33 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
 
   const { getTemplate } = schemaManager;
 
-  // Generate unique ID for objects
+  // Generate unique ID for objects and tasks
   const generateObjectId = useCallback((type) => {
-    const existing = localWarehouseData.warehouse.problem_statement[type === 'bot' ? 'ranger_list' : type === 'pps' ? 'pps_list' : 'transport_entity_list'] || [];
-    const maxId = existing.reduce((max, item) => Math.max(max, item.id || 0), 0);
-    return maxId + 1;
+    const listKey = type === 'bot' ? 'ranger_list' : 
+                   type === 'pps' ? 'pps_list' : 
+                   type === 'msu' ? 'transport_entity_list' :
+                   type === 'task' ? 'task_list' :
+                   type === 'assignment' ? 'assignment_list' : null;
+    
+    if (!listKey) {
+      console.warn('Unknown object type:', type);
+      return 1;
+    }
+    
+    const existing = localWarehouseData.warehouse.problem_statement[listKey] || [];
+    
+    if (type === 'task') {
+      // Tasks use task_key with pattern task-{number}
+      const maxNum = existing.reduce((max, task) => {
+        const match = (task.task_key || '').match(/task-(\d+)/);
+        return Math.max(max, match ? parseInt(match[1]) : 0);
+      }, 0);
+      return `task-${maxNum + 1}`;
+    } else {
+      // All other types use numeric id
+      const maxId = existing.reduce((max, item) => Math.max(max, item.id || 0), 0);
+      return maxId + 1;
+    }
   }, [localWarehouseData]);
 
   // Convert warehouse data objects to visual objects
@@ -71,13 +93,39 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
         }
       });
     }
+    
+    // Load tasks from task_list (no visual representation, just for management)
+    if (warehouseData.warehouse.problem_statement?.task_list) {
+      warehouseData.warehouse.problem_statement.task_list.forEach((task, index) => {
+        loadedObjects.push({
+          id: `task-${task.task_key || index}-${Date.now()}`,
+          type: 'task',
+          x: null, // No visual position
+          y: null, // No visual position
+          properties: { ...task }
+        });
+      });
+    }
+
+    // Load assignments from assignment_list (no visual representation, just for management)
+    if (warehouseData.warehouse.problem_statement?.assignment_list) {
+      warehouseData.warehouse.problem_statement.assignment_list.forEach((assignment, index) => {
+        loadedObjects.push({
+          id: `assignment-${assignment.id || index}-${Date.now()}`,
+          type: 'assignment',
+          x: null, // No visual position
+          y: null, // No visual position
+          properties: { ...assignment }
+        });
+      });
+    }
 
     console.log('Loaded objects from warehouse data:', loadedObjects);
     setObjects(loadedObjects);
   }, [cellSize]);
 
   // Add a new object
-  const addObject = useCallback(async (type, x, y) => {
+  const addObject = useCallback(async (type, x, y, customData = {}) => {
     try {
       // Get template from schema manager (unified for all types)
       let template = templates[type];
@@ -93,27 +141,64 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
       // Generate new ID
       const newId = generateObjectId(type);
       
-      // Create object data with grid coordinates
-      const objectData = {
-        ...template,
-        id: newId,
-        coordinate: {
-          x: Math.floor(x / cellSize),
-          y: Math.floor(y / cellSize)
-        }
-      };
+      let objectData, visualObject;
+      
+      if (type === 'task') {
+        // Tasks don't have coordinates, use task_key instead of id
+        objectData = {
+          ...template,
+          task_key: newId,
+          ...customData
+        };
+        
+        // Create visual object without position
+        visualObject = {
+          id: `task-${newId}-${Date.now()}`,
+          type,
+          x: null,
+          y: null,
+          properties: objectData
+        };
+      } else if (type === 'assignment') {
+        // Assignments don't have coordinates, use id
+        objectData = {
+          ...template,
+          id: newId,
+          ...customData
+        };
+        
+        // Create visual object without position
+        visualObject = {
+          id: `assignment-${newId}-${Date.now()}`,
+          type,
+          x: null,
+          y: null,
+          properties: objectData
+        };
+      } else {
+        // Regular objects with grid coordinates
+        objectData = {
+          ...template,
+          id: newId,
+          coordinate: {
+            x: Math.floor(x / cellSize),
+            y: Math.floor(y / cellSize)
+          },
+          ...customData
+        };
+        
+        // Create visual object
+        visualObject = {
+          id: `${type}-${newId}-${Date.now()}`,
+          type,
+          x,
+          y,
+          properties: objectData
+        };
+      }
 
       // Add to local warehouse data
       addObjectToLocal(type, objectData);
-
-      // Create visual object
-      const visualObject = {
-        id: `${type}-${newId}-${Date.now()}`,
-        type,
-        x,
-        y,
-        properties: objectData
-      };
 
       // Add to visual objects
       setObjects(prev => [...prev, visualObject]);
@@ -139,8 +224,16 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
       setSelectedObject(null);
     }
 
+    // Determine the object identifier for removal
+    let objectIdentifier;
+    if (objectToRemove.type === 'task') {
+      objectIdentifier = objectToRemove.properties.task_key;
+    } else {
+      objectIdentifier = objectToRemove.properties.id;
+    }
+
     // Remove from local warehouse data
-    removeObjectFromLocal(objectToRemove.type, objectToRemove.properties.id);
+    removeObjectFromLocal(objectToRemove.type, objectIdentifier);
 
     // Remove from visual objects
     setObjects(prev => prev.filter(obj => obj.id !== id));

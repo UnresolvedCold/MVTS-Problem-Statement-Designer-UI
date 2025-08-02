@@ -1,0 +1,25 @@
+{
+  "id": 1,
+  "type": null,
+  "coordinate": {
+    "x": 0,
+    "y": 0
+  },
+  "available_at_coordinate": {
+    "x": 0,
+    "y": 0
+  },
+  "depth": 0,
+  "height": 0,
+  "direction": 0,
+  "available": true,
+  "lifted_ranger_id": null,
+  "current_location_type": "storable",
+  "aisle_info": {
+    "aisle_id": 0,
+    "aisle_coordinate": [
+      0,
+      0
+    ]
+  }
+}

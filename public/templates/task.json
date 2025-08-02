@@ -1,0 +1,17 @@
+{
+  "task_key": null,
+  "serviced_orders": null,
+  "serviced_bins": null,
+  "destination": null,
+  "destination_id": 1,
+  "transport_entity_id": 1,
+  "transport_entity_type": null,
+  "task_type": null,
+  "status": null,
+  "task_subtype": "unknown",
+  "assigned_ranger_id": null,
+  "aisle_info": {
+    "aisle_id": 0,
+    "aisle_coordinate": [0, 0]
+  }
+}

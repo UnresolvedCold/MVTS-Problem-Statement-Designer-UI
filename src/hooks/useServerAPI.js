@@ -163,7 +163,7 @@ export const useServerAPI = () => {
       setLoadingMessage('');
       console.error(`Failed to get ${schemaType} schema:`, error);
       // Return default fallback schema
-      const defaultSchema = getDefaultSchema(schemaType);
+      const defaultSchema = await getDefaultSchema(schemaType);
       if (defaultSchema) {
         setSchemas(prev => ({
           ...prev,
@@ -199,14 +199,14 @@ export const useServerAPI = () => {
     setLoadingMessage('Loading all schemas from server...');
     
     try {
-      const schemaTypes = ['bot', 'pps', 'msu', 'task', 'relay', 'problemStatement'];
+      const schemaTypes = ['bot', 'pps', 'msu', 'task', 'relay', 'assignment', 'problemStatement'];
       const schemaPromises = schemaTypes.map(async (type) => {
         try {
           const schema = await getSchema(type);
           return { [type]: schema };
         } catch (error) {
           console.warn(`Failed to get ${type} schema:`, error);
-          const defaultSchema = getDefaultSchema(type);
+          const defaultSchema = await getDefaultSchema(type);
           return { [type]: defaultSchema };
         }
       });
@@ -223,7 +223,7 @@ export const useServerAPI = () => {
       setLoadingMessage('');
       console.error('Failed to get schemas:', error);
       // Return default schemas as fallback
-      return getDefaultSchemas();
+      return await getDefaultSchemas();
     }
   }, [getSchema]);
 
@@ -278,151 +278,77 @@ export const useServerAPI = () => {
   };
 };
 
-// Default template fallbacks
-const getDefaultBotTemplate = () => ({
-  id: null, // Will be auto-generated
-  paused: false,
-  available_at_time: Date.now(),
-  coordinate: { x: 0, y: 0 },
-  available_at_coordinate: { x: 0, y: 0 },
-  total_capacity: 1,
-  available_capacity: 1,
-  is_paused: false,
-  status: "ready",
-  version: "ttp_demo",
-  ranger_schedule: [],
-  current_aisle_info: {
-    aisle_id: 0,
-    aisle_coordinate: [0, 0]
+// Default template fallbacks - Load from JSON files
+const loadTemplateFromFile = async (templateName) => {
+  try {
+    const response = await fetch(`/templates/${templateName}.json`);
+    if (!response.ok) {
+      throw new Error(`Failed to load template: ${templateName}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error loading template ${templateName}:`, error);
+    return null;
   }
-});
+};
 
-const getDefaultPpsTemplate = () => ({
-  id: null, // Will be auto-generated
-  coordinate: { x: 0, y: 0 },
-  bin_details: [{
-    virtualBin: false,
-    msio: true,
-    bin_id: "1-1",
-    bin_type: "order",
-    order_id: "1",
-    order_line_id: "1",
-    rack_id: "1",
-    order_details: {
-      bin_wise_order_details: [{
-        sku_name: "Demo SKU",
-        quantity: 1,
-        order_line_id: "1",
-        is_msio: true,
-        is_virtual_bin_used: false
-      }]
-    },
-    queue_length: 1
-  }],
-  queue_length: 1,
-  ranger_dock_coordinates: [{
-    coordinate: { x: 0, y: 0 },
-    type: "rtp_pps_location"
-  }],
-  mode: "pick",
-  pps_type: "RTP",
-  current_schedule: {
-    cost: null,
-    assignments: [],
-    reserved_ranger_list: []
-  },
-  connected_pps_list: [],
-  can_assign_task: true,
-  ranger_exit_coordinates: [{
-    coordinate: { x: 0, y: 0 },
-    type: "rtp_pps_location"
-  }],
-  msio_bins: [],
-  pps_status: "open",
-  pps_logged_in: true,
-  pps_login_time: 0
-});
+const getDefaultBotTemplate = async () => {
+  return await loadTemplateFromFile('bot');
+};
 
-const getDefaultMsuTemplate = () => ({
-  id: null, // Will be auto-generated
-  type: null,
-  coordinate: { x: 0, y: 0 },
-  available_at_coordinate: null,
-  depth: 0,
-  height: 0,
-  direction: 0,
-  available: false,
-  lifted_ranger_id: null,
-  current_location_type: null,
-  aisle_info: null
-});
+const getDefaultPpsTemplate = async () => {
+  return await loadTemplateFromFile('pps');
+};
 
-const getDefaultTaskTemplate = () => ({
-  task_key: null, // Will be auto-generated
-  serviced_orders: null,
-  serviced_bins: null,
-  destination: null,
-  destination_id: 1,
-  transport_entity_id: 1,
-  transport_entity_type: null,
-  task_type: null,
-  status: null,
-  task_subtype: "unknown",
-  assigned_ranger_id: null,
-  aisle_info: {
-    aisle_id: 0,
-    aisle_coordinate: [0, 0]
-  }
-});
+const getDefaultMsuTemplate = async () => {
+  return await loadTemplateFromFile('msu');
+};
 
-const getDefaultRelayTemplate = () => ({
-  id: null, // Will be auto-generated
-  coordinate: { x: 0, y: 0 },
-  relay_type: "standard",
-  capacity: 1,
-  status: "active",
-  connected_zones: []
-});
+const getDefaultTaskTemplate = async () => {
+  return await loadTemplateFromFile('task');
+};
 
-const getDefaultProblemStatementTemplate = () => ({
-  task_list: [],
-  start_time: null,
-  request_id: null,
-  pps_list: [],
-  planning_duration_seconds: 0,
-  transport_entity_list: [],
-  maximizing_picks: false,
-  ranger_list: [],
-  conveyor_list: [],
-  relay_point_list: []
-});
+const getDefaultRelayTemplate = async () => {
+  return await loadTemplateFromFile('relay');
+};
+
+const getDefaultAssignmentTemplate = async () => {
+  return await loadTemplateFromFile('assignment');
+};
+
+const getDefaultProblemStatementTemplate = async () => {
+  return await loadTemplateFromFile('problemStatement');
+};
 
 // Helper function to get default schema by type
-const getDefaultSchema = (schemaType) => {
+const getDefaultSchema = async (schemaType) => {
   switch (schemaType) {
     case 'bot':
-      return getDefaultBotTemplate();
+      return await getDefaultBotTemplate();
     case 'pps':
-      return getDefaultPpsTemplate();
+      return await getDefaultPpsTemplate();
     case 'msu':
-      return getDefaultMsuTemplate();
+      return await getDefaultMsuTemplate();
     case 'task':
-      return getDefaultTaskTemplate();
+      return await getDefaultTaskTemplate();
     case 'relay':
-      return getDefaultRelayTemplate();
+      return await getDefaultRelayTemplate();
+    case 'assignment':
+      return await getDefaultAssignmentTemplate();
     case 'problemStatement':
-      return getDefaultProblemStatementTemplate();
+      return await getDefaultProblemStatementTemplate();
     default:
       return null;
   }
 };
 
 // Helper function to get all default schemas
-const getDefaultSchemas = () => ({
-  bot: getDefaultBotTemplate(),
-  pps: getDefaultPpsTemplate(),
-  msu: getDefaultMsuTemplate(),
-  task: getDefaultTaskTemplate(),
-  relay: getDefaultRelayTemplate(),
-  problemStatement: getDefaultProblemStatementTemplate()
+const getDefaultSchemas = async () => ({
+  bot: await getDefaultBotTemplate(),
+  pps: await getDefaultPpsTemplate(),
+  msu: await getDefaultMsuTemplate(),
+  task: await getDefaultTaskTemplate(),
+  relay: await getDefaultRelayTemplate(),
+  assignment: await getDefaultAssignmentTemplate(),
+  problemStatement: await getDefaultProblemStatementTemplate()
 });

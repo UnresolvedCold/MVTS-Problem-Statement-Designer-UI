@@ -1,0 +1,12 @@
+{
+  "task_list": [],
+  "start_time": 0,
+  "request_id": "Playground",
+  "pps_list": [],
+  "planning_duration_seconds": 5,
+  "transport_entity_list": [],
+  "maximizing_picks": false,
+  "ranger_list": [],
+  "conveyor_list": [],
+  "relay_point_list": []
+}

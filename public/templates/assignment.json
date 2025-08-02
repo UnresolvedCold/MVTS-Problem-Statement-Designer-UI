@@ -1,0 +1,11 @@
+{
+  "id": null,
+  "name": "Assignment",
+  "description": "Task assignment description",
+  "priority": 1,
+  "status": "pending",
+  "assigned_to": null,
+  "created_at": null,
+  "due_date": null,
+  "metadata": {}
+}

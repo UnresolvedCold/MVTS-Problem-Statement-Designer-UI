@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 // Component for editing JSON objects in textarea
 const JsonTextArea = ({ value, onChange }) => {
@@ -67,14 +67,16 @@ const PropertyEditor = ({
   }, [selectedObject]);
 
   // Handle form field changes
-  const handleFormChange = (key, value) => {
+  const handleFormChange = useCallback((key, value) => {
     const updatedValues = { ...formValues, [key]: value };
     setFormValues(updatedValues);
-    onUpdateProperties(selectedObject.id, updatedValues);
-  };
+    if (onUpdateProperties) {
+      onUpdateProperties(selectedObject.id, updatedValues);
+    }
+  }, [formValues, selectedObject, onUpdateProperties]);
 
   // Handle nested object changes (like coordinate)
-  const handleNestedChange = (parentKey, childKey, value) => {
+  const handleNestedChange = useCallback((parentKey, childKey, value) => {
     const updatedValues = {
       ...formValues,
       [parentKey]: {
@@ -83,21 +85,25 @@ const PropertyEditor = ({
       }
     };
     setFormValues(updatedValues);
-    onUpdateProperties(selectedObject.id, updatedValues);
-  };
+    if (onUpdateProperties) {
+      onUpdateProperties(selectedObject.id, updatedValues);
+    }
+  }, [formValues, selectedObject, onUpdateProperties]);
 
   // Handle JSON text change
-  const handleJsonChange = (value) => {
+  const handleJsonChange = useCallback((value) => {
     setJsonEditValue(value);
     try {
       const parsed = JSON.parse(value);
       setJsonError(null);
       setFormValues(parsed);
-      onUpdateProperties(selectedObject.id, parsed);
+      if (onUpdateProperties) {
+        onUpdateProperties(selectedObject.id, parsed);
+      }
     } catch (error) {
       setJsonError(error.message);
     }
-  };
+  }, [selectedObject, onUpdateProperties]);
 
   // Render form input based on value type
   const renderFormInput = (key, value, onChange) => {

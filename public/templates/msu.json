@@ -1,6 +1,6 @@
 {
   "id": 1,
-  "type": null,
+  "type": "rack",
   "coordinate": {
     "x": 0,
     "y": 0
@@ -10,13 +10,13 @@
     "y": 0
   },
   "depth": 0,
-  "height": 0,
+  "height": 1,
   "direction": 0,
   "available": true,
   "lifted_ranger_id": null,
   "current_location_type": "storable",
   "aisle_info": {
-    "aisle_id": 0,
+    "aisle_id": 1,
     "aisle_coordinate": [
       0,
       0

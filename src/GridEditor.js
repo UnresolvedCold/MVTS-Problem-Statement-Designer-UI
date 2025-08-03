@@ -148,11 +148,13 @@ const GridEditor = ({ onNavigateToConfig }) => {
     try {
       console.log('Creating task with data:', taskData);
       
-      // Create task object with the provided data
+      // TasksList now sends destination_id and transport_entity_id directly
       const taskProperties = {
-        pps_id: parseInt(taskData.pps_id),
-        msu_id: parseInt(taskData.msu_id),
-        created_at: new Date().toISOString()
+        destination_id: parseInt(taskData.destination_id),
+        transport_entity_id: parseInt(taskData.transport_entity_id),
+        transport_entity_type: "rack", // Default transport entity type
+        task_type: "picktask", // Default task type
+        task_subtype: "storable_to_conveyor", // Default subtype
       };
 
       // Add task as an object (no visual position) with custom data
@@ -175,7 +177,6 @@ const GridEditor = ({ onNavigateToConfig }) => {
         bot_id: parseInt(assignmentData.bot_id),
         pps_id: parseInt(assignmentData.pps_id),
         msu_id: parseInt(assignmentData.msu_id),
-        created_at: new Date().toISOString()
       };
 
       // Add assignment as an object (no visual position) with custom data

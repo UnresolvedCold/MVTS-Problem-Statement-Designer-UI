@@ -28,8 +28,8 @@ const TasksList = ({
   const handleAddTask = () => {
     if (newTaskData.pps_id && newTaskData.msu_id) {
       onAddTask({
-        pps_id: newTaskData.pps_id,
-        msu_id: newTaskData.msu_id
+        destination_id: newTaskData.pps_id,
+        transport_entity_id: newTaskData.msu_id
       });
       setNewTaskData({ pps_id: '', msu_id: '' });
       setShowAddForm(false);
@@ -388,11 +388,11 @@ const TasksList = ({
               </div>
               
               <div style={{ marginBottom: "2px" }}>
-                <strong>Destination:</strong> PPS-{task.destination_id || 'N/A'}
+                <strong>Destination:</strong> PPS-{JSON.stringify(task.properties.destination_id) || 'N/A'}
               </div>
               
               <div style={{ marginBottom: "2px" }}>
-                <strong>Transport Entity:</strong> MSU-{task.transport_entity_id || 'N/A'}
+                <strong>Transport Entity:</strong> MSU-{JSON.stringify(task.properties.transport_entity_id) || 'N/A'}
               </div>
               
               {task.task_subtype && (

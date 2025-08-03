@@ -1,11 +1,46 @@
 {
-  "id": null,
-  "name": "Assignment",
-  "description": "Task assignment description",
-  "priority": 1,
-  "status": "pending",
-  "assigned_to": null,
-  "created_at": null,
-  "due_date": null,
-  "metadata": {}
+  "startTime": 0,
+  "endTime": 0,
+  "serviced_bins": [
+    {
+      "id": "1-1",
+      "index": 0
+    }
+  ],
+  "serviced_orders": [
+    {
+      "order_priority": "MEDIUM",
+      "order_allocation_time": 0,
+      "order_pbt": 0,
+      "order_id": "assignment_1",
+      "is_order_critical": false,
+      "operator_time": 0
+    }
+  ],
+  "assigned_ranger_id": 1,
+  "task_key": "assignment_1",
+  "task_type": "picktask",
+  "task_status": "going_to_pick_entity",
+  "transport_entity_type": "tote",
+  "conveyor_id": 1,
+  "transport_entity_id": "1",
+  "dock_pps_id": 1,
+  "dock_sequence_at_pps": 0,
+  "entity_drop_sequence": 0,
+  "entity_pick_sequence": 1,
+  "ranger_dock_coordinate": null,
+  "ranger_start_time": 0,
+  "ranger_available_start_time": 0,
+  "task_subtype": "storable_to_conveyor",
+  "aisle_info": {
+    "aisle_id": 1,
+    "aisle_coordinate": [
+      0,
+      0
+    ]
+  },
+  "is_reordered": false,
+  "original_planned_time": 0,
+  "last_replanned_time": 0,
+  "ranger_group_task_key": "rgt1"
 }

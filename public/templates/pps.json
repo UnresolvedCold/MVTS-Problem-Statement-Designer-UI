@@ -5,8 +5,8 @@
   },
   "bin_details": [
     {
-      "virtualBin": false,
       "msio": true,
+      "virtualBin": false,
       "bin_id": "1-1",
       "is_msio": true,
       "is_virtual_bin_used": false

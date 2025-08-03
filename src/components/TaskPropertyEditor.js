@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 // Component for editing JSON objects in textarea
 const JsonTextArea = ({ value, onChange }) => {
@@ -69,14 +69,16 @@ const TaskPropertyEditor = ({
   }, [selectedTask]);
 
   // Handle form field changes
-  const handleFormChange = (key, value) => {
+  const handleFormChange = useCallback((key, value) => {
     const updatedValues = { ...formValues, [key]: value };
     setFormValues(updatedValues);
-    onUpdateProperties(selectedTask.task_key || selectedTask.id, updatedValues);
-  };
+    if (onUpdateProperties) {
+      onUpdateProperties(selectedTask.task_key || selectedTask.id, updatedValues);
+    }
+  }, [formValues, selectedTask, onUpdateProperties]);
 
   // Handle nested object changes (like aisle_info)
-  const handleNestedChange = (parentKey, childKey, value) => {
+  const handleNestedChange = useCallback((parentKey, childKey, value) => {
     const updatedValues = {
       ...formValues,
       [parentKey]: {
@@ -85,21 +87,25 @@ const TaskPropertyEditor = ({
       }
     };
     setFormValues(updatedValues);
-    onUpdateProperties(selectedTask.task_key || selectedTask.id, updatedValues);
-  };
+    if (onUpdateProperties) {
+      onUpdateProperties(selectedTask.task_key || selectedTask.id, updatedValues);
+    }
+  }, [formValues, selectedTask, onUpdateProperties]);
 
   // Handle JSON text change
-  const handleJsonChange = (value) => {
+  const handleJsonChange = useCallback((value) => {
     setJsonEditValue(value);
     try {
       const parsed = JSON.parse(value);
       setJsonError(null);
       setFormValues(parsed);
-      onUpdateProperties(selectedTask.task_key || selectedTask.id, parsed);
+      if (onUpdateProperties) {
+        onUpdateProperties(selectedTask.task_key || selectedTask.id, parsed);
+      }
     } catch (error) {
       setJsonError(error.message);
     }
-  };
+  }, [selectedTask, onUpdateProperties]);
 
   // Render form input based on value type
   const renderFormInput = (key, value, onChange) => {

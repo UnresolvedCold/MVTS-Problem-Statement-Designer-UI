@@ -399,7 +399,7 @@ const GridEditor = ({ onNavigateToConfig }) => {
               {selectedObject ? (
                 <PropertyEditor
                   selectedObject={selectedObject}
-                  onUpdateProperties={(objectId, props) => updateObjectProperties(selectedObject.id, props)}
+                  onUpdateProperties={(objectId, props) => updateObjectProperties(objectId, props)}
                 />
               ) : selectedTask ? (
                 <TaskPropertyEditor

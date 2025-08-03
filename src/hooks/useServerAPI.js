@@ -199,7 +199,7 @@ export const useServerAPI = () => {
     setLoadingMessage('Loading all schemas from server...');
     
     try {
-      const schemaTypes = ['bot', 'pps', 'msu', 'task', 'relay', 'assignment', 'problemStatement'];
+      const schemaTypes = ['bot', 'pps', 'msu', 'task', 'relay', 'assignment', 'problem-statement'];
       const schemaPromises = schemaTypes.map(async (type) => {
         try {
           const schema = await getSchema(type);

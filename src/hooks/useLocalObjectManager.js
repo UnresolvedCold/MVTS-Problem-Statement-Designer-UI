@@ -300,12 +300,10 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
       
       // Update selected object if it's the one being edited
       if (selectedObject?.id === objectId) {
-        setSelectedObject({ 
-          ...selectedObject, 
-          properties: newProperties,
-          x: newProperties.coordinate?.x !== undefined ? newProperties.coordinate.x * cellSize : selectedObject.x,
-          y: newProperties.coordinate?.y !== undefined ? newProperties.coordinate.y * cellSize : selectedObject.y
-        });
+        const updatedSelectedObject = updatedObjects.find(obj => obj.id === objectId);
+        if (updatedSelectedObject) {
+          setSelectedObject(updatedSelectedObject);
+        }
       }
       
       // Update the object in local warehouse data

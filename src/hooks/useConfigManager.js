@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import { MVTS_CONFIG } from '../utils/constants';
 
 export const useConfigManager = () => {
   const [config, setConfig] = useState({});

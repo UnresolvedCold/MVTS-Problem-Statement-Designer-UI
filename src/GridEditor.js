@@ -3,33 +3,28 @@ import { useLocalStateManager } from "./hooks/useLocalStateManager";
 import { useServerAPI } from "./hooks/useServerAPI";
 import { useSchemaManager } from "./hooks/useSchemaManager";
 import { useLocalObjectManager } from "./hooks/useLocalObjectManager";
-import Toolbar from "./components/Toolbar";
-import GridCanvas from "./components/GridCanvas";
-import ObjectsList from "./components/ObjectsList";
-import TasksList from "./components/TasksList";
-import PropertyEditor from "./components/PropertyEditor";
-import TaskPropertyEditor from "./components/TaskPropertyEditor";
+import { useConfigManager } from "./hooks/useConfigManager";
+import { useGridState } from "./hooks/useGridState";
+import { useObjectFilters } from "./hooks/useObjectFilters";
+import { useGridEditorHandlers } from "./hooks/useGridEditorHandlers";
+import GridView from "./components/GridView";
+import ConfigPanel from "./components/ConfigPanel";
 import ProblemStatementViewer from "./components/ProblemStatementViewer";
 import TemplateManager from "./components/TemplateManager";
 import SolutionDisplay from "./components/SolutionDisplay";
-import { GRID_CONFIG } from "./utils/constants";
+import LoadingOverlay from "./components/LoadingOverlay";
+import TabNavigation from "./components/TabNavigation";
 
-const GridEditor = ({ onNavigateToConfig }) => {
-  // Grid settings
-  const [rows, setRows] = useState(GRID_CONFIG.DEFAULT_ROWS);
-  const [cols, setCols] = useState(GRID_CONFIG.DEFAULT_COLS);
-  const [cellSize, setCellSize] = useState(GRID_CONFIG.DEFAULT_CELL_SIZE);
-  
+const GridEditor = () => {
   // UI state
   const [showTemplateManager, setShowTemplateManager] = useState(false);
   const [solutionData, setSolutionData] = useState(null);
-  const [activeTab, setActiveTab] = useState('grid');
+  const [activeTab, setActiveTab] = useState('grid'); // 'grid', 'json', 'config'
 
-  // Initialize local state manager
+  // Initialize managers
   const localStateManager = useLocalStateManager();
-  const { localWarehouseData, updateGridSizeInLocal } = localStateManager;
-
-  // Initialize schema manager for client-side schemas
+  const { localWarehouseData } = localStateManager;
+  
   const schemaManager = useSchemaManager();
   const { 
     initializationError: schemaError,
@@ -37,29 +32,39 @@ const GridEditor = ({ onNavigateToConfig }) => {
     loadingMessage: schemaLoadingMessage
   } = schemaManager;
 
-  // Initialize server API (only for problem solving)
   const serverAPI = useServerAPI();
-  const { solveProblemStatement } = serverAPI;
+  const configManager = useConfigManager();
 
-  // Initialize object management with local state and schema manager (includes tasks)
+  // Grid state management
+  const gridState = useGridState(localStateManager);
+  const { rows, cols, cellSize, setCellSize, handleRowsChange, handleColsChange, setRows, setCols } = gridState;
+
+  // Object management
   const objectManager = useLocalObjectManager(cellSize, localStateManager, schemaManager);
   const {
     objects,
     selectedObject,
     setSelectedObject,
-    addObject,
-    removeObject,
-    updateObjectPosition,
-    updateObjectProperties,
     loadObjectsFromWarehouse
   } = objectManager;
 
-  // Separate tasks, assignments, and visual objects for different UI components
-  const tasks = objects.filter(obj => obj.type === 'task');
-  const assignments = objects.filter(obj => obj.type === 'assignment');
-  const visualObjects = objects.filter(obj => obj.type !== 'task' && obj.type !== 'assignment');
+  // Object filtering
+  const filteredObjects = useObjectFilters(objects);
+  const { tasks, visualObjects } = filteredObjects;
+  
+  // Selected object helpers
   const selectedTask = selectedObject?.type === 'task' ? selectedObject : null;
-  const selectedAssignment = selectedObject?.type === 'assignment' ? selectedObject : null;
+
+  // Event handlers
+  const handlers = useGridEditorHandlers(
+    objectManager,
+    localStateManager,
+    serverAPI,
+    setSolutionData,
+    setSelectedObject,
+    cols,
+    cellSize
+  );
 
   // Load objects and tasks when local warehouse data changes
   useEffect(() => {
@@ -73,358 +78,65 @@ const GridEditor = ({ onNavigateToConfig }) => {
       // Load objects and tasks (unified)
       loadObjectsFromWarehouse(localWarehouseData);
     }
-  }, [localWarehouseData, loadObjectsFromWarehouse]);
-
-  // Handle task selection (tasks are now objects)
-  const handleTaskSelect = (task) => {
-    setSelectedObject(task);
-  };
-
-  // Handle object selection
-  const handleObjectSelect = (obj) => {
-    setSelectedObject(obj);
-  };
-
-  // Handle object adding from ObjectsList (default position)
-  const handleAddObjectFromList = (type) => {
-    // Add object at default position (center of grid)
-    const defaultX = Math.floor(cols / 2) * cellSize;
-    const defaultY = Math.floor(rows / 2) * cellSize;
-    addObject(type, defaultX, defaultY);
-  };
-
-    // Handle grid size changes - no restrictions, make scrollable
-  const handleRowsChange = (newRows) => {
-    if (newRows <= 0) {
-      alert('Rows must be greater than 0');
-      return;
-    }
-    setRows(newRows);
-    updateGridSizeInLocal(cols, newRows);
-  };
-
-  const handleColsChange = (newCols) => {
-    if (newCols <= 0) {
-      alert('Columns must be greater than 0');
-      return;
-    }
-    setCols(newCols);
-    updateGridSizeInLocal(newCols, rows);
-  };
-
-  // Handle problem statement save
-  const handleJsonSave = (updatedProblemStatement) => {
-    if (!localWarehouseData || !localWarehouseData.warehouse) {
-      alert('No warehouse data available to update.');
-      return;
-    }
-
-    // Update local state
-    localStateManager.updateProblemStatementInLocal(updatedProblemStatement);
-    
-    console.log('Problem statement updated in local state');
-  };
-
-  // Handle solve problem
-  const handleSolveProblem = async () => {
-    if (!localWarehouseData || !localWarehouseData.warehouse.problem_statement) {
-      alert('No problem statement to solve. Please create some objects and tasks first.');
-      return;
-    }
-
-    try {
-      console.log('Sending problem statement to server for solving...');
-      const solution = await solveProblemStatement(localWarehouseData.warehouse.problem_statement);
-      console.log('Received solution from server:', solution);
-      setSolutionData(solution);
-    } catch (error) {
-      console.error('Failed to solve problem statement:', error);
-      alert(`Failed to solve problem statement: ${error.message}`);
-    }
-  };
-
-  // Handler to add a new task
-  const handleAddTask = async (taskData) => {
-    try {
-      console.log('Creating task with data:', taskData);
-      
-      // TasksList now sends destination_id and transport_entity_id directly
-      const taskProperties = {
-        destination_id: parseInt(taskData.destination_id),
-        transport_entity_id: parseInt(taskData.transport_entity_id),
-        transport_entity_type: "rack", // Default transport entity type
-        task_type: "picktask", // Default task type
-        task_subtype: "storable_to_conveyor", // Default subtype
-      };
-
-      // Add task as an object (no visual position) with custom data
-      await addObject('task', null, null, taskProperties);
-      
-      console.log('Task added successfully');
-      
-    } catch (error) {
-      console.error('Error adding task:', error);
-      alert('Failed to add task. Please check the console for details.');
-    }
-  };
-  const handleAddAssignment = async (assignmentData) => {
-    try {
-      console.log('Creating assignment with data:', assignmentData);
-      
-      // Create assignment object with the provided data
-      const assignmentProperties = {
-        task_id: assignmentData.task_id,
-        bot_id: parseInt(assignmentData.bot_id),
-        pps_id: parseInt(assignmentData.pps_id),
-        msu_id: parseInt(assignmentData.msu_id),
-      };
-
-      // Add assignment as an object (no visual position) with custom data
-      await addObject('assignment', null, null, assignmentProperties);
-      
-      console.log('Assignment added successfully');
-      
-    } catch (error) {
-      console.error('Error adding assignment:', error);
-      alert('Failed to add assignment. Please check the console for details.');
-    }
-  };
-
-  // Handle clear data
-  const handleClearData = () => {
-    if (window.confirm('Are you sure you want to clear all data? This cannot be undone.')) {
-      localStateManager.clearLocalData();
-      setSelectedObject(null);
-    }
-  };
+  }, [localWarehouseData, loadObjectsFromWarehouse, setCols, setRows]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       {/* Loading Overlay */}
-      {(schemasLoading) && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 1000,
-          color: 'white',
-          fontSize: '18px'
-        }}>
-          <div style={{
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            padding: '20px',
-            borderRadius: '8px',
-            textAlign: 'center'
-          }}>
-            <div>🔄 {schemaLoadingMessage || 'Loading schemas...'}</div>
-          </div>
-        </div>
-      )}
-
-      {/* Schema Error Notification */}
-      {schemaError && !schemasLoading && (
-        <div style={{
-          padding: '10px',
-          backgroundColor: '#fff3cd',
-          borderLeft: '4px solid #ffc107',
-          color: '#856404',
-          fontSize: '14px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px'
-        }}>
-          <span>⚠️</span>
-          <div>
-            <strong>Schema Loading Warning:</strong> {schemaError}
-            <br />
-            <small>Using default schemas. You can still create objects, but they may not match server expectations.</small>
-          </div>
-          <button
-            onClick={() => schemaManager.refreshSchemas()}
-            style={{
-              marginLeft: 'auto',
-              padding: '5px 10px',
-              backgroundColor: '#ffc107',
-              border: 'none',
-              borderRadius: '3px',
-              cursor: 'pointer',
-              fontSize: '12px'
-            }}
-          >
-            Retry
-          </button>
-        </div>
-      )}
+      <LoadingOverlay 
+        isLoading={schemasLoading}
+        message={schemaLoadingMessage}
+        error={schemaError}
+        onRetry={() => schemaManager.refreshSchemas()}
+      />
 
       {/* Tab Navigation */}
-      <div style={{
-        display: "flex",
-        borderBottom: "1px solid #ccc",
-        backgroundColor: "#f8f9fa",
-        padding: "0 10px"
-      }}>
-        <button
-          onClick={() => setActiveTab('grid')}
-          style={{
-            padding: "10px 20px",
-            border: "none",
-            borderBottom: activeTab === 'grid' ? "3px solid #007bff" : "3px solid transparent",
-            backgroundColor: "transparent",
-            cursor: "pointer",
-            fontWeight: activeTab === 'grid' ? "bold" : "normal"
-          }}
-        >
-          🎯 Grid Editor
-        </button>
-        <button
-          onClick={() => setActiveTab('json')}
-          style={{
-            padding: "10px 20px",
-            border: "none",
-            borderBottom: activeTab === 'json' ? "3px solid #007bff" : "3px solid transparent",
-            backgroundColor: "transparent",
-            cursor: "pointer",
-            fontWeight: activeTab === 'json' ? "bold" : "normal"
-          }}
-        >
-          📄 JSON Viewer
-        </button>
-        <div style={{ flex: 1 }}></div>
-        <button
-          onClick={onNavigateToConfig}
-          style={{
-            padding: "10px 20px",
-            border: "none",
-            backgroundColor: "transparent",
-            cursor: "pointer",
-            color: "#007bff"
-          }}
-        >
-          ⚙️ Config
-        </button>
-      </div>
+      <TabNavigation 
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        tabs={['grid', 'json', 'config']}
+      />
 
       {/* Main Content */}
       {activeTab === 'grid' ? (
-        <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-          {/* Left Toolbar */}
-          <Toolbar
-            rows={rows}
-            cols={cols}
-            cellSize={cellSize}
-            onRowsChange={handleRowsChange}
-            onColsChange={handleColsChange}
-            onCellSizeChange={setCellSize}
-            onManageTemplates={() => setShowTemplateManager(true)}
-            onSolveProblem={handleSolveProblem}
-            onClearData={handleClearData}
-            serverAPI={serverAPI}
-          />
-
-          {/* Grid Canvas */}
-          <div style={{ 
-            flex: 1, 
-            overflow: "auto", 
-            position: "relative",
-            backgroundColor: "#fff",
-            border: "1px solid #ccc"
-          }}>
-            <GridCanvas
-              rows={rows}
-              cols={cols}
-              cellSize={cellSize}
-              objects={visualObjects}
-              selectedObject={selectedObject}
-              onObjectClick={handleObjectSelect}
-              onObjectDragStart={(obj) => {
-                // Optional: Handle drag start if needed
-                console.log('Drag started for:', obj);
-              }}
-              onObjectDragEnd={updateObjectPosition}
-            />
-          </div>
-
-          {/* Right Sidebar */}
-          <div style={{
-            width: 300,
-            borderLeft: "1px solid #ccc",
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden"
-          }}>
-            {/* Objects List */}
-            <div style={{ flex: 1, overflow: "auto", borderBottom: "1px solid #ccc" }}>
-              <ObjectsList
-                objects={visualObjects}
-                onObjectSelect={handleObjectSelect}
-                onRemoveObject={removeObject}
-                onAddObject={handleAddObjectFromList}
-                selectedObject={selectedObject}
-                cellSize={cellSize}
-              />
-            </div>
-
-            {/* Tasks List */}
-            <div style={{ flex: 1, overflow: "auto", borderBottom: "1px solid #ccc" }}>
-              <TasksList
-                tasks={tasks}
-                onSelectTask={handleTaskSelect}
-                onAddTask={handleAddTask}
-                onRemoveTask={removeObject}
-                onAddAssignment={handleAddAssignment}
-                onSolveProblem={handleSolveProblem}
-                selectedTask={selectedTask}
-                availablePPS={visualObjects.filter(obj => obj.type === 'pps').map(obj => ({
-                  id: obj.properties?.id || obj.id,
-                  ...obj.properties
-                }))}
-                availableMSU={visualObjects.filter(obj => obj.type === 'msu').map(obj => ({
-                  id: obj.properties?.id || obj.id,
-                  ...obj.properties
-                }))}
-                availableBots={visualObjects.filter(obj => obj.type === 'bot').map(obj => ({
-                  id: obj.properties?.id || obj.id,
-                  ...obj.properties
-                }))}
-              />
-            </div>
-
-            {/* Property Editor */}
-            <div style={{ height: 300, overflow: "auto" }}>
-              {selectedObject ? (
-                <PropertyEditor
-                  selectedObject={selectedObject}
-                  onUpdateProperties={(objectId, props) => updateObjectProperties(objectId, props)}
-                />
-              ) : selectedTask ? (
-                <TaskPropertyEditor
-                  selectedTask={selectedTask}
-                  onUpdateProperties={(taskId, props) => updateObjectProperties(selectedTask.id, props)}
-                />
-              ) : (
-                <div style={{ padding: 20, textAlign: "center", color: "#666" }}>
-                  Select an object or task to edit properties
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      ) : (
-        /* JSON Viewer Tab */
+        <GridView
+          // Grid state
+          rows={rows}
+          cols={cols}
+          cellSize={cellSize}
+          onRowsChange={handleRowsChange}
+          onColsChange={handleColsChange}
+          onCellSizeChange={setCellSize}
+          
+          // Objects and handlers
+          visualObjects={visualObjects}
+          tasks={tasks}
+          selectedObject={selectedObject}
+          selectedTask={selectedTask}
+          objectManager={objectManager}
+          handlers={handlers}
+          filteredObjects={filteredObjects}
+          
+          // Managers
+          localWarehouseData={localWarehouseData}
+          serverAPI={serverAPI}
+          
+          // UI actions
+          onManageTemplates={() => setShowTemplateManager(true)}
+          onSolveProblem={() => handlers.handleSolveProblem(localWarehouseData)}
+          onClearData={handlers.handleClearData}
+        />
+      ) : activeTab === 'json' ? (
         <ProblemStatementViewer
           warehouseData={localWarehouseData}
           onClose={() => setActiveTab('grid')}
-          onSave={handleJsonSave}
+          onSave={handlers.handleJsonSave}
         />
+      ) : (
+        <ConfigPanel configManager={configManager} />
       )}
 
-      {/* Template Manager Modal */}
+      {/* Modals */}
       {showTemplateManager && (
         <TemplateManager
           schemaManager={schemaManager}
@@ -433,7 +145,6 @@ const GridEditor = ({ onNavigateToConfig }) => {
         />
       )}
 
-      {/* Solution Display Modal */}
       {solutionData && (
         <SolutionDisplay
           solutionData={solutionData}

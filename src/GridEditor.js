@@ -60,6 +60,7 @@ const GridEditor = () => {
     objectManager,
     localStateManager,
     serverAPI,
+    configManager,
     setSolutionData,
     setSelectedObject,
     cols,

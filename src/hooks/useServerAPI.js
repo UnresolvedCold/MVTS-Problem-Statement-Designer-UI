@@ -233,15 +233,25 @@ export const useServerAPI = () => {
   }, [getAllSchemas]);
 
   // Send problem statement to server for solving
-  const solveProblemStatement = useCallback(async (problemStatementData) => {
+  const solveProblemStatement = useCallback(async (problemStatementData, configData = null) => {
     setIsLoading(true);
     setLoadingMessage('Solving problem statement...');
     
     try {
       await connect();
-      const response = await sendRequest('SOLVE_PROBLEM_STATEMENT', { 
+      
+      // Prepare request data
+      const requestData = { 
         problemStatement: problemStatementData 
-      });
+      };
+      
+      // Include config if provided
+      if (configData && Object.keys(configData).length > 0) {
+        requestData.config = configData;
+        console.log('Sending problem statement with config:', configData);
+      }
+      
+      const response = await sendRequest('SOLVE_PROBLEM_STATEMENT', requestData);
       setIsLoading(false);
       setLoadingMessage('');
       return response.solution;

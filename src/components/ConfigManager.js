@@ -2,7 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useConfigManager } from '../hooks/useConfigManager';
 
 const ConfigManager = ({ onBack }) => {
-  const { config, isLoading, error, fetchConfig, updateConfig } = useConfigManager();
+  const { 
+    config, 
+    serverConfig, 
+    isLoading, 
+    error, 
+    hasLocalChanges,
+    fetchConfig, 
+    updateConfig,
+    resetToServerConfig,
+    clearLocalConfig
+  } = useConfigManager();
   const [editingConfig, setEditingConfig] = useState(null);
   const [editValue, setEditValue] = useState('');
   const [lastRefreshTime, setLastRefreshTime] = useState(new Date().toLocaleString());
@@ -114,7 +124,7 @@ const ConfigManager = ({ onBack }) => {
                 fontSize: '12px'
               }}
             >
-              {isLoading ? 'Updating...' : 'Update'}
+              {isLoading ? 'Saving...' : '💾 Save Locally'}
             </button>
             <button
               onClick={handleCancelEdit}
@@ -183,7 +193,7 @@ const ConfigManager = ({ onBack }) => {
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
-        alignItems: 'center',
+        alignItems: 'flex-start',
         marginBottom: '20px',
         backgroundColor: 'white',
         padding: '15px',
@@ -192,11 +202,61 @@ const ConfigManager = ({ onBack }) => {
       }}>
         <div>
           <h2 style={{ margin: '0 0 5px 0', color: '#333' }}>⚙️ MVTS Configuration</h2>
-          <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>
+          <p style={{ margin: '0 0 5px 0', color: '#666', fontSize: '14px' }}>
             Last refreshed: {lastRefreshTime}
           </p>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '10px', 
+            fontSize: '13px',
+            flexWrap: 'wrap'
+          }}>
+            <span style={{ 
+              color: hasLocalChanges ? '#e67e22' : '#27ae60',
+              fontWeight: 'bold'
+            }}>
+              {hasLocalChanges ? '📝 Local changes pending' : '✅ In sync with server'}
+            </span>
+            <span style={{ color: '#666' }}>
+              • Changes sent with problem statements
+            </span>
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          {hasLocalChanges && (
+            <button
+              onClick={resetToServerConfig}
+              disabled={isLoading}
+              style={{
+                padding: '6px 12px',
+                backgroundColor: '#ffc107',
+                color: '#212529',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                fontSize: '12px',
+                fontWeight: 'bold'
+              }}
+            >
+              🔄 Reset to Server
+            </button>
+          )}
+          <button
+            onClick={clearLocalConfig}
+            disabled={isLoading}
+            style={{
+              padding: '6px 12px',
+              backgroundColor: '#dc3545',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              fontSize: '12px'
+            }}
+          >
+            🗑️ Clear Local
+          </button>
           <button
             onClick={handleRefresh}
             disabled={isLoading}
@@ -230,6 +290,25 @@ const ConfigManager = ({ onBack }) => {
               ← Back to Grid
             </button>
           )}
+        </div>
+      </div>
+
+      {/* Info Box */}
+      <div style={{
+        backgroundColor: '#d1ecf1',
+        color: '#0c5460',
+        padding: '12px',
+        borderRadius: '4px',
+        marginBottom: '20px',
+        border: '1px solid #bee5eb'
+      }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
+          ℹ️ Local-First Configuration
+        </div>
+        <div style={{ fontSize: '13px', lineHeight: '1.5' }}>
+          • All configuration changes are stored locally in your browser<br/>
+          • Changes are automatically sent along with problem statements to the server<br/>
+          • Use "Reset to Server" to discard local changes and restore server defaults
         </div>
       </div>
 

@@ -5,6 +5,7 @@ export const useGridEditorHandlers = (
   objectManager, 
   localStateManager, 
   serverAPI,
+  configManager,
   setSolutionData,
   setSelectedObject,
   cols,
@@ -12,6 +13,7 @@ export const useGridEditorHandlers = (
 ) => {
   const { addObject } = objectManager;
   const { solveProblemStatement } = serverAPI;
+  const { getConfigForProblemStatement } = configManager;
 
   const handleObjectSelect = useCallback((obj) => {
     setSelectedObject(obj);
@@ -40,14 +42,23 @@ export const useGridEditorHandlers = (
 
     try {
       console.log('Sending problem statement to server for solving...');
-      const solution = await solveProblemStatement(localWarehouseData.warehouse.problem_statement);
+      
+      // Get local config to send with problem statement
+      const localConfig = getConfigForProblemStatement();
+      
+      // Include config in the solve request
+      const solution = await solveProblemStatement(
+        localWarehouseData.warehouse.problem_statement, 
+        localConfig
+      );
+      
       console.log('Received solution from server:', solution);
       setSolutionData(solution);
     } catch (error) {
       console.error('Failed to solve problem statement:', error);
       alert(`Failed to solve problem statement: ${error.message}`);
     }
-  }, [solveProblemStatement, setSolutionData]);
+  }, [solveProblemStatement, setSolutionData, getConfigForProblemStatement]);
 
   const handleAddTask = useCallback(async (taskData) => {
     try {

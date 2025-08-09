@@ -73,7 +73,6 @@ const TasksList = ({
       overflowY: "auto"
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-        <h3 style={{ margin: 0 }}>Tasks</h3>
         <div style={{ display: "flex", gap: "5px", flexWrap: "wrap" }}>
           {!showAddForm && !showAssignmentForm && (
             <>
@@ -106,24 +105,7 @@ const TasksList = ({
                 + Add Assignment
               </button>
             </>
-          )}
-          <button 
-            onClick={onSolveProblem}
-            style={{
-              padding: "5px 10px",
-              backgroundColor: "#dc3545",
-              color: "white",
-              border: "none",
-              borderRadius: "3px",
-              cursor: "pointer",
-              fontSize: "12px",
-              fontWeight: "500"
-            }}
-            onMouseOver={(e) => e.target.style.backgroundColor = "#c82333"}
-            onMouseOut={(e) => e.target.style.backgroundColor = "#dc3545"}
-          >
-            🚀 Run
-          </button>
+          )}      
         </div>
       </div>
       

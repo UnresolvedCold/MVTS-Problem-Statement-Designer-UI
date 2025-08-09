@@ -49,6 +49,12 @@ const GridView = ({
         onSolveProblem={onSolveProblem}
         onClearData={onClearData}
         serverAPI={serverAPI}
+        onAddObject={handlers.handleAddObjectFromList}
+        onAddTask={handlers.handleAddTask}
+        onAddAssignment={handlers.handleAddAssignment}
+        availablePPS={filteredObjects.availablePPS}
+        availableMSU={filteredObjects.availableMSU}
+        availableBots={filteredObjects.availableBots}
       />
 
       {/* Main Grid Canvas */}

@@ -1,8 +1,6 @@
 import React from 'react';
-import ObjectsList from './ObjectsList';
-import TasksList from './TasksList';
+import EntitiesList from './EntitiesList';
 import PropertyEditor from './PropertyEditor';
-import AssignmentsSummary from './AssignmentsSummary';
 
 const RightSidebar = ({
   visualObjects,
@@ -25,46 +23,27 @@ const RightSidebar = ({
       flexDirection: "column",
       overflow: "hidden"
     }}>
-      {/* Objects List */}
+      {/* Unified Entities List */}
       <div style={{ flex: 1, overflow: "auto", borderBottom: "1px solid #ccc" }}>
-        <ObjectsList
+        <EntitiesList
           objects={visualObjects}
-          onObjectSelect={handlers.handleObjectSelect}
-          onRemoveObject={objectManager.removeObject}
-          onAddObject={handlers.handleAddObjectFromList}
-          selectedObject={selectedObject}
-          cellSize={cellSize}
-        />
-      </div>
-
-      {/* Tasks List */}
-      <div style={{ flex: 1, overflow: "auto", borderBottom: "1px solid #ccc" }}>
-        <TasksList
           tasks={tasks}
-          onSelectTask={handlers.handleTaskSelect}
-          onAddTask={handlers.handleAddTask}
-          onRemoveTask={objectManager.removeObject}
-          onAddAssignment={handlers.handleAddAssignment}
-          onSolveProblem={() => handlers.handleSolveProblem(localWarehouseData)}
+          assignments={[]} // assignments are handled through warehouseData
+          selectedObject={selectedObject}
           selectedTask={selectedTask}
-          availablePPS={filteredObjects.availablePPS}
-          availableMSU={filteredObjects.availableMSU}
-          availableBots={filteredObjects.availableBots}
-        />
-      </div>
-
-      {/* Assignments Summary */}
-      <div style={{ flex: 1, overflow: "auto", borderBottom: "1px solid #ccc" }}>
-        <AssignmentsSummary
-          warehouseData={localWarehouseData}
-          onRemoveAssignment={handlers.handleRemoveAssignment}
-          onSelectAssignment={handlers.handleAssignmentSelect}
           selectedAssignment={selectedAssignment}
+          onObjectSelect={handlers.handleObjectSelect}
+          onTaskSelect={handlers.handleTaskSelect}
+          onAssignmentSelect={handlers.handleAssignmentSelect}
+          onRemoveObject={objectManager.removeObject}
+          onRemoveTask={objectManager.removeObject}
+          onRemoveAssignment={handlers.handleRemoveAssignment}
+          warehouseData={localWarehouseData}
         />
       </div>
 
       {/* Property Editor */}
-      <div style={{ height: 250, overflow: "auto" }}>
+      <div style={{ height: 300, overflow: "auto" }}>
         {(selectedObject || selectedTask || selectedAssignment) ? (
           <PropertyEditor
             selectedObject={selectedObject}
@@ -92,8 +71,8 @@ const RightSidebar = ({
             onClose={() => {}} // Add close functionality if needed
           />
         ) : (
-          <div style={{ padding: 20, textAlign: "center", color: "#666" }}>
-            Select an object, task, or assignment to edit properties
+          <div style={{ padding: 20, textAlign: "center", color: "#666", fontSize: "12px" }}>
+            Select an entity to edit properties
           </div>
         )}
       </div>

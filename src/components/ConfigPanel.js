@@ -17,6 +17,9 @@ const ConfigPanel = ({ configManager }) => {
   const [editingConfig, setEditingConfig] = useState(null);
   const [editValue, setEditValue] = useState('');
   const [lastRefreshTime, setLastRefreshTime] = useState(new Date().toLocaleString());
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newConfigName, setNewConfigName] = useState('');
+  const [newConfigValue, setNewConfigValue] = useState('');
 
   // Function to flatten nested objects into dot notation
   const flattenObject = (obj, prefix = '', result = {}) => {
@@ -33,6 +36,27 @@ const ConfigPanel = ({ configManager }) => {
       }
     }
     return result;
+  };
+
+  // Get flattened server config for comparison
+  const getFlattenedServerConfig = () => {
+    return flattenObject(serverConfig);
+  };
+
+  // Check if a config value has changed from server value
+  const isConfigChanged = (key, value) => {
+    const flattenedServerConfig = getFlattenedServerConfig();
+    const serverValue = flattenedServerConfig[key];
+    
+    // If server config is empty or key doesn't exist in server config, 
+    // consider it unchanged (to avoid highlighting everything as changed)
+    if (Object.keys(serverConfig).length === 0 || !(key in flattenedServerConfig)) {
+      return false;
+    }
+    
+    const currentValueStr = JSON.stringify(value);
+    const serverValueStr = JSON.stringify(serverValue);
+    return currentValueStr !== serverValueStr;
   };
 
   // Fetch config on component mount
@@ -96,8 +120,46 @@ const ConfigPanel = ({ configManager }) => {
     }
   };
 
+  const handleAddConfig = () => {
+    setShowAddModal(true);
+  };
+
+  const handleCloseAddModal = () => {
+    setShowAddModal(false);
+    setNewConfigName('');
+    setNewConfigValue('');
+  };
+
+  const handleSaveNewConfig = () => {
+    if (!newConfigName.trim()) {
+      alert('Please enter a config name');
+      return;
+    }
+
+    let valueToSave = newConfigValue;
+    
+    // Try to parse the value similar to handleSaveConfig
+    if (newConfigValue.trim().startsWith('{') || newConfigValue.trim().startsWith('[')) {
+      try {
+        valueToSave = JSON.parse(newConfigValue);
+      } catch (e) {
+        console.warn('Could not parse as JSON, treating as string:', e);
+      }
+    } else if (!isNaN(newConfigValue) && newConfigValue.trim() !== '') {
+      valueToSave = Number(newConfigValue);
+    } else if (newConfigValue.toLowerCase() === 'true' || newConfigValue.toLowerCase() === 'false') {
+      valueToSave = newConfigValue.toLowerCase() === 'true';
+    }
+
+    const success = updateConfig(newConfigName.trim(), valueToSave);
+    if (success) {
+      handleCloseAddModal();
+    }
+  };
+
   const renderConfigValue = (key, value) => {
     const isEditing = editingConfig === key;
+    const hasChanged = isConfigChanged(key, value);
     
     if (isEditing) {
       return (
@@ -158,12 +220,29 @@ const ConfigPanel = ({ configManager }) => {
             margin: 0, 
             fontFamily: 'monospace', 
             fontSize: '12px',
-            backgroundColor: '#f8f9fa',
+            backgroundColor: hasChanged ? '#fff3cd' : '#f8f9fa', // Yellow background if changed
             padding: '8px',
             borderRadius: '4px',
-            border: '1px solid #e9ecef',
-            wordBreak: 'break-all'
+            border: hasChanged ? '1px solid #ffeaa7' : '1px solid #e9ecef',
+            wordBreak: 'break-all',
+            position: 'relative'
           }}>
+            {hasChanged && (
+              <div style={{
+                position: 'absolute',
+                top: '-8px',
+                right: '-8px',
+                backgroundColor: '#ffc107',
+                color: '#212529',
+                fontSize: '10px',
+                padding: '2px 6px',
+                borderRadius: '10px',
+                fontWeight: 'bold',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+              }}>
+                CHANGED
+              </div>
+            )}
             {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
           </div>
         </div>
@@ -302,6 +381,22 @@ const ConfigPanel = ({ configManager }) => {
           >
             🗑️ Clear Local
           </button>
+
+          <button
+            onClick={handleAddConfig}
+            disabled={isLoading || editingConfig !== null}
+            style={{
+              padding: '6px 12px',
+              backgroundColor: '#28a745',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: (isLoading || editingConfig !== null) ? 'not-allowed' : 'pointer',
+              fontSize: '12px'
+            }}
+          >
+            ➕ Add New Config
+          </button>
         </div>
       </div>
 
@@ -415,6 +510,112 @@ const ConfigPanel = ({ configManager }) => {
           <div>No configuration found</div>
           <div style={{ fontSize: '14px', marginTop: '5px' }}>
             Click "Refresh" to load configuration from MVTS API
+          </div>
+        </div>
+      )}
+
+      {/* Add Config Modal */}
+      {showAddModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            padding: '20px',
+            width: '500px',
+            maxWidth: '90vw',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+          }}>
+            <h3 style={{ margin: '0 0 20px 0', color: '#333' }}>➕ Add New Configuration</h3>
+            
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#555' }}>
+                Config Name:
+              </label>
+              <input
+                type="text"
+                value={newConfigName}
+                onChange={(e) => setNewConfigName(e.target.value)}
+                placeholder="e.g., server.timeout or new.setting"
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  fontFamily: 'monospace',
+                  fontSize: '12px'
+                }}
+              />
+              <small style={{ color: '#666', fontSize: '11px' }}>
+                Use dot notation for nested configs (e.g., server.timeout)
+              </small>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#555' }}>
+                Config Value:
+              </label>
+              <textarea
+                value={newConfigValue}
+                onChange={(e) => setNewConfigValue(e.target.value)}
+                placeholder='e.g., 30, true, "hello", {"key": "value"}, [1,2,3]'
+                style={{
+                  width: '100%',
+                  minHeight: '80px',
+                  padding: '8px',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  fontFamily: 'monospace',
+                  fontSize: '12px',
+                  resize: 'vertical'
+                }}
+              />
+              <small style={{ color: '#666', fontSize: '11px' }}>
+                Numbers, booleans, JSON objects/arrays will be parsed automatically
+              </small>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={handleCloseAddModal}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#6c757d',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '12px'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveNewConfig}
+                disabled={!newConfigName.trim()}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: newConfigName.trim() ? '#28a745' : '#6c757d',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: newConfigName.trim() ? 'pointer' : 'not-allowed',
+                  fontSize: '12px'
+                }}
+              >
+                💾 Add Config
+              </button>
+            </div>
           </div>
         </div>
       )}

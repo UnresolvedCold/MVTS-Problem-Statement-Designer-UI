@@ -2,6 +2,8 @@ package com.greyorange.mvts.designer;
 
 import com.greyorange.multifleetplanner.core.ApplicationProperties;
 import com.greyorange.multifleetplanner.core.Config;
+import com.greyorange.multifleetplanner.helpers.Helper;
+import com.greyorange.multifleetplanner.multifleet.Driver;
 import com.greyorange.multifleetplanner.pojo.*;
 import com.greyorange.multifleetplanner.structure.MsuMap;
 import org.eclipse.jetty.server.Connector;
@@ -186,6 +188,43 @@ public class ProblemStatementStudio {
     return assignment;
   }
 
+  public String solve(InputMessage inputMessage, Map<String, String> configs) {
+    Config config = Config.getInstance();
+    Properties originalProperties = (Properties) config.getProperties().clone();
+
+    String res = "";
+    try {
+      updateApplicationProperties(configs);
+      Driver driver = new Driver();
+      res = Helper.getObjectMapper().writeValueAsString(driver.getSchedule(inputMessage));
+    } catch (Exception e) {
+      e.printStackTrace();
+      return "Error while solving problem statement: " + e.getMessage();
+    } finally {
+      updateApplicationProperties((Map) originalProperties);
+    }
+
+    return res;
+  }
+
+
+  public void updateApplicationProperties(Map<String, String> configs) {
+    Config config = Config.getInstance();
+    Properties properties = config.getProperties();
+
+    for (Map.Entry<String, String> entry : configs.entrySet()) {
+      String key = entry.getKey();
+      String value = entry.getValue();
+      properties.setProperty(key, value);
+    }
+
+    ApplicationProperties.load(properties);
+    com.greyorange.mvts.core.ApplicationProperties.load(properties);
+    com.greyorange.taskscheduler.core.ApplicationProperties.load(properties);
+    com.greyorange.subtaskplanner.core.ApplicationProperties.load(properties);
+    com.greyorange.multifleetplanner_common.core.ApplicationProperties.load(properties);
+  }
+
   public static void main(String[] args) throws Exception {
     com.greyorange.multifleetplanner.server.Server.getInstance();
 
@@ -198,19 +237,19 @@ public class ProblemStatementStudio {
 
     PSStudioRestApiHandler restApiHandler = new PSStudioRestApiHandler();
 
-//    ServletContextHandler servletContext = new ServletContextHandler(ServletContextHandler.SESSIONS);
-//    servletContext.setContextPath("/");
+    ServletContextHandler servletContext = new ServletContextHandler(ServletContextHandler.SESSIONS);
+    servletContext.setContextPath("/");
 
-//    JettyWebSocketServletContainerInitializer.configure(servletContext, (servletContext1, wsContainer) -> {
-//      wsContainer.setIdleTimeout(Duration.ofMinutes(5));
-//      wsContainer.addMapping("/ws", (req, resp) -> new PSStudioWebSocketHandler());
-//    });
+    JettyWebSocketServletContainerInitializer.configure(servletContext, (servletContext1, wsContainer) -> {
+      wsContainer.setIdleTimeout(Duration.ofMinutes(5));
+      wsContainer.addMapping("/ws", (req, resp) -> new PSStudioWebSocketHandler());
+    });
 
     // 3. Combine both handlers
     HandlerCollection handlers = new HandlerCollection();
     handlers.setHandlers(new Handler[] {
-        restApiHandler
-//        servletContext
+//        restApiHandler
+        servletContext
     });
 
     server.setHandler(handlers);
@@ -221,4 +260,5 @@ public class ProblemStatementStudio {
     System.out.println("  REST API: http://localhost:" + port + "/api/...");
     server.join();
   }
+
 }

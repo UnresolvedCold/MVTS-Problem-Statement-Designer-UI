@@ -9,10 +9,12 @@ const RightSidebar = ({
   tasks,
   selectedObject,
   selectedTask,
+  selectedAssignment,
   objectManager,
   handlers,
   filteredObjects,
   localWarehouseData,
+  localStateManager,
   cellSize
 }) => {
   return (
@@ -56,21 +58,42 @@ const RightSidebar = ({
         <AssignmentsSummary
           warehouseData={localWarehouseData}
           onRemoveAssignment={handlers.handleRemoveAssignment}
+          onSelectAssignment={handlers.handleAssignmentSelect}
+          selectedAssignment={selectedAssignment}
         />
       </div>
 
       {/* Property Editor */}
       <div style={{ height: 250, overflow: "auto" }}>
-        {(selectedObject || selectedTask) ? (
+        {(selectedObject || selectedTask || selectedAssignment) ? (
           <PropertyEditor
             selectedObject={selectedObject}
             selectedTask={selectedTask}
-            onUpdateProperties={(itemId, props) => objectManager.updateObjectProperties(itemId, props)}
+            selectedAssignment={selectedAssignment}
+            onUpdateProperties={(itemId, props) => {
+              // Handle different types of updates
+              if (typeof itemId === 'object' && itemId.assignmentId && itemId.ppsId) {
+                // This is an assignment update
+                localStateManager.updateAssignmentInPPS(itemId.ppsId, itemId.assignmentId, props);
+                
+                // Update the selected assignment if it's the one being edited
+                if (selectedAssignment && selectedAssignment.properties && selectedAssignment.properties.id === itemId.assignmentId) {
+                  const updatedAssignment = {
+                    ...selectedAssignment,
+                    properties: { ...selectedAssignment.properties, ...props }
+                  };
+                  objectManager.setSelectedObject(updatedAssignment);
+                }
+              } else {
+                // This is a regular object or task update
+                objectManager.updateObjectProperties(itemId, props);
+              }
+            }}
             onClose={() => {}} // Add close functionality if needed
           />
         ) : (
           <div style={{ padding: 20, textAlign: "center", color: "#666" }}>
-            Select an object or task to edit properties
+            Select an object, task, or assignment to edit properties
           </div>
         )}
       </div>

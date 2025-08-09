@@ -18,12 +18,14 @@ const GridView = ({
   tasks,
   selectedObject,
   selectedTask,
+  selectedAssignment,
   objectManager,
   handlers,
   filteredObjects,
   
   // Managers
   localWarehouseData,
+  localStateManager,
   serverAPI,
   
   // UI actions
@@ -77,10 +79,12 @@ const GridView = ({
         tasks={tasks}
         selectedObject={selectedObject}
         selectedTask={selectedTask}
+        selectedAssignment={selectedAssignment}
         objectManager={objectManager}
         handlers={handlers}
         filteredObjects={filteredObjects}
         localWarehouseData={localWarehouseData}
+        localStateManager={localStateManager}
         cellSize={cellSize}
       />
     </div>

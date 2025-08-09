@@ -138,6 +138,19 @@ export const useGridEditorHandlers = (
     }
   }, [removeAssignmentFromPPS]);
 
+  const handleAssignmentSelect = useCallback((assignment) => {
+    // Clear other selections when selecting an assignment
+    setSelectedObject(null);
+    // Use selectedObject to store assignment for now, we can create selectedAssignment later if needed
+    setSelectedObject({
+      id: assignment.id,
+      type: 'assignment', 
+      properties: assignment,
+      pps_id: assignment.pps_id, // Store PPS ID for updates
+      isAssignment: true // Flag to identify it's an assignment
+    });
+  }, [setSelectedObject]);
+
   const handleClearData = useCallback(() => {
     if (window.confirm('Are you sure you want to clear all data? This cannot be undone.')) {
       localStateManager.clearLocalData();
@@ -148,6 +161,7 @@ export const useGridEditorHandlers = (
   return {
     handleObjectSelect,
     handleTaskSelect,
+    handleAssignmentSelect,
     handleAddObjectFromList,
     handleJsonSave,
     handleSolveProblem,

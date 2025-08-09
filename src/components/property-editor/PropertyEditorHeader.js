@@ -8,7 +8,7 @@ import React from 'react';
  * @param {object} currentItem - The current item being edited
  * @returns {JSX.Element}
  */
-const PropertyEditorHeader = ({ onClose, isTask, currentItem }) => {
+const PropertyEditorHeader = ({ onClose, isTask, isAssignment, currentItem }) => {
   return (
     <>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -31,6 +31,8 @@ const PropertyEditorHeader = ({ onClose, isTask, currentItem }) => {
         <strong>Selected:</strong> {
           isTask 
             ? `${currentItem.task_type || 'Task'} (ID: ${currentItem.task_key || currentItem.id})`
+            : isAssignment
+            ? `Assignment (Task: ${currentItem.task_key || currentItem.properties?.task_key || 'N/A'})`
             : `${currentItem.type} (ID: ${currentItem.id})`
         }
       </div>

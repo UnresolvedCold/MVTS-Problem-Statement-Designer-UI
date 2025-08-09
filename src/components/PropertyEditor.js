@@ -10,6 +10,7 @@ import PropertyEditorEmptyState from './property-editor/PropertyEditorEmptyState
 const PropertyEditor = ({ 
   selectedObject, 
   selectedTask,
+  selectedAssignment,
   onUpdateProperties,
   onClose,
   availablePPS = [],
@@ -22,6 +23,7 @@ const PropertyEditor = ({
     jsonError,
     formValues,
     isTask,
+    isAssignment,
     currentItem,
     hasUnsavedChanges,
     handleFormChange,
@@ -29,7 +31,7 @@ const PropertyEditor = ({
     handleJsonChange,
     handleSave,
     handleReset
-  } = usePropertyEditor(selectedObject, selectedTask, onUpdateProperties);
+  } = usePropertyEditor(selectedObject, selectedTask, selectedAssignment, onUpdateProperties);
 
   if (!currentItem) {
     return <PropertyEditorEmptyState />;
@@ -47,6 +49,7 @@ const PropertyEditor = ({
       <PropertyEditorHeader 
         onClose={onClose}
         isTask={isTask}
+        isAssignment={isAssignment}
         currentItem={currentItem}
       />
 

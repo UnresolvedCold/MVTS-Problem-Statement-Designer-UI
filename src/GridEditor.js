@@ -54,6 +54,7 @@ const GridEditor = () => {
   
   // Selected object helpers
   const selectedTask = selectedObject?.type === 'task' ? selectedObject : null;
+  const selectedAssignment = selectedObject?.type === 'assignment' ? selectedObject : null;
 
   // Event handlers
   const handlers = useGridEditorHandlers(
@@ -130,12 +131,14 @@ const GridEditor = () => {
           tasks={tasks}
           selectedObject={selectedObject}
           selectedTask={selectedTask}
+          selectedAssignment={selectedAssignment}
           objectManager={objectManager}
           handlers={handlers}
           filteredObjects={filteredObjects}
           
           // Managers
           localWarehouseData={localWarehouseData}
+          localStateManager={localStateManager}
           serverAPI={serverAPI}
           
           // UI actions

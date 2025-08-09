@@ -468,6 +468,57 @@ export const useLocalStateManager = (schemaManager = null) => {
     });
   }, []);
 
+  // Update assignment in PPS current_schedule
+  const updateAssignmentInPPS = useCallback((ppsId, assignmentId, updatedProperties) => {
+    setLocalWarehouseData(prevData => {
+      const problemStatement = prevData.warehouse.problem_statement;
+      const ppsList = problemStatement.pps_list || [];
+      
+      // Find the target PPS
+      const ppsIndex = ppsList.findIndex(pps => pps.id === parseInt(ppsId));
+      
+      if (ppsIndex === -1) {
+        console.error('PPS not found with ID:', ppsId);
+        return prevData;
+      }
+      
+      // Update the assignment in the PPS
+      const updatedPpsList = [...ppsList];
+      const currentAssignments = updatedPpsList[ppsIndex].current_schedule?.assignments || [];
+      const updatedAssignments = currentAssignments.map(assignment => 
+        assignment.id === assignmentId 
+          ? { ...assignment, ...updatedProperties }
+          : assignment
+      );
+      
+      updatedPpsList[ppsIndex] = {
+        ...updatedPpsList[ppsIndex],
+        current_schedule: {
+          ...updatedPpsList[ppsIndex].current_schedule,
+          assignments: updatedAssignments
+        }
+      };
+      
+      const updatedProblemStatement = {
+        ...problemStatement,
+        pps_list: updatedPpsList
+      };
+      
+      const updatedData = {
+        ...prevData,
+        warehouse: {
+          ...prevData.warehouse,
+          problem_statement: updatedProblemStatement
+        }
+      };
+      
+      // Save to localStorage
+      localStorage.setItem('mvts-problem-statement', JSON.stringify(updatedProblemStatement));
+      
+      return updatedData;
+    });
+  }, []);
+
   // Clear all local data
   const clearLocalData = useCallback(() => {
     const defaultData = {
@@ -497,6 +548,7 @@ export const useLocalStateManager = (schemaManager = null) => {
     updateProblemStatementInLocal,
     addAssignmentToPPS,
     removeAssignmentFromPPS,
+    updateAssignmentInPPS,
     clearLocalData
   };
 };

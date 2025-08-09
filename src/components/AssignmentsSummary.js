@@ -1,7 +1,7 @@
 // src/components/AssignmentsSummary.js
 import React, { useState } from 'react';
 
-const AssignmentsSummary = ({ warehouseData, onRemoveAssignment }) => {
+const AssignmentsSummary = ({ warehouseData, onRemoveAssignment, onSelectAssignment, selectedAssignment }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   // Extract all assignments from all PPS
@@ -89,12 +89,27 @@ const AssignmentsSummary = ({ warehouseData, onRemoveAssignment }) => {
             {assignments.map((assignment, index) => (
               <div
                 key={assignment.id || index}
+                onClick={() => onSelectAssignment && onSelectAssignment(assignment)}
                 style={{
                   padding: '12px',
-                  backgroundColor: '#f8f9fa',
-                  border: '1px solid #dee2e6',
+                  backgroundColor: selectedAssignment?.id === assignment.id ? '#e3f2fd' : '#f8f9fa',
+                  border: selectedAssignment?.id === assignment.id ? '2px solid #007bff' : '1px solid #dee2e6',
                   borderRadius: '4px',
-                  borderLeft: '4px solid #007bff'
+                  borderLeft: '4px solid #007bff',
+                  cursor: onSelectAssignment ? 'pointer' : 'default',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseOver={(e) => {
+                  if (onSelectAssignment && selectedAssignment?.id !== assignment.id) {
+                    e.currentTarget.style.backgroundColor = '#f0f8f0';
+                    e.currentTarget.style.borderColor = '#28a745';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (onSelectAssignment && selectedAssignment?.id !== assignment.id) {
+                    e.currentTarget.style.backgroundColor = '#f8f9fa';
+                    e.currentTarget.style.borderColor = '#dee2e6';
+                  }
                 }}
               >
                 <div style={{
@@ -130,9 +145,32 @@ const AssignmentsSummary = ({ warehouseData, onRemoveAssignment }) => {
                   gap: '5px',
                   justifyContent: 'flex-end'
                 }}>
+                  {onSelectAssignment && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectAssignment(assignment);
+                      }}
+                      style={{
+                        padding: '4px 8px',
+                        border: '1px solid #007bff',
+                        borderRadius: '3px',
+                        backgroundColor: selectedAssignment?.id === assignment.id ? '#007bff' : 'white',
+                        color: selectedAssignment?.id === assignment.id ? 'white' : '#007bff',
+                        cursor: 'pointer',
+                        fontSize: '12px'
+                      }}
+                      title="Edit Assignment"
+                    >
+                      ✏️ Edit
+                    </button>
+                  )}
                   {onRemoveAssignment && (
                     <button
-                      onClick={() => onRemoveAssignment(assignment.pps_id, assignment.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRemoveAssignment(assignment.pps_id, assignment.id);
+                      }}
                       style={{
                         padding: '4px 8px',
                         border: '1px solid #dc3545',

@@ -8,7 +8,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
  * @param {function} onUpdateProperties - Callback when properties update
  * @returns {object} - Hook state and methods
  */
-export const usePropertyEditor = (selectedObject, selectedTask, onUpdateProperties) => {
+export const usePropertyEditor = (selectedObject, selectedTask, selectedAssignment, onUpdateProperties) => {
   const [editMode, setEditMode] = useState('form'); // 'form' or 'json'
   const [jsonEditValue, setJsonEditValue] = useState('');
   const [jsonError, setJsonError] = useState(null);
@@ -17,9 +17,10 @@ export const usePropertyEditor = (selectedObject, selectedTask, onUpdateProperti
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [originalValues, setOriginalValues] = useState({});
   
-  // Determine if we're editing a task or object
+  // Determine if we're editing a task, assignment, or object
   const isTask = !!selectedTask;
-  const currentItem = isTask ? selectedTask : selectedObject;
+  const isAssignment = !!selectedAssignment || (selectedObject && selectedObject.isAssignment);
+  const currentItem = isTask ? selectedTask : (isAssignment ? (selectedAssignment || selectedObject) : selectedObject);
   
   const isInitialFormMount = useRef(true);
 
@@ -29,6 +30,9 @@ export const usePropertyEditor = (selectedObject, selectedTask, onUpdateProperti
       let itemData;
       if (isTask) {
         itemData = { ...currentItem };
+      } else if (isAssignment) {
+        // For assignments, use the properties or the full assignment object
+        itemData = currentItem.properties ? { ...currentItem.properties } : { ...currentItem };
       } else {
         itemData = currentItem.properties ? { ...currentItem.properties } : {};
       }
@@ -47,7 +51,7 @@ export const usePropertyEditor = (selectedObject, selectedTask, onUpdateProperti
       setJsonEditValue('');
       setHasUnsavedChanges(false);
     }
-  }, [currentItem, isTask]);
+  }, [currentItem, isTask, isAssignment]);
 
   // Update JSON text when form values change (for form to JSON sync)
   useEffect(() => {
@@ -107,12 +111,25 @@ export const usePropertyEditor = (selectedObject, selectedTask, onUpdateProperti
   // Save current changes
   const handleSave = useCallback(() => {
     if (onUpdateProperties && currentItem && hasUnsavedChanges) {
-      const itemId = isTask ? (currentItem.task_key || currentItem.id) : currentItem.id;
+      let itemId;
+      
+      if (isTask) {
+        itemId = currentItem.task_key || currentItem.id;
+      } else if (isAssignment) {
+        // For assignments, we need both the assignment ID and PPS ID
+        itemId = {
+          assignmentId: currentItem.id,
+          ppsId: currentItem.pps_id
+        };
+      } else {
+        itemId = currentItem.id;
+      }
+      
       onUpdateProperties(itemId, formValues);
       setOriginalValues(formValues);
       setHasUnsavedChanges(false);
     }
-  }, [currentItem, formValues, onUpdateProperties, isTask, hasUnsavedChanges]);
+  }, [currentItem, formValues, onUpdateProperties, isTask, isAssignment, hasUnsavedChanges]);
 
   // Reset changes to original values
   const handleReset = useCallback(() => {
@@ -130,6 +147,7 @@ export const usePropertyEditor = (selectedObject, selectedTask, onUpdateProperti
     jsonError,
     formValues,
     isTask,
+    isAssignment,
     currentItem,
     hasUnsavedChanges,
     handleFormChange,

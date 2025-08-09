@@ -147,7 +147,7 @@ export const useServerAPI = () => {
       setTimeout(() => {
         if (pendingRequestsRef.current.has(requestId)) {
           pendingRequestsRef.current.delete(requestId);
-          reject(new Error(`Request timed out after 5 minutes`));
+          reject(new Error(`Request timed out after ${WEBSOCKET_CONFIG.TIMEOUT_MS / 60000} minutes`));
         }
       }, WEBSOCKET_CONFIG.TIMEOUT_MS); // 5 minute timeout from config
 

@@ -44,6 +44,12 @@ export const useGridEditorHandlers = (
     try {
       console.log('Sending problem statement to server for solving...');
       
+      // Clear previous solution data and switch to solution tab immediately
+      setSolutionData(null);
+      if (setActiveTab) {
+        setActiveTab('solution');
+      }
+      
       // Get local config to send with problem statement
       const localConfig = getConfigForProblemStatement();
       
@@ -65,10 +71,6 @@ export const useGridEditorHandlers = (
       
       console.log('Received solution from server:', solution);
       setSolutionData(solution);
-      // Automatically switch to solution tab when solution is received
-      if (setActiveTab) {
-        setActiveTab('solution');
-      }
     } catch (error) {
       console.error('Failed to solve problem statement:', error);
       alert(`Failed to solve problem statement: ${error.message}`);

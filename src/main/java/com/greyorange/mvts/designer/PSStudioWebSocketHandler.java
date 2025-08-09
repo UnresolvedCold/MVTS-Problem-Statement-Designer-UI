@@ -11,16 +11,31 @@ import org.eclipse.jetty.websocket.api.annotations.*;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @WebSocket
 public class PSStudioWebSocketHandler {
   private static final CopyOnWriteArraySet<Session> sessions = new CopyOnWriteArraySet<>();
+  private static final ExecutorService executor = Executors.newCachedThreadPool();
+
+  /**
+   * Interface for streaming logs back to the client during problem solving
+   */
+  public interface LogStreamer {
+    void streamLog(String logMessage);
+    void streamError(String errorMessage);
+    void streamComplete(String result);
+  }
 
   @OnWebSocketConnect
   public void onConnect(Session session) {
     try {
       sessions.add(session);
+      // Register session for log streaming
+      WebSocketLogAppender.addSession(session);
       System.out.println("Client connected: " + session);
     } catch (Exception e) {
       e.printStackTrace();
@@ -52,6 +67,8 @@ public class PSStudioWebSocketHandler {
   @OnWebSocketClose
   public void onClose(Session session, int statusCode, String reason) {
     sessions.remove(session);
+    // Unregister session from log streaming
+    WebSocketLogAppender.removeSession(session);
     System.out.println("Client disconnected: " + reason);
   }
 
@@ -66,7 +83,7 @@ public class PSStudioWebSocketHandler {
   /**
    * Handles the SOLVE_PROBLEM_STATEMENT event.
    * Starts solving problem statements based on the provided data node.
-   * Streams the logs and solution back to the client.
+   * The actual logs will be streamed automatically via the WebSocket logback appender.
    *
    * @param session The WebSocket session of the client.
    * @param dataNode The JSON data node containing the problem statement details.
@@ -83,13 +100,23 @@ public class PSStudioWebSocketHandler {
       flattenJson(configNode, "", configs);
     }
 
-    String res = ProblemStatementStudio.getInstance().solve(inputMessage, configs);
-    try {
-      session.getRemote().sendString("{\"type\":\"PROBLEM_STATEMENT_SOLVED\", \"data\":" + res + "}");
-    } catch (IOException e) {
-      System.err.println("Error sending solution: " + e.getMessage());
-      e.printStackTrace();
-    }
+    // Execute problem solving asynchronously - logback will stream logs automatically
+    CompletableFuture.supplyAsync(() -> {
+      try {
+        String result = ProblemStatementStudio.getInstance().solve(inputMessage, configs);
+        // Send completion message
+        session.getRemote().sendString("{\"type\":\"PROBLEM_STATEMENT_SOLVED\", \"data\":" + result + "}");
+        return result;
+      } catch (Exception e) {
+        String errorMsg = "Error while solving problem statement: " + e.getMessage();
+        try {
+          session.getRemote().sendString("{\"type\":\"PROBLEM_STATEMENT_SOLVED\", \"data\":\"" + errorMsg + "\"}");
+        } catch (IOException ioException) {
+          System.err.println("Error sending error message: " + ioException.getMessage());
+        }
+        return errorMsg;
+      }
+    }, executor);
   }
 
   /**

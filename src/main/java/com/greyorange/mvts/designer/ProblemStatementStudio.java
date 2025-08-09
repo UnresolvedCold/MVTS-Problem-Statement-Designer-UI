@@ -3,9 +3,17 @@ package com.greyorange.mvts.designer;
 import com.greyorange.multifleetplanner.core.ApplicationProperties;
 import com.greyorange.multifleetplanner.core.Config;
 import com.greyorange.multifleetplanner.helpers.Helper;
+import com.greyorange.multifleetplanner.multifleet.BackToStoreBotReservationv2;
 import com.greyorange.multifleetplanner.multifleet.Driver;
+import com.greyorange.multifleetplanner.multifleet.cache.BackToStorableCache;
+import com.greyorange.multifleetplanner.multifleet.cache.ChargeTaskCache;
+import com.greyorange.multifleetplanner.multifleet.cache.GoingToPPSCache;
 import com.greyorange.multifleetplanner.pojo.*;
 import com.greyorange.multifleetplanner.structure.MsuMap;
+import com.greyorange.multifleetplanner_common.transit_time.TransitTimeDB;
+import com.greyorange.mvts.core.Optimizer;
+import com.greyorange.mvts.costs.ObjectiveFunction;
+import com.greyorange.mvts.database.BotCycleTimeDB;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -15,6 +23,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer;
 import org.joda.time.DateTime;
 
+import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.*;
 
@@ -207,6 +216,54 @@ public class ProblemStatementStudio {
     return res;
   }
 
+  /**
+   * Solves the problem statement with real-time log streaming capability.
+   * This method provides progress updates through the log streamer interface.
+   *
+   * @param inputMessage The input message containing problem statement data
+   * @param configs Configuration parameters
+   * @param logStreamer Interface for streaming logs back to client
+   * @return The solution as JSON string
+   */
+  public String solveWithLogging(InputMessage inputMessage, Map<String, String> configs,
+                                PSStudioWebSocketHandler.LogStreamer logStreamer) {
+    beforeEach();
+    Config config = Config.getInstance();
+    Properties originalProperties = (Properties) config.getProperties().clone();
+
+    String res = "";
+    try {
+      logStreamer.streamLog("Updating application properties with provided configs...");
+      updateApplicationProperties(configs);
+
+      logStreamer.streamLog("Initializing Driver for problem solving...");
+      Driver driver = new Driver();
+
+      logStreamer.streamLog("Processing input message with " + inputMessage.getTasks().size() + " tasks...");
+      logStreamer.streamLog("Available bots: " + inputMessage.getBotList().size());
+      logStreamer.streamLog("Available MSUs: " + inputMessage.getMsuList().size());
+      logStreamer.streamLog("Available PPS: " + inputMessage.getPpsList().size());
+
+      logStreamer.streamLog("Starting schedule computation...");
+      Object schedule = driver.getSchedule(inputMessage);
+
+      logStreamer.streamLog("Converting schedule to JSON format...");
+      res = Helper.getObjectMapper().writeValueAsString(schedule);
+
+      logStreamer.streamLog("Problem statement solved successfully!");
+
+    } catch (Exception e) {
+      String errorMsg = "Error while solving problem statement: " + e.getMessage();
+      logStreamer.streamError(errorMsg);
+      e.printStackTrace();
+      return errorMsg;
+    } finally {
+      logStreamer.streamLog("Restoring original application properties...");
+      updateApplicationProperties((Map) originalProperties);
+    }
+
+    return res;
+  }
 
   public void updateApplicationProperties(Map<String, String> configs) {
     Config config = Config.getInstance();
@@ -224,6 +281,56 @@ public class ProblemStatementStudio {
     com.greyorange.subtaskplanner.core.ApplicationProperties.load(properties);
     com.greyorange.multifleetplanner_common.core.ApplicationProperties.load(properties);
   }
+
+  public void beforeEach() {
+    Config.reset();
+    Config config = Config.getInstance();
+    Properties properties = config.getProperties();
+    ApplicationProperties.load(properties);
+    com.greyorange.mvts.core.ApplicationProperties.load(properties);
+    com.greyorange.taskscheduler.core.ApplicationProperties.load(properties);
+    com.greyorange.subtaskplanner.core.ApplicationProperties.load(properties);
+    com.greyorange.multifleetplanner_common.core.ApplicationProperties.load(properties);
+    Optimizer.setUseOptaPlanner(false);
+    BackToStorableCache.getInstance().clear();
+    GoingToPPSCache.getInstance().clear();
+    ChargeTaskCache.getInstance().clear();
+    BackToStoreBotReservationv2.reset();
+    ObjectiveFunction.setPpsToNonMSIOBin(new HashMap<>());
+    BotCycleTimeDB.reset();
+    MsuMap.getInstance().reset();
+    Helper.updateProperties("TEST_MODE", "true");
+    TransitTimeDB.getInstance().reset();
+
+    // clear aisle to aisle map
+    try {
+      // Using Reflection API to get private method Get the private method
+      Field aisleToAisle = com.greyorange.taskscheduler.models.TransitTimeTable.class
+          .getDeclaredField("aisleToAisle");
+
+
+      // Make the private method accessible
+      aisleToAisle.setAccessible(true);
+
+      //set it as null
+      aisleToAisle.set(null, null);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    // Destroy instance of IDC Manager
+    try {
+      Class<?> clazz = Class.forName("com.gor.library.JavaIdcManager.IdcManager");
+      Field instanceField = clazz.getDeclaredField("instance");
+      instanceField.setAccessible(true);
+      instanceField.set(null, null);
+    } catch (Exception e) {
+      e.printStackTrace();
+      throw new RuntimeException("Failed to reset IdcManager.instance via reflection", e);
+    }
+
+  }
+
 
   public static void main(String[] args) throws Exception {
     com.greyorange.multifleetplanner.server.Server.getInstance();

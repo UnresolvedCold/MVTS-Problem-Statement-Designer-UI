@@ -198,67 +198,21 @@ public class ProblemStatementStudio {
   }
 
   public String solve(InputMessage inputMessage, Map<String, String> configs) {
+    beforeEach();
+
     Config config = Config.getInstance();
     Properties originalProperties = (Properties) config.getProperties().clone();
 
-    String res = "";
+    String res = null;
     try {
+      res = Helper.getObjectMapper().writeValueAsString(new SchedulerResponse());
       updateApplicationProperties(configs);
       Driver driver = new Driver();
       res = Helper.getObjectMapper().writeValueAsString(driver.getSchedule(inputMessage));
     } catch (Exception e) {
+
       e.printStackTrace();
-      return "Error while solving problem statement: " + e.getMessage();
     } finally {
-      updateApplicationProperties((Map) originalProperties);
-    }
-
-    return res;
-  }
-
-  /**
-   * Solves the problem statement with real-time log streaming capability.
-   * This method provides progress updates through the log streamer interface.
-   *
-   * @param inputMessage The input message containing problem statement data
-   * @param configs Configuration parameters
-   * @param logStreamer Interface for streaming logs back to client
-   * @return The solution as JSON string
-   */
-  public String solveWithLogging(InputMessage inputMessage, Map<String, String> configs,
-                                PSStudioWebSocketHandler.LogStreamer logStreamer) {
-    beforeEach();
-    Config config = Config.getInstance();
-    Properties originalProperties = (Properties) config.getProperties().clone();
-
-    String res = "";
-    try {
-      logStreamer.streamLog("Updating application properties with provided configs...");
-      updateApplicationProperties(configs);
-
-      logStreamer.streamLog("Initializing Driver for problem solving...");
-      Driver driver = new Driver();
-
-      logStreamer.streamLog("Processing input message with " + inputMessage.getTasks().size() + " tasks...");
-      logStreamer.streamLog("Available bots: " + inputMessage.getBotList().size());
-      logStreamer.streamLog("Available MSUs: " + inputMessage.getMsuList().size());
-      logStreamer.streamLog("Available PPS: " + inputMessage.getPpsList().size());
-
-      logStreamer.streamLog("Starting schedule computation...");
-      Object schedule = driver.getSchedule(inputMessage);
-
-      logStreamer.streamLog("Converting schedule to JSON format...");
-      res = Helper.getObjectMapper().writeValueAsString(schedule);
-
-      logStreamer.streamLog("Problem statement solved successfully!");
-
-    } catch (Exception e) {
-      String errorMsg = "Error while solving problem statement: " + e.getMessage();
-      logStreamer.streamError(errorMsg);
-      e.printStackTrace();
-      return errorMsg;
-    } finally {
-      logStreamer.streamLog("Restoring original application properties...");
       updateApplicationProperties((Map) originalProperties);
     }
 

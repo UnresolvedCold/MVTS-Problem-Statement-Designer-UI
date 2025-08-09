@@ -1,8 +1,39 @@
 // src/components/SolutionPage.js
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import LogViewer from './LogViewer';
 
 const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear }) => {
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'gantt'
+  
+  // Process assignments for Gantt chart - must be before any conditional returns
+  const ganttData = useMemo(() => {
+    if (!solutionData) return [];
+    
+    const assignments = solutionData.schedule?.assignments || solutionData.assignments || [];
+    
+    // Calculate time scale
+    const allTimes = assignments.flatMap(a => [
+      a.startTime || a.operator_start_time || 0,
+      a.endTime || a.operator_end_time || 0
+    ]);
+    const minTime = Math.min(...allTimes, 0);
+    const maxTime = Math.max(...allTimes, 1);
+    const timeRange = maxTime - minTime;
+    
+    return assignments.map(assignment => ({
+      taskKey: assignment.task_key,
+      botId: assignment.assigned_ranger_id,
+      startTime: assignment.startTime || assignment.operator_start_time || 0,
+      endTime: assignment.endTime || assignment.operator_end_time || 0,
+      duration: (assignment.endTime || assignment.operator_end_time || 0) - (assignment.startTime || assignment.operator_start_time || 0),
+      ppsId: assignment.dock_pps_id,
+      msuId: assignment.transport_entity_id,
+      // Calculate position for visual representation
+      startPercent: timeRange > 0 ? ((assignment.startTime || assignment.operator_start_time || 0) - minTime) / timeRange * 100 : 0,
+      durationPercent: timeRange > 0 ? ((assignment.endTime || assignment.operator_end_time || 0) - (assignment.startTime || assignment.operator_start_time || 0)) / timeRange * 100 : 100
+    }));
+  }, [solutionData]);
+  
   // Show empty state if no data and not streaming
   if (!solutionData && (!logs || logs.length === 0) && !isStreaming) {
     return (
@@ -48,9 +79,155 @@ const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear })
   const handleCopyToClipboard = () => {
     navigator.clipboard.writeText(JSON.stringify(solutionData, null, 2)).then(() => {
       console.log('Solution copied to clipboard');
-    }).catch(err => {
-      console.error('Failed to copy: ', err);
     });
+  };
+
+  // Render Gantt Chart
+  const renderGanttChart = () => {
+    if (ganttData.length === 0) {
+      return (
+        <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+          No assignment data available for Gantt chart
+        </div>
+      );
+    }
+
+    // Group by bot
+    const tasksByBot = ganttData.reduce((acc, task) => {
+      if (!acc[task.botId]) {
+        acc[task.botId] = [];
+      }
+      acc[task.botId].push(task);
+      return acc;
+    }, {});
+
+    // Sort tasks by start time within each bot
+    Object.keys(tasksByBot).forEach(botId => {
+      tasksByBot[botId].sort((a, b) => a.startTime - b.startTime);
+    });
+
+    const allTimes = ganttData.flatMap(a => [a.startTime, a.endTime]);
+    const minTime = Math.min(...allTimes, 0);
+    const maxTime = Math.max(...allTimes, 1);
+
+    return (
+      <div style={{ width: '100%', overflowX: 'auto' }}>
+        <div style={{ minWidth: '600px' }}>
+          {/* Time axis header */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            padding: '10px 0',
+            borderBottom: '2px solid #ddd',
+            backgroundColor: '#f8f9fa',
+            position: 'sticky',
+            top: 0,
+            zIndex: 2
+          }}>
+            <div style={{ width: '120px', fontWeight: 'bold', paddingLeft: '10px' }}>
+              Bot ID
+            </div>
+            <div style={{ flex: 1, position: 'relative', height: '30px' }}>
+              <div style={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                fontSize: '12px',
+                color: '#666'
+              }}>
+                <span>{minTime}ms</span>
+                <span>{Math.floor((minTime + maxTime) / 2)}ms</span>
+                <span>{maxTime}ms</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Gantt rows */}
+          {Object.entries(tasksByBot).map(([botId, tasks]) => (
+            <div key={botId} style={{
+              display: 'flex',
+              alignItems: 'center',
+              minHeight: '50px',
+              borderBottom: '1px solid #eee',
+              backgroundColor: 'white'
+            }}>
+              <div style={{
+                width: '120px',
+                padding: '10px',
+                fontWeight: 'bold',
+                color: '#333',
+                borderRight: '1px solid #eee'
+              }}>
+                Bot {botId}
+              </div>
+              <div style={{ flex: 1, position: 'relative', height: '40px', margin: '5px 0' }}>
+                {tasks.map((task, index) => (
+                  <div
+                    key={`${task.taskKey}-${index}`}
+                    style={{
+                      position: 'absolute',
+                      left: `${task.startPercent}%`,
+                      width: `${Math.max(task.durationPercent, 2)}%`, // Minimum 2% width for visibility
+                      height: '30px',
+                      backgroundColor: '#28a745',
+                      borderRadius: '3px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'white',
+                      fontSize: '11px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      border: '1px solid #1e7e34',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                    }}
+                    title={`Task: ${task.taskKey}\nBot: ${task.botId}\nStart: ${task.startTime}ms\nEnd: ${task.endTime}ms\nDuration: ${task.duration}ms\nPPS: ${task.ppsId}\nMSU: ${task.msuId}`}
+                  >
+                    <div style={{ 
+                      overflow: 'hidden', 
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      padding: '0 4px'
+                    }}>
+                      {task.taskKey}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Gantt Legend */}
+        <div style={{
+          marginTop: '15px',
+          padding: '10px',
+          backgroundColor: '#f8f9fa',
+          borderRadius: '5px',
+          fontSize: '12px'
+        }}>
+          <strong>📊 Gantt Chart Legend:</strong>
+          <div style={{ display: 'flex', gap: '20px', marginTop: '5px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <div style={{ 
+                width: '20px', 
+                height: '15px', 
+                backgroundColor: '#28a745', 
+                borderRadius: '2px',
+                border: '1px solid #1e7e34'
+              }}></div>
+              <span>Task Assignment</span>
+            </div>
+            <div>• Hover over bars for detailed information</div>
+            <div>• Time scale shows start to end time range</div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -136,7 +313,8 @@ const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear })
               display: 'flex',
               gap: '10px',
               marginBottom: '20px',
-              flexWrap: 'wrap'
+              flexWrap: 'wrap',
+              alignItems: 'center'
             }}>
               <button
                 onClick={handleCopyToClipboard}
@@ -167,6 +345,41 @@ const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear })
               >
                 💾 Download Solution
               </button>
+
+              {/* View Mode Toggle */}
+              {(solutionData.schedule?.assignments || solutionData.assignments) && (
+                <div style={{ marginLeft: 'auto', display: 'flex', gap: '5px', alignItems: 'center' }}>
+                  <span style={{ fontSize: '14px', color: '#666' }}>View:</span>
+                  <button
+                    onClick={() => setViewMode('list')}
+                    style={{
+                      padding: '6px 12px',
+                      border: '1px solid #6c757d',
+                      borderRadius: '4px',
+                      backgroundColor: viewMode === 'list' ? '#6c757d' : 'white',
+                      color: viewMode === 'list' ? 'white' : '#6c757d',
+                      cursor: 'pointer',
+                      fontSize: '12px'
+                    }}
+                  >
+                    📋 List
+                  </button>
+                  <button
+                    onClick={() => setViewMode('gantt')}
+                    style={{
+                      padding: '6px 12px',
+                      border: '1px solid #6c757d',
+                      borderRadius: '4px',
+                      backgroundColor: viewMode === 'gantt' ? '#6c757d' : 'white',
+                      color: viewMode === 'gantt' ? 'white' : '#6c757d',
+                      cursor: 'pointer',
+                      fontSize: '12px'
+                    }}
+                  >
+                    📊 Gantt
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Solution Summary */}
@@ -202,30 +415,33 @@ const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear })
 
             {/* Assignments Details */}
             {(solutionData.schedule?.assignments || solutionData.assignments) && (
-              <div style={{
-                marginBottom: '20px'
-              }}>
+              <div style={{ marginBottom: '20px' }}>
                 <h3 style={{ margin: '0 0 15px 0' }}>🎯 Assignments</h3>
-                <div style={{ display: 'grid', gap: '10px' }}>
-                  {(solutionData.schedule?.assignments || solutionData.assignments).map((assignment, index) => (
-                    <div key={index} style={{
-                      padding: '12px',
-                      backgroundColor: '#f8f9fa',
-                      border: '1px solid #dee2e6',
-                      borderRadius: '6px',
-                      borderLeft: '4px solid #28a745'
-                    }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px', fontSize: '14px' }}>
-                        <div><strong>Task:</strong> {assignment.task_key}</div>
-                        <div><strong>Bot:</strong> {assignment.assigned_ranger_id}</div>
-                        <div><strong>Start:</strong> {assignment.startTime || assignment.operator_start_time}ms</div>
-                        <div><strong>End:</strong> {assignment.endTime || assignment.operator_end_time}ms</div>
-                        <div><strong>PPS:</strong> {assignment.dock_pps_id}</div>
-                        <div><strong>MSU:</strong> {assignment.transport_entity_id}</div>
+                
+                {viewMode === 'list' ? (
+                  <div style={{ display: 'grid', gap: '10px' }}>
+                    {(solutionData.schedule?.assignments || solutionData.assignments).map((assignment, index) => (
+                      <div key={index} style={{
+                        padding: '12px',
+                        backgroundColor: '#f8f9fa',
+                        border: '1px solid #dee2e6',
+                        borderRadius: '6px',
+                        borderLeft: '4px solid #28a745'
+                      }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px', fontSize: '14px' }}>
+                          <div><strong>Task:</strong> {assignment.task_key}</div>
+                          <div><strong>Bot:</strong> {assignment.assigned_ranger_id}</div>
+                          <div><strong>Start:</strong> {assignment.startTime || assignment.operator_start_time}ms</div>
+                          <div><strong>End:</strong> {assignment.endTime || assignment.operator_end_time}ms</div>
+                          <div><strong>PPS:</strong> {assignment.dock_pps_id}</div>
+                          <div><strong>MSU:</strong> {assignment.transport_entity_id}</div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  renderGanttChart()
+                )}
               </div>
             )}
 

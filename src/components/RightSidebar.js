@@ -17,14 +17,14 @@ const RightSidebar = ({
 }) => {
   return (
     <div style={{
-      width: 300,
+      width: 600, // Increased width to accommodate both panels side by side
       borderLeft: "1px solid #ccc",
       display: "flex",
-      flexDirection: "column",
+      flexDirection: "row", // Changed to horizontal layout
       overflow: "hidden"
     }}>
       {/* Unified Entities List */}
-      <div style={{ flex: 1, overflow: "auto", borderBottom: "1px solid #ccc" }}>
+      <div style={{ width: 300, overflow: "auto", borderRight: "1px solid #ccc" }}>
         <EntitiesList
           objects={visualObjects}
           tasks={tasks}
@@ -43,7 +43,7 @@ const RightSidebar = ({
       </div>
 
       {/* Property Editor */}
-      <div style={{ height: 300, overflow: "auto" }}>
+      <div style={{ width: 300, overflow: "auto" }}>
         {(selectedObject || selectedTask || selectedAssignment) ? (
           <PropertyEditor
             selectedObject={selectedObject}

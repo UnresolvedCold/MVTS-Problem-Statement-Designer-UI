@@ -285,7 +285,7 @@ const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear })
       </div>
 
       {/* CSS for animation */}
-      <style jsx>{`
+      <style>{`
         @keyframes pulse {
           0% { opacity: 1; }
           50% { opacity: 0.5; }

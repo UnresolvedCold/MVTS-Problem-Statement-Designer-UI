@@ -1,9 +1,11 @@
 // src/components/LogViewer.js
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 
 const LogViewer = ({ logs, isStreaming, onClearLogs }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [autoScroll, setAutoScroll] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [levelFilter, setLevelFilter] = useState('ALL');
   const logContainerRef = useRef(null);
 
   // Auto-scroll to bottom when new logs arrive
@@ -12,6 +14,35 @@ const LogViewer = ({ logs, isStreaming, onClearLogs }) => {
       logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
     }
   }, [logs, autoScroll]);
+
+  // Filter logs based on search term and level
+  const filteredLogs = useMemo(() => {
+    let filtered = logs;
+    
+    // Filter by level
+    if (levelFilter !== 'ALL') {
+      filtered = filtered.filter(log => 
+        log.level?.toLowerCase() === levelFilter.toLowerCase()
+      );
+    }
+    
+    // Filter by search term
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(log => 
+        log.message?.toLowerCase().includes(searchLower) ||
+        log.logger?.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    return filtered;
+  }, [logs, searchTerm, levelFilter]);
+
+  // Get unique log levels for filter dropdown
+  const availableLevels = useMemo(() => {
+    const levels = new Set(logs.map(log => log.level).filter(Boolean));
+    return ['ALL', ...Array.from(levels).sort()];
+  }, [logs]);
 
   // Get log level color
   const getLogLevelColor = (level) => {
@@ -37,6 +68,14 @@ const LogViewer = ({ logs, isStreaming, onClearLogs }) => {
       return new Date(timestamp).toLocaleTimeString();
     } catch (error) {
       return timestamp.toString();
+    }
+  };
+
+  // Handle scroll to bottom manually
+  const scrollToBottom = () => {
+    if (logContainerRef.current) {
+      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+      setAutoScroll(true);
     }
   };
 
@@ -110,7 +149,7 @@ const LogViewer = ({ logs, isStreaming, onClearLogs }) => {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{ fontSize: '12px', color: '#666' }}>
-            {logs.length} log{logs.length !== 1 ? 's' : ''}
+            {filteredLogs.length} of {logs.length} log{logs.length !== 1 ? 's' : ''}
           </span>
           {logs.length > 0 && (
             <button
@@ -137,7 +176,71 @@ const LogViewer = ({ logs, isStreaming, onClearLogs }) => {
       {/* Content */}
       {!isCollapsed && (
         <div>
-          {/* Controls */}
+          {/* Search and Filter Controls */}
+          <div style={{
+            padding: '8px 16px',
+            backgroundColor: '#f8f9fa',
+            borderBottom: '1px solid #eee',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '15px',
+            fontSize: '12px',
+            flexWrap: 'wrap'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1', minWidth: '200px' }}>
+              <span>🔍</span>
+              <input
+                type="text"
+                placeholder="Search logs..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  flex: 1,
+                  padding: '4px 8px',
+                  border: '1px solid #ddd',
+                  borderRadius: '3px',
+                  fontSize: '12px',
+                  minWidth: '150px'
+                }}
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  style={{
+                    padding: '2px 6px',
+                    border: '1px solid #ddd',
+                    borderRadius: '2px',
+                    backgroundColor: '#fff',
+                    cursor: 'pointer',
+                    fontSize: '10px'
+                  }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <span>Level:</span>
+              <select
+                value={levelFilter}
+                onChange={(e) => setLevelFilter(e.target.value)}
+                style={{
+                  padding: '2px 6px',
+                  border: '1px solid #ddd',
+                  borderRadius: '3px',
+                  fontSize: '11px',
+                  backgroundColor: '#fff'
+                }}
+              >
+                {availableLevels.map(level => (
+                  <option key={level} value={level}>{level}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Auto-scroll Control */}
           <div style={{
             padding: '8px 16px',
             backgroundColor: '#f8f9fa',
@@ -155,9 +258,28 @@ const LogViewer = ({ logs, isStreaming, onClearLogs }) => {
               />
               Auto-scroll
             </label>
+            <button
+              onClick={scrollToBottom}
+              style={{
+                padding: '4px 8px',
+                fontSize: '10px',
+                border: '1px solid #ddd',
+                borderRadius: '3px',
+                backgroundColor: '#fff',
+                color: '#007bff',
+                cursor: 'pointer'
+              }}
+            >
+              ⬇ Bottom
+            </button>
             <span style={{ color: '#666' }}>
-              {isStreaming ? 'Receiving logs...' : `${logs.length} logs received`}
+              {isStreaming ? 'Receiving logs...' : `${filteredLogs.length} logs displayed`}
             </span>
+            {searchTerm && (
+              <span style={{ color: '#007bff', fontStyle: 'italic' }}>
+                Filtered by: "{searchTerm}"
+              </span>
+            )}
           </div>
 
           {/* Logs Container */}
@@ -165,7 +287,7 @@ const LogViewer = ({ logs, isStreaming, onClearLogs }) => {
             ref={logContainerRef}
             onScroll={handleScroll}
             style={{
-              maxHeight: '300px',
+              maxHeight: '400px',
               overflowY: 'auto',
               padding: '10px',
               backgroundColor: '#fafafa',
@@ -173,7 +295,7 @@ const LogViewer = ({ logs, isStreaming, onClearLogs }) => {
               fontSize: '12px'
             }}
           >
-            {logs.length === 0 && isStreaming && (
+            {filteredLogs.length === 0 && logs.length === 0 && isStreaming && (
               <div style={{ 
                 textAlign: 'center', 
                 color: '#666', 
@@ -183,8 +305,38 @@ const LogViewer = ({ logs, isStreaming, onClearLogs }) => {
                 Waiting for logs...
               </div>
             )}
+
+            {filteredLogs.length === 0 && logs.length > 0 && (
+              <div style={{ 
+                textAlign: 'center', 
+                color: '#666', 
+                fontStyle: 'italic',
+                padding: '20px'
+              }}>
+                No logs match the current filters.
+                <br />
+                <button
+                  onClick={() => {
+                    setSearchTerm('');
+                    setLevelFilter('ALL');
+                  }}
+                  style={{
+                    marginTop: '10px',
+                    padding: '4px 8px',
+                    border: '1px solid #007bff',
+                    borderRadius: '3px',
+                    backgroundColor: '#007bff',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontSize: '11px'
+                  }}
+                >
+                  Clear Filters
+                </button>
+              </div>
+            )}
             
-            {logs.map((log) => (
+            {filteredLogs.map((log) => (
               <div
                 key={log.id}
                 style={{
@@ -247,7 +399,7 @@ const LogViewer = ({ logs, isStreaming, onClearLogs }) => {
       )}
 
       {/* CSS for animation */}
-      <style jsx>{`
+      <style>{`
         @keyframes pulse {
           0% { opacity: 1; }
           50% { opacity: 0.5; }

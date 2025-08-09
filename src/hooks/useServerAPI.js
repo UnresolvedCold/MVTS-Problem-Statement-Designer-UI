@@ -57,8 +57,9 @@ export const useServerAPI = () => {
 
           // Handle streaming log messages
           if (data.type === 'SOLVING_PROBLEM_STATEMENT') {
+            const uniqueId = `log-${Date.now()}-${++logCounterRef.current}-${Math.random().toString(36).substr(2, 9)}`;
             setLogs(prevLogs => [...prevLogs, {
-              id: `log-${Date.now()}-${++logCounterRef.current}-${Math.random().toString(36).substr(2, 9)}`,
+              id: uniqueId,
               timestamp: data.data?.timestamp || Date.now(),
               level: data.data?.level || 'INFO',
               logger: data.data?.logger || 'Unknown',
@@ -77,11 +78,11 @@ export const useServerAPI = () => {
             setLoadingMessage('');
             
             // Find the pending solve request and resolve it with the solution
-            const solvePendingRequest = Array.from(pendingRequestsRef.current.entries())
-              .find(([requestId, request]) => request.type === 'SOLVE_PROBLEM_STATEMENT');
+            const solveRequest = Array.from(pendingRequestsRef.current.entries())
+              .find(([id, request]) => request.type === 'SOLVE_PROBLEM_STATEMENT');
             
-            if (solvePendingRequest) {
-              const [requestId, { resolve: requestResolve }] = solvePendingRequest;
+            if (solveRequest) {
+              const [requestId, { resolve: requestResolve }] = solveRequest;
               pendingRequestsRef.current.delete(requestId);
               requestResolve({ solution: data.data });
             }

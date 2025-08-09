@@ -300,41 +300,45 @@ public class ProblemStatementStudio {
 
   }
 
-
   public static void main(String[] args) throws Exception {
     com.greyorange.multifleetplanner.server.Server.getInstance();
 
-    int port = args.length > 0 ? Integer.parseInt(args[0]) : 8089;
+    startApiServer();
+    startWsServer();
+  }
 
-    Server server = new Server(port);
-    ServerConnector connector = new ServerConnector(server);
-    connector.setPort(port);
-    server.setConnectors(new Connector[] { connector });
+  private static void startApiServer() {
+    new Thread(() -> {
+      try {
+        Server apiServer = new Server(8088);
+        apiServer.setHandler(new PSStudioRestApiHandler());
+        apiServer.start();
+        System.out.println("API Server at http://localhost:8088/api");
+        apiServer.join();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }).start();
+  }
 
-    PSStudioRestApiHandler restApiHandler = new PSStudioRestApiHandler();
-
-    ServletContextHandler servletContext = new ServletContextHandler(ServletContextHandler.SESSIONS);
-    servletContext.setContextPath("/");
-
-    JettyWebSocketServletContainerInitializer.configure(servletContext, (servletContext1, wsContainer) -> {
-      wsContainer.setIdleTimeout(Duration.ofMinutes(5));
-      wsContainer.addMapping("/ws", (req, resp) -> new PSStudioWebSocketHandler());
-    });
-
-    // 3. Combine both handlers
-    HandlerCollection handlers = new HandlerCollection();
-    handlers.setHandlers(new Handler[] {
-//        restApiHandler
-        servletContext
-    });
-
-    server.setHandler(handlers);
-
-    server.start();
-    System.out.println("Server started:");
-    System.out.println("  WebSocket: ws://localhost:" + port + "/ws");
-    System.out.println("  REST API: http://localhost:" + port + "/api/...");
-    server.join();
+  private static void startWsServer() {
+    new Thread(() -> {
+      try {
+        Server wsServer = new Server(8089);
+        ServletContextHandler wsContext = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        wsContext.setContextPath("/");
+        JettyWebSocketServletContainerInitializer.configure(wsContext, (ctx, container) -> {
+          container.setIdleTimeout(Duration.ofMinutes(5));
+          container.addMapping("/ws", (req, resp) -> new PSStudioWebSocketHandler());
+        });
+        wsServer.setHandler(wsContext);
+        wsServer.start();
+        System.out.println("WS Server at ws://localhost:8089/ws");
+        wsServer.join();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }).start();
   }
 
 }

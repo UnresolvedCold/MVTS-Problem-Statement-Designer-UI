@@ -394,18 +394,13 @@ export const useLocalStateManager = (schemaManager = null) => {
         task_key: newTaskKey,
         assigned_ranger_id: parseInt(assignmentData.bot_id),
         dock_pps_id: parseInt(assignmentData.pps_id),
-        transport_entity_id: parseInt(assignmentData.msu_id),
-        // Keep other fields from template or use defaults
-        operator_start_time: assignmentTemplate.operator_start_time || 0,
-        operator_end_time: assignmentTemplate.operator_end_time || 0,
+        transport_entity_id: parseInt(assignmentData.msu_id)
       } : {
         // Fallback assignment structure when no schema is available
         task_key: newTaskKey,
         assigned_ranger_id: parseInt(assignmentData.bot_id),
         dock_pps_id: parseInt(assignmentData.pps_id),
-        transport_entity_id: parseInt(assignmentData.msu_id),
-        operator_start_time: 0, // Default values, can be customized later
-        operator_end_time: 0,
+        transport_entity_id: parseInt(assignmentData.msu_id)
       };
       
       console.log('Created assignment:', assignment);

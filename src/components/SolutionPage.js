@@ -218,8 +218,8 @@ const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear })
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px', fontSize: '14px' }}>
                         <div><strong>Task:</strong> {assignment.task_key}</div>
                         <div><strong>Bot:</strong> {assignment.assigned_ranger_id}</div>
-                        <div><strong>Start:</strong> {assignment.startTime || assignment.ranger_start_time}ms</div>
-                        <div><strong>End:</strong> {assignment.endTime}ms</div>
+                        <div><strong>Start:</strong> {assignment.startTime || assignment.operator_start_time}ms</div>
+                        <div><strong>End:</strong> {assignment.endTime || assignment.operator_end_time}ms</div>
                         <div><strong>PPS:</strong> {assignment.dock_pps_id}</div>
                         <div><strong>MSU:</strong> {assignment.transport_entity_id}</div>
                       </div>

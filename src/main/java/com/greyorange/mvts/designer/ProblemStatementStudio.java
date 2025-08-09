@@ -3,6 +3,7 @@ package com.greyorange.mvts.designer;
 import com.greyorange.multifleetplanner.core.ApplicationProperties;
 import com.greyorange.multifleetplanner.core.Config;
 import com.greyorange.multifleetplanner.helpers.Helper;
+import com.greyorange.multifleetplanner.message.QueueManager;
 import com.greyorange.multifleetplanner.multifleet.BackToStoreBotReservationv2;
 import com.greyorange.multifleetplanner.multifleet.Driver;
 import com.greyorange.multifleetplanner.multifleet.cache.BackToStorableCache;
@@ -24,6 +25,7 @@ import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerI
 import org.joda.time.DateTime;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.time.Duration;
 import java.util.*;
 
@@ -197,7 +199,7 @@ public class ProblemStatementStudio {
     return assignment;
   }
 
-  public String solve(InputMessage inputMessage, Map<String, String> configs) {
+  public String solve(String inputMessage, Map<String, String> configs) {
     beforeEach();
 
     Config config = Config.getInstance();
@@ -207,8 +209,8 @@ public class ProblemStatementStudio {
     try {
       res = Helper.getObjectMapper().writeValueAsString(new SchedulerResponse());
       updateApplicationProperties(configs);
-      Driver driver = new Driver();
-      res = Helper.getObjectMapper().writeValueAsString(driver.getSchedule(inputMessage));
+      String output = getOutput(inputMessage);
+      res = Helper.getObjectMapper().writeValueAsString(output);
     } catch (Exception e) {
 
       e.printStackTrace();
@@ -217,6 +219,19 @@ public class ProblemStatementStudio {
     }
 
     return res;
+  }
+
+  private String getOutput(String inputMessage) {
+    // reflection QueueManager
+    try {
+      Class<?> queueManagerClass = Class.forName("com.greyorange.multifleetplanner.message.QueueManager");
+      Method processMessage = queueManagerClass.getDeclaredMethod("processMessage", String.class);
+      processMessage.setAccessible(true);
+      return (String) processMessage.invoke(null, inputMessage);
+    } catch (Exception e) {
+      e.printStackTrace();
+      throw new RuntimeException("Failed to process message", e);
+    }
   }
 
   public void updateApplicationProperties(Map<String, String> configs) {

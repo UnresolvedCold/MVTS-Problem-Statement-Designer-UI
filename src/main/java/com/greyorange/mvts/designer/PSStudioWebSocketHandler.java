@@ -121,8 +121,7 @@ public class PSStudioWebSocketHandler {
    * @param dataNode The JSON data node containing the problem statement details.
    */
   private void handleSolveProblemStatement(Session session, JsonNode dataNode) {
-    InputMessage inputMessage = Helper.getObjectMapper()
-        .convertValue(dataNode.get("problemStatement"), InputMessage.class);
+    String inputMessage = dataNode.get("problemStatement").toString();
 
     JsonNode configNode = dataNode.get("config");
     Map<String, String> configs = new HashMap<>();

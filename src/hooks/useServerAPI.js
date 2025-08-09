@@ -11,6 +11,7 @@ export const useServerAPI = () => {
   const [schemas, setSchemas] = useState({});
   const [logs, setLogs] = useState([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const logCounterRef = useRef(0);
 
   // Generate unique request ID
   const generateRequestId = useCallback(() => {
@@ -57,7 +58,7 @@ export const useServerAPI = () => {
           // Handle streaming log messages
           if (data.type === 'SOLVING_PROBLEM_STATEMENT') {
             setLogs(prevLogs => [...prevLogs, {
-              id: Date.now() + Math.random(),
+              id: `log-${Date.now()}-${++logCounterRef.current}-${Math.random().toString(36).substr(2, 9)}`,
               timestamp: data.data?.timestamp || Date.now(),
               level: data.data?.level || 'INFO',
               logger: data.data?.logger || 'Unknown',
@@ -288,6 +289,7 @@ export const useServerAPI = () => {
     setLoadingMessage('Solving problem statement...');
     setLogs([]); // Clear previous logs
     setIsStreaming(false);
+    logCounterRef.current = 0; // Reset log counter
     
     try {
       await connect();
@@ -320,6 +322,7 @@ export const useServerAPI = () => {
   // Clear logs
   const clearLogs = useCallback(() => {
     setLogs([]);
+    logCounterRef.current = 0; // Reset log counter
   }, []);
 
   return {

@@ -11,15 +11,47 @@ import org.eclipse.jetty.websocket.api.annotations.*;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @WebSocket
 public class PSStudioWebSocketHandler {
   private static final CopyOnWriteArraySet<Session> sessions = new CopyOnWriteArraySet<>();
   private static final ExecutorService executor = Executors.newCachedThreadPool();
+
+  // Queue for managing sequential problem solving requests
+  private static final BlockingQueue<Runnable> problemSolvingQueue = new LinkedBlockingQueue<>();
+  private static final ExecutorService sequentialExecutor = Executors.newSingleThreadExecutor();
+  private static final AtomicBoolean isProcessingQueue = new AtomicBoolean(false);
+
+  static {
+    // Start the queue processor
+    startQueueProcessor();
+  }
+
+  /**
+   * Starts the queue processor that handles problem solving requests sequentially
+   */
+  private static void startQueueProcessor() {
+    sequentialExecutor.submit(() -> {
+      while (!Thread.currentThread().isInterrupted()) {
+        try {
+          // Take the next task from queue (blocks if queue is empty)
+          Runnable task = problemSolvingQueue.take();
+
+          // Execute the task
+          task.run();
+
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          break;
+        } catch (Exception e) {
+          System.err.println("Error processing problem solving queue: " + e.getMessage());
+          e.printStackTrace();
+        }
+      }
+    });
+  }
 
   /**
    * Interface for streaming logs back to the client during problem solving
@@ -82,8 +114,8 @@ public class PSStudioWebSocketHandler {
 
   /**
    * Handles the SOLVE_PROBLEM_STATEMENT event.
-   * Starts solving problem statements based on the provided data node.
-   * The actual logs will be streamed automatically via the WebSocket logback appender.
+   * Adds the request to a queue for sequential processing to prevent concurrent executions.
+   * Provides queue position feedback to the client.
    *
    * @param session The WebSocket session of the client.
    * @param dataNode The JSON data node containing the problem statement details.
@@ -100,13 +132,30 @@ public class PSStudioWebSocketHandler {
       flattenJson(configNode, "", configs);
     }
 
-    // Execute problem solving asynchronously - logback will stream logs automatically
-    CompletableFuture.supplyAsync(() -> {
+    // Get current queue position
+    int queuePosition = problemSolvingQueue.size() + 1;
+
+    // Notify client about queue position
+    try {
+      if (queuePosition == 1) {
+        session.getRemote().sendString("{\"type\":\"SOLVING_PROBLEM_STATEMENT\", \"data\":{\"log\":\"Starting problem solving immediately...\", \"timestamp\":" + System.currentTimeMillis() + "}}");
+      } else {
+        session.getRemote().sendString("{\"type\":\"SOLVING_PROBLEM_STATEMENT\", \"data\":{\"log\":\"Request queued at position " + queuePosition + ". Waiting for previous requests to complete...\", \"timestamp\":" + System.currentTimeMillis() + "}}");
+      }
+    } catch (IOException e) {
+      System.err.println("Error sending queue position message: " + e.getMessage());
+    }
+
+    // Add task to queue for sequential processing
+    problemSolvingQueue.offer(() -> {
       try {
+        // Notify when processing starts
+        session.getRemote().sendString("{\"type\":\"SOLVING_PROBLEM_STATEMENT\", \"data\":{\"log\":\"Processing started for this request...\", \"timestamp\":" + System.currentTimeMillis() + "}}");
+
         String result = ProblemStatementStudio.getInstance().solve(inputMessage, configs);
+
         // Send completion message
         session.getRemote().sendString("{\"type\":\"PROBLEM_STATEMENT_SOLVED\", \"data\":" + result + "}");
-        return result;
       } catch (Exception e) {
         String errorMsg = "Error while solving problem statement: " + e.getMessage();
         try {
@@ -114,9 +163,8 @@ public class PSStudioWebSocketHandler {
         } catch (IOException ioException) {
           System.err.println("Error sending error message: " + ioException.getMessage());
         }
-        return errorMsg;
       }
-    }, executor);
+    });
   }
 
   /**

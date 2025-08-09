@@ -2,7 +2,6 @@ import React from 'react';
 import ObjectsList from './ObjectsList';
 import TasksList from './TasksList';
 import PropertyEditor from './PropertyEditor';
-import TaskPropertyEditor from './TaskPropertyEditor';
 
 const RightSidebar = ({
   visualObjects,
@@ -53,15 +52,12 @@ const RightSidebar = ({
 
       {/* Property Editor */}
       <div style={{ height: 300, overflow: "auto" }}>
-        {selectedObject ? (
+        {(selectedObject || selectedTask) ? (
           <PropertyEditor
             selectedObject={selectedObject}
-            onUpdateProperties={(objectId, props) => objectManager.updateObjectProperties(objectId, props)}
-          />
-        ) : selectedTask ? (
-          <TaskPropertyEditor
             selectedTask={selectedTask}
-            onUpdateProperties={(taskId, props) => objectManager.updateObjectProperties(selectedTask.id, props)}
+            onUpdateProperties={(itemId, props) => objectManager.updateObjectProperties(itemId, props)}
+            onClose={() => {}} // Add close functionality if needed
           />
         ) : (
           <div style={{ padding: 20, textAlign: "center", color: "#666" }}>

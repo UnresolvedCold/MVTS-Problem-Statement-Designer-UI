@@ -380,62 +380,30 @@ const TasksList = ({
                 borderRadius: "4px",
                 cursor: "pointer",
                 backgroundColor: selectedTask?.task_key === task.task_key ? "#e3f2fd" : "white",
-                fontSize: "12px"
+                fontSize: "12px",
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '10px'
               }}
             >
-              <div style={{ fontWeight: "bold", marginBottom: "4px" }}>
-                {task.task_key || `Task #${index + 1}`}
+              <div style={{ fontWeight: "bold" }}>
+                {task.task_key || `Task: ${index + 1}`}
               </div>
               
               <div style={{ marginBottom: "2px" }}>
-                <strong>Destination:</strong> PPS-{JSON.stringify(task.properties.destination_id) || 'N/A'}
+                <strong>Pps:</strong> {JSON.stringify(task.properties.destination_id) || 'N/A'}
               </div>
               
               <div style={{ marginBottom: "2px" }}>
-                <strong>Transport Entity:</strong> MSU-{JSON.stringify(task.properties.transport_entity_id) || 'N/A'}
+                <strong>Msu:</strong> {JSON.stringify(task.properties.transport_entity_id) || 'N/A'}
               </div>
-              
-              {task.task_subtype && (
-                <div style={{ marginBottom: "2px" }}>
-                  <strong>Subtype:</strong> {task.task_subtype}
-                </div>
-              )}
-              
-              {task.status && (
-                <div style={{ marginBottom: "2px" }}>
-                  <strong>Status:</strong> {task.status}
-                </div>
-              )}
-              
-              {task.assigned_ranger_id && (
-                <div style={{ marginBottom: "2px" }}>
-                  <strong>Assigned Ranger:</strong> {task.assigned_ranger_id}
-                </div>
-              )}
               
               <div style={{ 
                 display: "flex", 
                 justifyContent: "space-between", 
                 alignItems: "center",
-                marginTop: "8px"
-              }}>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSelectTask(task);
-                  }}
-                  style={{
-                    padding: "2px 6px",
-                    backgroundColor: "#007bff",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "2px",
-                    cursor: "pointer",
-                    fontSize: "10px"
-                  }}
-                >
-                  Edit
-                </button>
+              }}>              
                 
                 <button
                   onClick={(e) => {

@@ -29,7 +29,7 @@ export const usePropertyEditor = (selectedObject, selectedTask, selectedAssignme
     if (currentItem) {
       let itemData;
       if (isTask) {
-        itemData = { ...currentItem };
+        itemData = currentItem.properties ? { ...currentItem.properties } : { ...currentItem };
       } else if (isAssignment) {
         // For assignments, use the properties or the full assignment object
         itemData = currentItem.properties ? { ...currentItem.properties } : { ...currentItem };

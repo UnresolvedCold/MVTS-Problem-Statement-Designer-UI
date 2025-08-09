@@ -32,12 +32,18 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
     const existing = localWarehouseData.warehouse.problem_statement[listKey] || [];
     
     if (type === 'task') {
-      // Tasks use task_key with pattern task-{number}
+      // Tasks use task_key with pattern t-{number}
       const maxNum = existing.reduce((max, task) => {
-        const match = (task.task_key || '').match(/task-(\d+)/);
+        const match = (task.task_key || '').match(/t-(\d+)/);
         return Math.max(max, match ? parseInt(match[1]) : 0);
       }, 0);
-      return `task-${maxNum + 1}`;
+      return `t-${maxNum + 1}`;
+    } else if (type === 'assignment') {
+      const maxNum = existing.reduce((max, assignment) => {
+        const match = (assignment.task_key || '').match(/a-(\d+)/);
+        return Math.max(max, match ? parseInt(match[1]) : 0);
+      }, 0);
+      return `a-${maxNum + 1}`;
     } else {
       // All other types use numeric id
       const maxId = existing.reduce((max, item) => Math.max(max, item.id || 0), 0);
@@ -98,7 +104,7 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
     if (warehouseData.warehouse.problem_statement?.task_list) {
       warehouseData.warehouse.problem_statement.task_list.forEach((task, index) => {
         loadedObjects.push({
-          id: `task-${task.task_key || index}-${Date.now()}`,
+          id: `t-${task.task_key || index}-${Date.now()}`,
           type: 'task',
           x: null, // No visual position
           y: null, // No visual position
@@ -111,7 +117,7 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
     if (warehouseData.warehouse.problem_statement?.assignment_list) {
       warehouseData.warehouse.problem_statement.assignment_list.forEach((assignment, index) => {
         loadedObjects.push({
-          id: `assignment-${assignment.id || index}-${Date.now()}`,
+          id: `a-${assignment.id || index}-${Date.now()}`,
           type: 'assignment',
           x: null, // No visual position
           y: null, // No visual position
@@ -153,7 +159,7 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
         
         // Create visual object without position
         visualObject = {
-          id: `task-${newId}-${Date.now()}`,
+          id: `t-${newId}-${Date.now()}`,
           type,
           x: null,
           y: null,
@@ -163,13 +169,13 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
         // Assignments don't have coordinates, use id
         objectData = {
           ...template,
-          id: newId,
+          task_key: newId,
           ...customData
         };
         
         // Create visual object without position
         visualObject = {
-          id: `assignment-${newId}-${Date.now()}`,
+          id: `a-${newId}-${Date.now()}`,
           type,
           x: null,
           y: null,

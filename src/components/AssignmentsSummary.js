@@ -16,8 +16,6 @@ const AssignmentsSummary = ({ warehouseData, onRemoveAssignment, onSelectAssignm
         pps.current_schedule.assignments.forEach(assignment => {
           allAssignments.push({
             ...assignment,
-            pps_name: `PPS-${pps.id}`,
-            pps_id: pps.id
           });
         });
       }
@@ -91,80 +89,33 @@ const AssignmentsSummary = ({ warehouseData, onRemoveAssignment, onSelectAssignm
                 key={assignment.id || index}
                 onClick={() => onSelectAssignment && onSelectAssignment(assignment)}
                 style={{
-                  padding: '12px',
-                  backgroundColor: selectedAssignment?.id === assignment.id ? '#e3f2fd' : '#f8f9fa',
-                  border: selectedAssignment?.id === assignment.id ? '2px solid #007bff' : '1px solid #dee2e6',
+                  padding: '8px',
+                  marginBottom: '5px',
+                  backgroundColor: selectedAssignment?.id === assignment.id ? '#e3f2fd' : 'white',
+                  border: selectedAssignment?.id === assignment.id ? '2px solid #007bff' : '1px solid #ddd',
                   borderRadius: '4px',
-                  borderLeft: '4px solid #007bff',
                   cursor: onSelectAssignment ? 'pointer' : 'default',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseOver={(e) => {
-                  if (onSelectAssignment && selectedAssignment?.id !== assignment.id) {
-                    e.currentTarget.style.backgroundColor = '#f0f8f0';
-                    e.currentTarget.style.borderColor = '#28a745';
-                  }
-                }}
-                onMouseOut={(e) => {
-                  if (onSelectAssignment && selectedAssignment?.id !== assignment.id) {
-                    e.currentTarget.style.backgroundColor = '#f8f9fa';
-                    e.currentTarget.style.borderColor = '#dee2e6';
-                  }
+                  fontSize: '12px'
                 }}
               >
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-                  gap: '8px',
-                  fontSize: '13px'
-                }}>
-                  <div>
-                    <strong>PPS:</strong> {assignment.pps_name}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                  <div style={{ fontWeight: 'bold' }}>
+                    {assignment.task_key || `Assignment #${index + 1}`}
                   </div>
-                  <div>
-                    <strong>Task:</strong> {assignment.task_key}
-                  </div>
-                  <div>
-                    <strong>Bot:</strong> Bot-{assignment.assigned_ranger_id}
-                  </div>
-                  <div>
-                    <strong>MSU:</strong> MSU-{assignment.transport_entity_id}
-                  </div>
-                  <div>
-                    <strong>Start:</strong> {assignment.operator_start_time}ms
-                  </div>
-                  <div>
-                    <strong>End:</strong> {assignment.operator_end_time}ms
+                  <div style={{ fontSize: '11px', color: '#666', display: 'flex', gap: '8px' }}>
+                    <span>DockPPS: {assignment.dock_pps_id}</span>
+                    <span>Bot: {assignment.assigned_ranger_id}</span>
+                    <span>MSU: {assignment.transport_entity_id}</span>
                   </div>
                 </div>
                 
                 {/* Assignment Actions */}
                 <div style={{
-                  marginTop: '10px',
+                  marginTop: '8px',
                   display: 'flex',
                   gap: '5px',
                   justifyContent: 'flex-end'
                 }}>
-                  {onSelectAssignment && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSelectAssignment(assignment);
-                      }}
-                      style={{
-                        padding: '4px 8px',
-                        border: '1px solid #007bff',
-                        borderRadius: '3px',
-                        backgroundColor: selectedAssignment?.id === assignment.id ? '#007bff' : 'white',
-                        color: selectedAssignment?.id === assignment.id ? 'white' : '#007bff',
-                        cursor: 'pointer',
-                        fontSize: '12px'
-                      }}
-                      title="Edit Assignment"
-                    >
-                      ✏️ Edit
-                    </button>
-                  )}
                   {onRemoveAssignment && (
                     <button
                       onClick={(e) => {
@@ -172,17 +123,17 @@ const AssignmentsSummary = ({ warehouseData, onRemoveAssignment, onSelectAssignm
                         onRemoveAssignment(assignment.pps_id, assignment.id);
                       }}
                       style={{
-                        padding: '4px 8px',
-                        border: '1px solid #dc3545',
-                        borderRadius: '3px',
+                        padding: '2px 6px',
+                        border: 'none',
+                        borderRadius: '2px',
                         backgroundColor: '#dc3545',
                         color: 'white',
                         cursor: 'pointer',
-                        fontSize: '12px'
+                        fontSize: '10px'
                       }}
                       title="Remove Assignment"
                     >
-                      🗑️
+                      Remove
                     </button>
                   )}
                 </div>

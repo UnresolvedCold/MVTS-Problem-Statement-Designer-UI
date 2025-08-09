@@ -337,6 +337,28 @@ export const useLocalStateManager = (schemaManager = null) => {
   }, []);
 
   // Add assignment to PPS current_schedule
+  // Generate unique task key for assignments
+  const generateAssignmentTaskKey = useCallback((problemStatement) => {
+    const allAssignments = [];
+    
+    // Collect all assignments from all PPS
+    if (problemStatement.pps_list) {
+      problemStatement.pps_list.forEach(pps => {
+        if (pps.current_schedule?.assignments) {
+          allAssignments.push(...pps.current_schedule.assignments);
+        }
+      });
+    }
+    
+    // Find the highest number in existing task_keys with pattern a-{number}
+    const maxNum = allAssignments.reduce((max, assignment) => {
+      const match = (assignment.task_key || '').match(/a-(\d+)/);
+      return Math.max(max, match ? parseInt(match[1]) : 0);
+    }, 0);
+    
+    return `a-${maxNum + 1}`;
+  }, []);
+
   const addAssignmentToPPS = useCallback((assignmentData) => {
     setLocalWarehouseData(prevData => {
       const problemStatement = prevData.warehouse.problem_statement;
@@ -361,29 +383,29 @@ export const useLocalStateManager = (schemaManager = null) => {
         }
       }
       
+      // Generate new task key automatically
+      const newTaskKey = generateAssignmentTaskKey(problemStatement);
+      console.log('Generated new task key for assignment:', newTaskKey);
+      
       // Create the assignment object using server schema if available
       const assignment = assignmentTemplate ? {
         ...assignmentTemplate,
         // Override with provided data
-        task_key: assignmentData.task_id,
+        task_key: newTaskKey,
         assigned_ranger_id: parseInt(assignmentData.bot_id),
         dock_pps_id: parseInt(assignmentData.pps_id),
         transport_entity_id: parseInt(assignmentData.msu_id),
         // Keep other fields from template or use defaults
         operator_start_time: assignmentTemplate.operator_start_time || 0,
         operator_end_time: assignmentTemplate.operator_end_time || 0,
-        created_at: Date.now(),
-        id: `assignment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
       } : {
         // Fallback assignment structure when no schema is available
-        task_key: assignmentData.task_id,
+        task_key: newTaskKey,
         assigned_ranger_id: parseInt(assignmentData.bot_id),
         dock_pps_id: parseInt(assignmentData.pps_id),
         transport_entity_id: parseInt(assignmentData.msu_id),
         operator_start_time: 0, // Default values, can be customized later
         operator_end_time: 0,
-        created_at: Date.now(),
-        id: `assignment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
       };
       
       console.log('Created assignment:', assignment);

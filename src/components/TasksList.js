@@ -44,22 +44,21 @@ const TasksList = ({
   };
 
   const handleAddAssignment = () => {
-    if (newAssignmentData.pps_id && newAssignmentData.msu_id && newAssignmentData.task_id && newAssignmentData.bot_id) {
+    if (newAssignmentData.pps_id && newAssignmentData.msu_id && newAssignmentData.bot_id) {
       onAddAssignment({
         pps_id: newAssignmentData.pps_id,
         msu_id: newAssignmentData.msu_id,
-        task_id: newAssignmentData.task_id,
         bot_id: newAssignmentData.bot_id
       });
-      setNewAssignmentData({ pps_id: '', msu_id: '', task_id: '', bot_id: '' });
+      setNewAssignmentData({ pps_id: '', msu_id: '', bot_id: '' });
       setShowAssignmentForm(false);
     } else {
-      alert('Please select PPS, MSU, Task, and Bot');
+      alert('Please select PPS, MSU, and Bot');
     }
   };
 
   const cancelAddAssignment = () => {
-    setNewAssignmentData({ pps_id: '', msu_id: '', task_id: '', bot_id: '' });
+    setNewAssignmentData({ pps_id: '', msu_id: '', bot_id: '' });
     setShowAssignmentForm(false);
   };
 
@@ -262,7 +261,7 @@ const TasksList = ({
             </select>
           </div>
 
-          <div style={{ marginBottom: "8px" }}>
+          {/* <div style={{ marginBottom: "8px" }}>
             <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", marginBottom: "3px" }}>
               Task ID:
             </label>
@@ -279,7 +278,7 @@ const TasksList = ({
                 fontSize: "12px"
               }}
             />
-          </div>
+          </div> */}
 
           <div style={{ marginBottom: "10px" }}>
             <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", marginBottom: "3px" }}>

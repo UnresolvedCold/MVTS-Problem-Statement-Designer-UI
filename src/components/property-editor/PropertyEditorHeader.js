@@ -30,9 +30,9 @@ const PropertyEditorHeader = ({ onClose, isTask, isAssignment, currentItem }) =>
       <div style={{ marginBottom: "10px" }}>
         <strong>Selected:</strong> {
           isTask 
-            ? `${currentItem.task_type || 'Task'} (ID: ${currentItem.task_key || currentItem.id})`
+            ? `${currentItem.task_type || 'Task'} (ID: ${currentItem.properties.task_key || currentItem.id})`
             : isAssignment
-            ? `Assignment (Task: ${currentItem.task_key || currentItem.properties?.task_key || 'N/A'})`
+            ? `Assignment: ${currentItem.task_key || currentItem.properties?.task_key || 'N/A'}`
             : `${currentItem.type} (ID: ${currentItem.id})`
         }
       </div>

@@ -4,11 +4,16 @@ import { GRID_CONFIG } from '../utils/constants';
 
 // Default problem statement template
 const DEFAULT_PROBLEM_STATEMENT = {
-  ranger_list: [],
+  task_list: [],
+  start_time: 0,
+  request_id: 'PSG',
   pps_list: [],
+  planning_duration_seconds: 5,
   transport_entity_list: [],
-  relay_point_list: [],
-  task_list: []
+  maximizing_picks: false,
+  ranger_list: [],
+  conveyor_list: [],
+  relay_point_list: []
 };
 
 export const useLocalStateManager = () => {

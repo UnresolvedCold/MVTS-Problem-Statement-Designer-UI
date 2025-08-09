@@ -46,9 +46,19 @@ export const useGridEditorHandlers = (
       // Get local config to send with problem statement
       const localConfig = getConfigForProblemStatement();
       
+      // Prepare problem statement with required default fields
+      const problemStatement = {
+        ...localWarehouseData.warehouse.problem_statement,
+        // Add default values if not already present
+        planning_duration_seconds: localWarehouseData.warehouse.problem_statement.planning_duration_seconds ?? 5,
+        maximizing_picks: localWarehouseData.warehouse.problem_statement.maximizing_picks ?? false,
+        start_time: localWarehouseData.warehouse.problem_statement.start_time ?? 0,
+        request_id: localWarehouseData.warehouse.problem_statement.request_id ?? 'PSG'
+      };
+      
       // Include config in the solve request
       const solution = await solveProblemStatement(
-        localWarehouseData.warehouse.problem_statement, 
+        problemStatement, 
         localConfig
       );
       

@@ -11,13 +11,13 @@ const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear })
     
     const assignments = solutionData.schedule?.assignments || solutionData.assignments || [];
     
-    // Calculate time scale
+    // Calculate time scale with 5-second buffer at the end
     const allTimes = assignments.flatMap(a => [
       a.startTime || a.operator_start_time || 0,
       a.endTime || a.operator_end_time || 0
     ]);
     const minTime = Math.min(...allTimes, 0);
-    const maxTime = Math.max(...allTimes, 1);
+    const maxTime = Math.max(...allTimes, 1) + 5000; // Add 5-second (5000ms) buffer
     const timeRange = maxTime - minTime;
     
     return assignments.map(assignment => ({

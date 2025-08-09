@@ -6,27 +6,41 @@ const SolutionViewer = ({ solutionData, onClose }) => {
 
   // Parse assignments data
   const parseAssignments = () => {
-    if (!solutionData || !solutionData.assignments) {
+    if (!solutionData) {
       return { assignments: [], schedule: null };
     }
 
     try {
-      // Parse the assignments string if it's a string
-      const parsed = typeof solutionData.assignments === 'string' 
-        ? JSON.parse(solutionData.assignments)
-        : solutionData.assignments;
-      
-      return {
-        assignments: parsed.schedule?.assignments || [],
-        schedule: parsed.schedule || null
-      };
+      // Handle new format from PROBLEM_STATEMENT_SOLVED
+      if (solutionData.schedule) {
+        return {
+          assignments: solutionData.schedule.assignments || [],
+          schedule: solutionData.schedule,
+          requestId: solutionData.request_id
+        };
+      }
+
+      // Handle legacy format or string assignments
+      if (solutionData.assignments) {
+        const parsed = typeof solutionData.assignments === 'string' 
+          ? JSON.parse(solutionData.assignments)
+          : solutionData.assignments;
+        
+        return {
+          assignments: parsed.schedule?.assignments || parsed.assignments || [],
+          schedule: parsed.schedule || null,
+          requestId: parsed.request_id || null
+        };
+      }
+
+      return { assignments: [], schedule: null, requestId: null };
     } catch (error) {
       console.error('Error parsing assignments:', error);
-      return { assignments: [], schedule: null };
+      return { assignments: [], schedule: null, requestId: null };
     }
   };
 
-  const { assignments, schedule } = parseAssignments();
+  const { assignments, schedule, requestId } = parseAssignments();
 
   // Handle assignment selection
   const handleAssignmentClick = (assignment) => {

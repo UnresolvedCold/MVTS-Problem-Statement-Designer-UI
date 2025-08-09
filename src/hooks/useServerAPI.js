@@ -17,6 +17,15 @@ export const useServerAPI = () => {
     return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }, []);
 
+  // Disconnect from server
+  const disconnect = useCallback(() => {
+    if (socketRef.current) {
+      socketRef.current.close();
+      socketRef.current = null;
+    }
+    setIsConnected(false);
+  }, []);
+
   // Connect to server
   const connect = useCallback(() => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
@@ -59,6 +68,31 @@ export const useServerAPI = () => {
             return; // Don't process as regular request response
           }
 
+          // Handle problem statement solved
+          if (data.type === 'PROBLEM_STATEMENT_SOLVED') {
+            console.log('Problem statement solved, received solution:', data.data);
+            setIsStreaming(false); // Stop streaming
+            setIsLoading(false);
+            setLoadingMessage('');
+            
+            // Find the pending solve request and resolve it with the solution
+            const solvePendingRequest = Array.from(pendingRequestsRef.current.entries())
+              .find(([requestId, request]) => request.type === 'SOLVE_PROBLEM_STATEMENT');
+            
+            if (solvePendingRequest) {
+              const [requestId, { resolve: requestResolve }] = solvePendingRequest;
+              pendingRequestsRef.current.delete(requestId);
+              requestResolve({ solution: data.data });
+            }
+            
+            // Disconnect from server after receiving solution
+            setTimeout(() => {
+              disconnect();
+            }, 1000);
+            
+            return; // Don't process as regular request response
+          }
+
           // Handle responses to pending requests
           if (data.requestId && pendingRequestsRef.current.has(data.requestId)) {
             const { resolve: requestResolve, reject: requestReject } = pendingRequestsRef.current.get(data.requestId);
@@ -87,7 +121,7 @@ export const useServerAPI = () => {
         reject(error);
       };
     });
-  }, []);
+  }, [disconnect]);
 
   // Send message to server and wait for response
   const sendRequest = useCallback((type, data = {}) => {
@@ -104,8 +138,8 @@ export const useServerAPI = () => {
         data: {...data}
       };
 
-      // Store the promise resolvers
-      pendingRequestsRef.current.set(requestId, { resolve, reject });
+      // Store the promise resolvers with request type
+      pendingRequestsRef.current.set(requestId, { resolve, reject, type });
 
       // Set timeout for request
       setTimeout(() => {
@@ -286,15 +320,6 @@ export const useServerAPI = () => {
   // Clear logs
   const clearLogs = useCallback(() => {
     setLogs([]);
-  }, []);
-
-  // Disconnect from server
-  const disconnect = useCallback(() => {
-    if (socketRef.current) {
-      socketRef.current.close();
-      socketRef.current = null;
-    }
-    setIsConnected(false);
   }, []);
 
   return {

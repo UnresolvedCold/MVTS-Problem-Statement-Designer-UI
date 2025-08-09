@@ -115,7 +115,7 @@ const SolutionDisplay = ({ solutionData, logs, isStreaming, onClearLogs, onClose
         )}
 
         {/* Solution Summary */}
-        {solutionData && solutionData.assignments && (
+        {solutionData && (solutionData.schedule?.assignments || solutionData.assignments) && (
           <div style={{
             marginBottom: '20px',
             padding: '15px',
@@ -125,15 +125,18 @@ const SolutionDisplay = ({ solutionData, logs, isStreaming, onClearLogs, onClose
             <h3 style={{ margin: '0 0 10px 0' }}>Solution Summary</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
               <div>
-                <strong>Total Assignments:</strong> {solutionData.assignments?.length || 0}
+                <strong>Total Assignments:</strong> {(solutionData.schedule?.assignments || solutionData.assignments)?.length || 0}
               </div>
-              {solutionData.cost && (
+              <div>
+                <strong>Request ID:</strong> {solutionData.request_id || 'N/A'}
+              </div>
+              {(solutionData.schedule?.cost || solutionData.cost) && (
                 <>
                   <div>
-                    <strong>Feasible:</strong> {solutionData.cost.feasible ? 'Yes' : 'No'}
+                    <strong>Feasible:</strong> {(solutionData.schedule?.cost || solutionData.cost).feasible ? 'Yes' : 'No'}
                   </div>
                   <div>
-                    <strong>Hard Score:</strong> {solutionData.cost.hard_score || 0}
+                    <strong>Hard Score:</strong> {(solutionData.schedule?.cost || solutionData.cost).hard_score || 0}
                   </div>
                 </>
               )}

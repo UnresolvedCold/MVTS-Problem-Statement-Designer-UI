@@ -3,7 +3,8 @@ export const WEBSOCKET_CONFIG = {
   DEFAULT_PORT: 8089,
   DEFAULT_HOST: 'localhost',
   DEFAULT_PROTOCOL: 'ws',
-  ENDPOINT: '/ws'
+  ENDPOINT: '/ws',
+  TIMEOUT_MS: 60000 
 };
 
 // REST API configuration for schemas

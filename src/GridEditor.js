@@ -87,10 +87,13 @@ const GridEditor = () => {
   useEffect(() => {
     // Auto-switch to solution tab only when solution data first becomes available
     // and we're currently on the grid tab (don't interrupt if user is on other tabs)
-    if (solutionData && activeTab === 'grid') {
+    // Only switch once per solution by checking if solutionData is new
+    if (solutionData && activeTab === 'grid' && !solutionData._autoSwitched) {
+      // Mark this solution as having triggered an auto-switch
+      setSolutionData(prev => ({ ...prev, _autoSwitched: true }));
       setActiveTab('solution');
     }
-  }, [solutionData]); // Only depend on solutionData, not activeTab to avoid continuous switching
+  }, [solutionData, activeTab]); // Include activeTab to ensure proper switching logic
 
   // Handler for clearing solution data
   const handleClearSolution = () => {

@@ -147,9 +147,9 @@ export const useServerAPI = () => {
       setTimeout(() => {
         if (pendingRequestsRef.current.has(requestId)) {
           pendingRequestsRef.current.delete(requestId);
-          reject(new Error('Request timeout'));
+          reject(new Error(`Request timed out after 5 minutes`));
         }
-      }, 30000); // 30 second timeout
+      }, WEBSOCKET_CONFIG.TIMEOUT_MS); // 5 minute timeout from config
 
       console.log('Sending request to server:', message);
       socketRef.current.send(JSON.stringify(message));

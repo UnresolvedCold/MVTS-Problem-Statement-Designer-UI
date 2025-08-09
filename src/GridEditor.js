@@ -159,6 +159,7 @@ const GridEditor = () => {
           isStreaming={isStreaming}
           onClearLogs={clearLogs}
           onClear={handleClearSolution}
+          onAssignToProblem={handlers.handleAssignSolutionToProblem}
         />
       ) : (
         <ConfigPanel configManager={configManager} />

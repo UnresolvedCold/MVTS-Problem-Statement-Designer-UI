@@ -158,6 +158,29 @@ export const useGridEditorHandlers = (
     }
   }, [localStateManager, setSelectedObject]);
 
+  const handleAssignSolutionToProblem = useCallback((solutionAssignment) => {
+    try {
+      console.log('Converting solution assignment to problem statement:', solutionAssignment);
+      
+      // Convert solution assignment format to the format expected by addAssignmentToPPS
+      const assignmentData = {
+        pps_id: solutionAssignment.dock_pps_id,
+        msu_id: solutionAssignment.transport_entity_id,
+        bot_id: solutionAssignment.assigned_ranger_id
+      };
+      
+      // Use the existing addAssignmentToPPS function
+      addAssignmentToPPS(assignmentData);
+      console.log('Solution assignment successfully added to problem statement');
+      
+      // Optionally show a success message
+      alert(`Assignment ${solutionAssignment.task_key} added to problem statement successfully!`);
+    } catch (error) {
+      console.error('Error adding solution assignment to problem:', error);
+      alert('Failed to add assignment to problem statement. Please check the console for details.');
+    }
+  }, [addAssignmentToPPS]);
+
   return {
     handleObjectSelect,
     handleTaskSelect,
@@ -168,6 +191,7 @@ export const useGridEditorHandlers = (
     handleAddTask,
     handleAddAssignment,
     handleRemoveAssignment,
-    handleClearData
+    handleClearData,
+    handleAssignSolutionToProblem
   };
 };

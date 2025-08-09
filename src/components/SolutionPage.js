@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import LogViewer from './LogViewer';
 
-const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear }) => {
+const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear, onAssignToProblem }) => {
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'gantt'
   const [sectionsCollapsed, setSectionsCollapsed] = useState({
     assignments: false,
@@ -539,9 +539,12 @@ const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear })
                         backgroundColor: '#f8f9fa',
                         border: '1px solid #dee2e6',
                         borderRadius: '6px',
-                        borderLeft: '4px solid #28a745'
+                        borderLeft: '4px solid #28a745',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start'
                       }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px', fontSize: '14px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px', fontSize: '14px', flex: 1 }}>
                           <div><strong>Task:</strong> {assignment.task_key}</div>
                           <div><strong>Bot:</strong> {assignment.assigned_ranger_id}</div>
                           <div><strong>Start:</strong> {assignment.startTime || assignment.operator_start_time}ms</div>
@@ -549,6 +552,27 @@ const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear })
                           <div><strong>PPS:</strong> {assignment.dock_pps_id}</div>
                           <div><strong>MSU:</strong> {assignment.transport_entity_id}</div>
                         </div>
+                        {onAssignToProblem && (
+                          <button
+                            onClick={() => onAssignToProblem(assignment)}
+                            style={{
+                              padding: '8px 16px',
+                              backgroundColor: '#007bff',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontSize: '12px',
+                              marginLeft: '12px',
+                              flexShrink: 0,
+                              height: 'fit-content'
+                            }}
+                            onMouseOver={(e) => e.target.style.backgroundColor = '#0056b3'}
+                            onMouseOut={(e) => e.target.style.backgroundColor = '#007bff'}
+                          >
+                            Assign
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>

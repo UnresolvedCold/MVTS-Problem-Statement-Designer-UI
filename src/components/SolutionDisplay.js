@@ -2,7 +2,7 @@
 import React from 'react';
 import LogViewer from './LogViewer';
 
-const SolutionDisplay = ({ solutionData, logs, isStreaming, onClearLogs, onClose }) => {
+const SolutionDisplay = ({ solutionData, logs, isStreaming, onClearLogs, onClose, onAssignToBot }) => {
   if (!solutionData && (!logs || logs.length === 0) && !isStreaming) return null;
 
   const handleDownload = () => {
@@ -140,6 +140,81 @@ const SolutionDisplay = ({ solutionData, logs, isStreaming, onClearLogs, onClose
                   </div>
                 </>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Assignments List */}
+        {solutionData && (solutionData.schedule?.assignments || solutionData.assignments) && (
+          <div style={{
+            marginBottom: '20px',
+            padding: '15px',
+            backgroundColor: '#f8f9fa',
+            borderRadius: '5px'
+          }}>
+            <h3 style={{ margin: '0 0 15px 0' }}>Solution Assignments</h3>
+            <div style={{
+              display: 'grid',
+              gap: '10px',
+              maxHeight: '300px',
+              overflowY: 'auto'
+            }}>
+              {(solutionData.schedule?.assignments || solutionData.assignments).map((assignment, index) => (
+                <div
+                  key={assignment.task_key || index}
+                  style={{
+                    padding: '8px',
+                    backgroundColor: 'white',
+                    border: '1px solid #ddd',
+                    borderRadius: '4px',
+                    fontSize: '12px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                >
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
+                      {assignment.task_key || `Assignment #${index + 1}`}
+                    </div>
+                    <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+                      <div>
+                        <strong>Bot:</strong> {assignment.assigned_ranger_id || 'N/A'}
+                      </div>
+                      <div>
+                        <strong>PPS:</strong> {assignment.dock_pps_id || 'N/A'}
+                      </div>
+                      <div>
+                        <strong>MSU:</strong> {assignment.transport_entity_id || 'N/A'}
+                      </div>
+                      <div>
+                        <strong>Start:</strong> {assignment.operator_start_time || 0}ms
+                      </div>
+                      <div>
+                        <strong>End:</strong> {assignment.operator_end_time || 0}ms
+                      </div>
+                    </div>
+                  </div>
+                  {onAssignToBot && (
+                    <button
+                      onClick={() => onAssignToBot(assignment)}
+                      style={{
+                        padding: '4px 8px',
+                        border: 'none',
+                        borderRadius: '4px',
+                        backgroundColor: '#17a2b8',
+                        color: 'white',
+                        cursor: 'pointer',
+                        fontSize: '11px',
+                        marginLeft: '10px'
+                      }}
+                      title="Add this assignment to problem statement"
+                    >
+                      Assign
+                    </button>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         )}

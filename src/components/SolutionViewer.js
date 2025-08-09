@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const SolutionViewer = ({ solutionData, onClose }) => {
+const SolutionViewer = ({ solutionData, onClose, onAssignToProblem }) => {
   const [selectedAssignment, setSelectedAssignment] = useState(null);
   const [viewMode, setViewMode] = useState('list'); // 'list', 'assignment', 'all'
 
@@ -46,6 +46,16 @@ const SolutionViewer = ({ solutionData, onClose }) => {
   const handleAssignmentClick = (assignment) => {
     setSelectedAssignment(assignment);
     setViewMode('assignment');
+  };
+
+  // Handle assigning a solution assignment to the problem statement
+  const handleAssignToProblem = (assignment) => {
+    if (onAssignToProblem) {
+      onAssignToProblem(assignment);
+      // Show a visual confirmation
+      console.log('Assignment added to problem statement:', assignment.task_key);
+      // You could add a toast notification here
+    }
   };
 
   // Format JSON as pretty string
@@ -250,10 +260,37 @@ const SolutionViewer = ({ solutionData, onClose }) => {
                   )}
                   
                   {assignment.dock_pps_id && (
-                    <div>
+                    <div style={{ marginBottom: "8px" }}>
                       <strong>🏭 PPS ID:</strong> {assignment.dock_pps_id}
                     </div>
                   )}
+                  
+                  {/* Assign Button */}
+                  <div style={{ 
+                    display: "flex", 
+                    justifyContent: "flex-end",
+                    marginTop: "8px" 
+                  }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent triggering the assignment click
+                        handleAssignToProblem(assignment);
+                      }}
+                      style={{
+                        padding: "4px 12px",
+                        backgroundColor: "#28a745",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "3px",
+                        cursor: "pointer",
+                        fontSize: "10px",
+                        fontWeight: "bold"
+                      }}
+                      title="Add this assignment to the problem statement"
+                    >
+                      ➕ Assign
+                    </button>
+                  </div>
                 </div>
               ))
             )}

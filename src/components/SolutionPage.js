@@ -106,9 +106,18 @@ const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear })
       tasksByBot[botId].sort((a, b) => a.startTime - b.startTime);
     });
 
+    // Use the actual time range including buffer from ganttData calculation
     const allTimes = ganttData.flatMap(a => [a.startTime, a.endTime]);
     const minTime = Math.min(...allTimes, 0);
-    const maxTime = Math.max(...allTimes, 1);
+    const actualMaxTime = Math.max(...allTimes, 1);
+    const maxTime = actualMaxTime + 5000; // Include the 5-second buffer
+    
+    // Create time markers for better visualization
+    const timeMarkers = [];
+    const timeStep = (maxTime - minTime) / 6; // Create 7 time markers (including start and end)
+    for (let i = 0; i <= 6; i++) {
+      timeMarkers.push(Math.round(minTime + (timeStep * i)));
+    }
 
     return (
       <div style={{ width: '100%', overflowX: 'auto' }}>
@@ -136,12 +145,36 @@ const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear })
                 transform: 'translateY(-50%)',
                 display: 'flex',
                 justifyContent: 'space-between',
-                fontSize: '12px',
+                fontSize: '11px',
                 color: '#666'
               }}>
-                <span>{minTime}ms</span>
-                <span>{Math.floor((minTime + maxTime) / 2)}ms</span>
-                <span>{maxTime}ms</span>
+                {timeMarkers.map((time, index) => (
+                  <span key={index} style={{ 
+                    textAlign: 'center',
+                    minWidth: '60px',
+                    fontSize: '10px'
+                  }}>
+                    {time}ms
+                  </span>
+                ))}
+              </div>
+              {/* Add tick marks */}
+              <div style={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: '10px',
+                display: 'flex',
+                justifyContent: 'space-between'
+              }}>
+                {timeMarkers.map((_, index) => (
+                  <div key={index} style={{
+                    width: '1px',
+                    height: '10px',
+                    backgroundColor: '#ccc'
+                  }}></div>
+                ))}
               </div>
             </div>
           </div>
@@ -223,7 +256,8 @@ const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear })
               <span>Task Assignment</span>
             </div>
             <div>• Hover over bars for detailed information</div>
-            <div>• Time scale shows start to end time range</div>
+            <div>• Time scale shows {minTime}ms to {maxTime}ms (includes 5s buffer)</div>
+            <div>• Tick marks show time intervals</div>
           </div>
         </div>
       </div>
@@ -399,16 +433,6 @@ const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear })
                   <div>
                     <strong>Request ID:</strong> {solutionData.request_id || 'N/A'}
                   </div>
-                  {(solutionData.schedule?.cost || solutionData.cost) && (
-                    <>
-                      <div>
-                        <strong>Feasible:</strong> {(solutionData.schedule?.cost || solutionData.cost).feasible ? '✅ Yes' : '❌ No'}
-                      </div>
-                      <div>
-                        <strong>Hard Score:</strong> {(solutionData.schedule?.cost || solutionData.cost).hard_score || 0}
-                      </div>
-                    </>
-                  )}
                 </div>
               </div>
             )}

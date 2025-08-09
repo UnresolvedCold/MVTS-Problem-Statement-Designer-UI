@@ -2,6 +2,7 @@ import React from 'react';
 import { usePropertyEditor } from '../hooks/usePropertyEditor';
 import PropertyEditorHeader from './property-editor/PropertyEditorHeader';
 import ModeToggle from './property-editor/ModeToggle';
+import SaveControls from './property-editor/SaveControls';
 import FormView from './property-editor/FormView';
 import JsonView from './property-editor/JsonView';
 import PropertyEditorEmptyState from './property-editor/PropertyEditorEmptyState';
@@ -22,9 +23,12 @@ const PropertyEditor = ({
     formValues,
     isTask,
     currentItem,
+    hasUnsavedChanges,
     handleFormChange,
     handleNestedChange,
-    handleJsonChange
+    handleJsonChange,
+    handleSave,
+    handleReset
   } = usePropertyEditor(selectedObject, selectedTask, onUpdateProperties);
 
   if (!currentItem) {
@@ -49,6 +53,13 @@ const PropertyEditor = ({
       <ModeToggle 
         editMode={editMode}
         onModeChange={setEditMode}
+      />
+
+      <SaveControls
+        hasUnsavedChanges={hasUnsavedChanges}
+        onSave={handleSave}
+        onReset={handleReset}
+        jsonError={!!jsonError}
       />
 
       {editMode === 'form' ? (

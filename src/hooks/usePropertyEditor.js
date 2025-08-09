@@ -1,6 +1,5 @@
 // src/hooks/usePropertyEditor.js
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useDebounce } from './useDebounce';
 
 /**
  * Custom hook to manage property editor state and logic
@@ -15,13 +14,13 @@ export const usePropertyEditor = (selectedObject, selectedTask, onUpdateProperti
   const [jsonError, setJsonError] = useState(null);
   const [formValues, setFormValues] = useState({});
   const [pendingFormValues, setPendingFormValues] = useState({});
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [originalValues, setOriginalValues] = useState({});
   
   // Determine if we're editing a task or object
   const isTask = !!selectedTask;
   const currentItem = isTask ? selectedTask : selectedObject;
   
-  // Debounce form values for tasks to reduce update frequency
-  const debouncedFormValues = useDebounce(pendingFormValues, 300);
   const isInitialFormMount = useRef(true);
 
   // Update values when selectedObject or selectedTask changes
@@ -36,49 +35,40 @@ export const usePropertyEditor = (selectedObject, selectedTask, onUpdateProperti
       
       setFormValues(itemData);
       setPendingFormValues(itemData);
+      setOriginalValues(itemData);
       setJsonEditValue(JSON.stringify(itemData, null, 2));
       setJsonError(null);
+      setHasUnsavedChanges(false);
       isInitialFormMount.current = true;
     } else {
       setFormValues({});
       setPendingFormValues({});
+      setOriginalValues({});
       setJsonEditValue('');
+      setHasUnsavedChanges(false);
     }
   }, [currentItem, isTask]);
 
-  // Handle debounced form value updates (only for tasks)
+  // Update JSON text when form values change (for form to JSON sync)
   useEffect(() => {
-    if (!isTask) return;
-    
-    if (isInitialFormMount.current) {
-      isInitialFormMount.current = false;
-      return;
-    }
-    
-    if (JSON.stringify(debouncedFormValues) !== JSON.stringify(formValues)) {
-      setFormValues(debouncedFormValues);
-      if (onUpdateProperties && currentItem) {
-        const itemId = currentItem.task_key || currentItem.id;
-        onUpdateProperties(itemId, debouncedFormValues);
+    if (editMode === 'json') {
+      const currentJsonString = JSON.stringify(formValues, null, 2);
+      if (currentJsonString !== jsonEditValue) {
+        setJsonEditValue(currentJsonString);
       }
     }
-  }, [debouncedFormValues, formValues, currentItem, onUpdateProperties, isTask]);
+  }, [formValues, editMode, jsonEditValue]);
 
   // Handle form field changes
   const handleFormChange = useCallback((key, value) => {
     const updatedValues = { ...pendingFormValues, [key]: value };
+    setPendingFormValues(updatedValues);
+    setFormValues(updatedValues);
     
-    if (isTask) {
-      setPendingFormValues(updatedValues); // This will trigger the debounced update
-    } else {
-      // For objects, update immediately
-      setFormValues(updatedValues);
-      setPendingFormValues(updatedValues);
-      if (onUpdateProperties && currentItem) {
-        onUpdateProperties(currentItem.id, updatedValues);
-      }
-    }
-  }, [pendingFormValues, currentItem, onUpdateProperties, isTask]);
+    // Check if there are unsaved changes
+    const hasChanges = JSON.stringify(updatedValues) !== JSON.stringify(originalValues);
+    setHasUnsavedChanges(hasChanges);
+  }, [pendingFormValues, originalValues]);
 
   // Handle nested object changes (like coordinate or aisle_info)
   const handleNestedChange = useCallback((parentKey, childKey, value) => {
@@ -89,18 +79,13 @@ export const usePropertyEditor = (selectedObject, selectedTask, onUpdateProperti
         [childKey]: value
       }
     };
+    setPendingFormValues(updatedValues);
+    setFormValues(updatedValues);
     
-    if (isTask) {
-      setPendingFormValues(updatedValues); // This will trigger the debounced update
-    } else {
-      // For objects, update immediately
-      setFormValues(updatedValues);
-      setPendingFormValues(updatedValues);
-      if (onUpdateProperties && currentItem) {
-        onUpdateProperties(currentItem.id, updatedValues);
-      }
-    }
-  }, [pendingFormValues, currentItem, onUpdateProperties, isTask]);
+    // Check if there are unsaved changes
+    const hasChanges = JSON.stringify(updatedValues) !== JSON.stringify(originalValues);
+    setHasUnsavedChanges(hasChanges);
+  }, [pendingFormValues, originalValues]);
 
   // Handle JSON text change
   const handleJsonChange = useCallback((value) => {
@@ -110,14 +95,33 @@ export const usePropertyEditor = (selectedObject, selectedTask, onUpdateProperti
       setJsonError(null);
       setFormValues(parsed);
       setPendingFormValues(parsed);
-      if (onUpdateProperties && currentItem) {
-        const itemId = isTask ? (currentItem.task_key || currentItem.id) : currentItem.id;
-        onUpdateProperties(itemId, parsed);
-      }
+      
+      // Check if there are unsaved changes
+      const hasChanges = JSON.stringify(parsed) !== JSON.stringify(originalValues);
+      setHasUnsavedChanges(hasChanges);
     } catch (error) {
       setJsonError(error.message);
     }
-  }, [currentItem, onUpdateProperties, isTask]);
+  }, [originalValues]);
+
+  // Save current changes
+  const handleSave = useCallback(() => {
+    if (onUpdateProperties && currentItem && hasUnsavedChanges) {
+      const itemId = isTask ? (currentItem.task_key || currentItem.id) : currentItem.id;
+      onUpdateProperties(itemId, formValues);
+      setOriginalValues(formValues);
+      setHasUnsavedChanges(false);
+    }
+  }, [currentItem, formValues, onUpdateProperties, isTask, hasUnsavedChanges]);
+
+  // Reset changes to original values
+  const handleReset = useCallback(() => {
+    setFormValues(originalValues);
+    setPendingFormValues(originalValues);
+    setJsonEditValue(JSON.stringify(originalValues, null, 2));
+    setHasUnsavedChanges(false);
+    setJsonError(null);
+  }, [originalValues]);
 
   return {
     editMode,
@@ -127,8 +131,11 @@ export const usePropertyEditor = (selectedObject, selectedTask, onUpdateProperti
     formValues,
     isTask,
     currentItem,
+    hasUnsavedChanges,
     handleFormChange,
     handleNestedChange,
-    handleJsonChange
+    handleJsonChange,
+    handleSave,
+    handleReset
   };
 };

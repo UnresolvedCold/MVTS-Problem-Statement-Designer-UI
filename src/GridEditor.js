@@ -83,16 +83,14 @@ const GridEditor = () => {
     }
   }, [localWarehouseData, loadObjectsFromWarehouse, setCols, setRows]);
 
-  // Effect to handle tab switching and auto-switch to solution tab
+  // Effect to auto-switch to solution tab when solution is first received
   useEffect(() => {
-    // Auto-switch to solution tab when streaming starts or solution is received
-    if ((isStreaming || solutionData || logs.length > 0) && activeTab !== 'solution') {
-      // Only auto-switch if currently on grid tab (don't interrupt user if they're on other tabs)
-      if (activeTab === 'grid') {
-        setActiveTab('solution');
-      }
+    // Auto-switch to solution tab only when solution data first becomes available
+    // and we're currently on the grid tab (don't interrupt if user is on other tabs)
+    if (solutionData && activeTab === 'grid') {
+      setActiveTab('solution');
     }
-  }, [solutionData, isStreaming, logs.length, activeTab]);
+  }, [solutionData]); // Only depend on solutionData, not activeTab to avoid continuous switching
 
   // Handler for clearing solution data
   const handleClearSolution = () => {

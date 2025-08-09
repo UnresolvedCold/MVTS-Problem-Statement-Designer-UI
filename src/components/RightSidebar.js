@@ -2,6 +2,7 @@ import React from 'react';
 import ObjectsList from './ObjectsList';
 import TasksList from './TasksList';
 import PropertyEditor from './PropertyEditor';
+import AssignmentsSummary from './AssignmentsSummary';
 
 const RightSidebar = ({
   visualObjects,
@@ -50,8 +51,16 @@ const RightSidebar = ({
         />
       </div>
 
+      {/* Assignments Summary */}
+      <div style={{ flex: 1, overflow: "auto", borderBottom: "1px solid #ccc" }}>
+        <AssignmentsSummary
+          warehouseData={localWarehouseData}
+          onRemoveAssignment={handlers.handleRemoveAssignment}
+        />
+      </div>
+
       {/* Property Editor */}
-      <div style={{ height: 300, overflow: "auto" }}>
+      <div style={{ height: 250, overflow: "auto" }}>
         {(selectedObject || selectedTask) ? (
           <PropertyEditor
             selectedObject={selectedObject}

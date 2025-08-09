@@ -16,7 +16,7 @@ const DEFAULT_PROBLEM_STATEMENT = {
   relay_point_list: []
 };
 
-export const useLocalStateManager = () => {
+export const useLocalStateManager = (schemaManager = null) => {
   // Local warehouse data state
   const [localWarehouseData, setLocalWarehouseData] = useState(() => {
     // Try to load from localStorage on initialization
@@ -318,7 +318,7 @@ export const useLocalStateManager = () => {
     });
   }, []);
 
-  // Update entire problem statement in local state
+    // Update entire problem statement in local state
   const updateProblemStatementInLocal = useCallback((newProblemStatement) => {
     setLocalWarehouseData(prevData => {
       const updatedData = {
@@ -328,9 +328,141 @@ export const useLocalStateManager = () => {
           problem_statement: newProblemStatement
         }
       };
-
-      // Save entire problem statement to localStorage
+      
+      // Save to localStorage
       localStorage.setItem('mvts-problem-statement', JSON.stringify(newProblemStatement));
+      
+      return updatedData;
+    });
+  }, []);
+
+  // Add assignment to PPS current_schedule
+  const addAssignmentToPPS = useCallback((assignmentData) => {
+    setLocalWarehouseData(prevData => {
+      const problemStatement = prevData.warehouse.problem_statement;
+      const ppsList = problemStatement.pps_list || [];
+      
+      // Find the target PPS
+      const ppsIndex = ppsList.findIndex(pps => pps.id === parseInt(assignmentData.pps_id));
+      
+      if (ppsIndex === -1) {
+        console.error('PPS not found with ID:', assignmentData.pps_id);
+        throw new Error(`PPS with ID ${assignmentData.pps_id} not found`);
+      }
+      
+      // Get assignment template from schema manager if available
+      let assignmentTemplate = null;
+      if (schemaManager && schemaManager.getTemplate) {
+        try {
+          assignmentTemplate = schemaManager.getTemplate('assignment');
+          console.log('Using assignment template from server:', assignmentTemplate);
+        } catch (error) {
+          console.warn('Failed to get assignment template from server:', error);
+        }
+      }
+      
+      // Create the assignment object using server schema if available
+      const assignment = assignmentTemplate ? {
+        ...assignmentTemplate,
+        // Override with provided data
+        task_key: assignmentData.task_id,
+        assigned_ranger_id: parseInt(assignmentData.bot_id),
+        dock_pps_id: parseInt(assignmentData.pps_id),
+        transport_entity_id: parseInt(assignmentData.msu_id),
+        // Keep other fields from template or use defaults
+        operator_start_time: assignmentTemplate.operator_start_time || 0,
+        operator_end_time: assignmentTemplate.operator_end_time || 0,
+        created_at: Date.now(),
+        id: `assignment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      } : {
+        // Fallback assignment structure when no schema is available
+        task_key: assignmentData.task_id,
+        assigned_ranger_id: parseInt(assignmentData.bot_id),
+        dock_pps_id: parseInt(assignmentData.pps_id),
+        transport_entity_id: parseInt(assignmentData.msu_id),
+        operator_start_time: 0, // Default values, can be customized later
+        operator_end_time: 0,
+        created_at: Date.now(),
+        id: `assignment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      };
+      
+      console.log('Created assignment:', assignment);
+      
+      // Update the PPS with the new assignment
+      const updatedPpsList = [...ppsList];
+      updatedPpsList[ppsIndex] = {
+        ...updatedPpsList[ppsIndex],
+        current_schedule: {
+          ...updatedPpsList[ppsIndex].current_schedule,
+          assignments: [
+            ...(updatedPpsList[ppsIndex].current_schedule?.assignments || []),
+            assignment
+          ]
+        }
+      };
+      
+      const updatedProblemStatement = {
+        ...problemStatement,
+        pps_list: updatedPpsList
+      };
+      
+      const updatedData = {
+        ...prevData,
+        warehouse: {
+          ...prevData.warehouse,
+          problem_statement: updatedProblemStatement
+        }
+      };
+      
+      // Save to localStorage
+      localStorage.setItem('mvts-problem-statement', JSON.stringify(updatedProblemStatement));
+      
+      return updatedData;
+    });
+  }, [schemaManager]);
+
+  // Remove assignment from PPS current_schedule
+  const removeAssignmentFromPPS = useCallback((ppsId, assignmentId) => {
+    setLocalWarehouseData(prevData => {
+      const problemStatement = prevData.warehouse.problem_statement;
+      const ppsList = problemStatement.pps_list || [];
+      
+      // Find the target PPS
+      const ppsIndex = ppsList.findIndex(pps => pps.id === parseInt(ppsId));
+      
+      if (ppsIndex === -1) {
+        console.error('PPS not found with ID:', ppsId);
+        return prevData;
+      }
+      
+      // Remove the assignment from the PPS
+      const updatedPpsList = [...ppsList];
+      const currentAssignments = updatedPpsList[ppsIndex].current_schedule?.assignments || [];
+      const filteredAssignments = currentAssignments.filter(assignment => assignment.id !== assignmentId);
+      
+      updatedPpsList[ppsIndex] = {
+        ...updatedPpsList[ppsIndex],
+        current_schedule: {
+          ...updatedPpsList[ppsIndex].current_schedule,
+          assignments: filteredAssignments
+        }
+      };
+      
+      const updatedProblemStatement = {
+        ...problemStatement,
+        pps_list: updatedPpsList
+      };
+      
+      const updatedData = {
+        ...prevData,
+        warehouse: {
+          ...prevData.warehouse,
+          problem_statement: updatedProblemStatement
+        }
+      };
+      
+      // Save to localStorage
+      localStorage.setItem('mvts-problem-statement', JSON.stringify(updatedProblemStatement));
       
       return updatedData;
     });
@@ -363,6 +495,8 @@ export const useLocalStateManager = () => {
     updateTaskInLocal,
     updateGridSizeInLocal,
     updateProblemStatementInLocal,
+    addAssignmentToPPS,
+    removeAssignmentFromPPS,
     clearLocalData
   };
 };

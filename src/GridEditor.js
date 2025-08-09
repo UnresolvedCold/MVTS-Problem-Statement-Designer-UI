@@ -22,10 +22,9 @@ const GridEditor = () => {
   const [activeTab, setActiveTab] = useState('grid'); // 'grid', 'json', 'config'
 
   // Initialize managers
-  const localStateManager = useLocalStateManager();
-  const { localWarehouseData } = localStateManager;
-  
   const schemaManager = useSchemaManager();
+  const localStateManager = useLocalStateManager(schemaManager);
+  const { localWarehouseData } = localStateManager;
   const { 
     initializationError: schemaError,
     isLoading: schemasLoading,
@@ -66,7 +65,8 @@ const GridEditor = () => {
     setSelectedObject,
     cols,
     cellSize,
-    setActiveTab  // Add setActiveTab to switch to solution tab
+    setActiveTab,  // Add setActiveTab to switch to solution tab
+    schemaManager  // Add schemaManager for accessing server schemas
   );
 
   // Load objects and tasks when local warehouse data changes

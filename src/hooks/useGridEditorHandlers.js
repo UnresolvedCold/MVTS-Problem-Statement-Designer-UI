@@ -10,11 +10,14 @@ export const useGridEditorHandlers = (
   setSelectedObject,
   cols,
   cellSize,
-  setActiveTab
+  setActiveTab,
+  schemaManager  // Add schema manager
 ) => {
   const { addObject } = objectManager;
+  const { addAssignmentToPPS, removeAssignmentFromPPS } = localStateManager;
   const { solveProblemStatement } = serverAPI;
   const { getConfigForProblemStatement } = configManager;
+  const { getTemplate } = schemaManager;
 
   const handleObjectSelect = useCallback((obj) => {
     setSelectedObject(obj);
@@ -101,20 +104,39 @@ export const useGridEditorHandlers = (
     try {
       console.log('Creating assignment with data:', assignmentData);
       
-      const assignmentProperties = {
-        task_id: assignmentData.task_id,
-        bot_id: parseInt(assignmentData.bot_id),
-        pps_id: parseInt(assignmentData.pps_id),
-        msu_id: parseInt(assignmentData.msu_id),
-      };
-
-      await addObject('assignment', null, null, assignmentProperties);
-      console.log('Assignment added successfully');
+      // Get assignment schema from server
+      const assignmentTemplate = getTemplate('assignment');
+      
+      if (!assignmentTemplate) {
+        console.warn('No assignment schema available, using basic structure');
+        // Use the existing addAssignmentToPPS function with original data
+        addAssignmentToPPS(assignmentData);
+        console.log('Assignment added to PPS with basic structure');
+        return;
+      }
+      
+      console.log('Assignment template from server:', assignmentTemplate);
+      
+      // Create assignment using server schema, but let addAssignmentToPPS handle the actual creation
+      // Just pass the assignmentData as-is since addAssignmentToPPS will create the full structure
+      addAssignmentToPPS(assignmentData);
+      console.log('Assignment added to PPS using server schema template');
     } catch (error) {
       console.error('Error adding assignment:', error);
       alert('Failed to add assignment. Please check the console for details.');
     }
-  }, [addObject]);
+  }, [addAssignmentToPPS, getTemplate]);
+
+  const handleRemoveAssignment = useCallback((ppsId, assignmentId) => {
+    try {
+      console.log('Removing assignment:', { ppsId, assignmentId });
+      removeAssignmentFromPPS(ppsId, assignmentId);
+      console.log('Assignment removed from PPS successfully');
+    } catch (error) {
+      console.error('Error removing assignment:', error);
+      alert('Failed to remove assignment. Please check the console for details.');
+    }
+  }, [removeAssignmentFromPPS]);
 
   const handleClearData = useCallback(() => {
     if (window.confirm('Are you sure you want to clear all data? This cannot be undone.')) {
@@ -131,6 +153,7 @@ export const useGridEditorHandlers = (
     handleSolveProblem,
     handleAddTask,
     handleAddAssignment,
+    handleRemoveAssignment,
     handleClearData
   };
 };

@@ -209,8 +209,8 @@ public class ProblemStatementStudio {
     try {
       res = Helper.getObjectMapper().writeValueAsString(new SchedulerResponse());
       updateApplicationProperties(configs);
-      String output = getOutput(inputMessage);
-      res = Helper.getObjectMapper().writeValueAsString(output);
+      res = getOutput(inputMessage);
+
     } catch (Exception e) {
 
       e.printStackTrace();

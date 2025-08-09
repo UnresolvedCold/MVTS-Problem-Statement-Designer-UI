@@ -1,9 +1,14 @@
 // src/components/SolutionPage.js
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import LogViewer from './LogViewer';
 
 const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear }) => {
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'gantt'
+  const [sectionsCollapsed, setSectionsCollapsed] = useState({
+    assignments: false,
+    solution: true, // Start collapsed
+    logs: isStreaming ? false : true // Show logs while streaming
+  });
   
   // Process assignments for Gantt chart - must be before any conditional returns
   const ganttData = useMemo(() => {
@@ -33,6 +38,33 @@ const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear })
       durationPercent: timeRange > 0 ? ((assignment.endTime || assignment.operator_end_time || 0) - (assignment.startTime || assignment.operator_start_time || 0)) / timeRange * 100 : 100
     }));
   }, [solutionData]);
+
+  // Toggle section collapse
+  const toggleSection = (section) => {
+    setSectionsCollapsed(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  // Auto-expand logs while streaming, switch to assignments when solved
+  useEffect(() => {
+    if (isStreaming) {
+      setSectionsCollapsed(prev => ({
+        ...prev,
+        logs: false,
+        assignments: true,
+        solution: true
+      }));
+    } else if (solutionData && !isStreaming) {
+      setSectionsCollapsed(prev => ({
+        ...prev,
+        assignments: false,
+        logs: true,
+        solution: true
+      }));
+    }
+  }, [isStreaming, solutionData]);
   
   // Show empty state if no data and not streaming
   if (!solutionData && (!logs || logs.length === 0) && !isStreaming) {
@@ -66,21 +98,6 @@ const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear })
       </div>
     );
   }
-  const handleDownload = () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(solutionData, null, 2));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "solution.json");
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
-  };
-
-  const handleCopyToClipboard = () => {
-    navigator.clipboard.writeText(JSON.stringify(solutionData, null, 2)).then(() => {
-      console.log('Solution copied to clipboard');
-    });
-  };
 
   // Render Gantt Chart
   const renderGanttChart = () => {
@@ -327,65 +344,139 @@ const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear })
         )}
       </div>
 
-      {/* Content Container */}
+      {/* Single Column Content */}
       <div style={{
-        display: 'grid',
-        gap: '20px',
-        gridTemplateColumns: solutionData && logs.length > 0 ? '1fr 1fr' : '1fr'
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px'
       }}>
-        {/* Solution Section */}
-        {solutionData && (
+        
+        {/* Processing Logs Section - Show first while streaming */}
+        {(logs.length > 0 || isStreaming) && (
           <div style={{
             backgroundColor: 'white',
             borderRadius: '8px',
-            padding: '20px',
             border: '1px solid #ddd',
-            height: 'fit-content'
+            overflow: 'hidden'
           }}>
-            {/* Actions */}
-            <div style={{
-              display: 'flex',
-              gap: '10px',
-              marginBottom: '20px',
-              flexWrap: 'wrap',
-              alignItems: 'center'
-            }}>
-              <button
-                onClick={handleCopyToClipboard}
-                style={{
-                  padding: '8px 16px',
-                  border: '1px solid #007bff',
-                  borderRadius: '4px',
-                  backgroundColor: '#007bff',
-                  color: 'white',
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
-              >
-                📋 Copy Solution
-              </button>
-              
-              <button
-                onClick={handleDownload}
-                style={{
-                  padding: '8px 16px',
-                  border: '1px solid #28a745',
-                  borderRadius: '4px',
-                  backgroundColor: '#28a745',
-                  color: 'white',
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
-              >
-                💾 Download Solution
-              </button>
+            <div 
+              style={{
+                padding: '15px 20px',
+                backgroundColor: isStreaming ? '#e8f5e8' : '#f8f9fa',
+                borderBottom: sectionsCollapsed.logs ? 'none' : '1px solid #ddd',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                cursor: 'pointer'
+              }}
+              onClick={() => toggleSection('logs')}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '16px' }}>
+                  {sectionsCollapsed.logs ? '▶️' : '▼️'}
+                </span>
+                <h3 style={{ 
+                  margin: 0, 
+                  color: '#333',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  📊 Processing Logs
+                  {isStreaming && (
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      fontSize: '12px',
+                      color: '#28a745',
+                      fontWeight: 'normal'
+                    }}>
+                      <span style={{ 
+                        width: '8px', 
+                        height: '8px', 
+                        backgroundColor: '#28a745', 
+                        borderRadius: '50%',
+                        animation: 'pulse 1s ease-in-out infinite'
+                      }}></span>
+                      Streaming...
+                    </span>
+                  )}
+                </h3>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '12px', color: '#666' }}>
+                  {logs.length} log{logs.length !== 1 ? 's' : ''}
+                </span>
+                {logs.length > 0 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onClearLogs();
+                    }}
+                    style={{
+                      padding: '4px 8px',
+                      fontSize: '11px',
+                      border: '1px solid #dc3545',
+                      borderRadius: '3px',
+                      backgroundColor: '#fff',
+                      color: '#dc3545',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
+            {!sectionsCollapsed.logs && (
+              <div style={{ padding: '0' }}>
+                <LogViewer
+                  logs={logs || []}
+                  isStreaming={isStreaming || false}
+                  onClearLogs={onClearLogs || (() => {})}
+                  embedded={true}
+                />
+              </div>
+            )}
+          </div>
+        )}
 
-              {/* View Mode Toggle */}
-              {(solutionData.schedule?.assignments || solutionData.assignments) && (
-                <div style={{ marginLeft: 'auto', display: 'flex', gap: '5px', alignItems: 'center' }}>
+        {/* Assignments Section - Show after solution is ready */}
+        {solutionData && (solutionData.schedule?.assignments || solutionData.assignments) && (
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            border: '1px solid #ddd',
+            overflow: 'hidden'
+          }}>
+            <div 
+              style={{
+                padding: '15px 20px',
+                backgroundColor: '#e8f5e8',
+                borderBottom: sectionsCollapsed.assignments ? 'none' : '1px solid #ddd',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                cursor: 'pointer'
+              }}
+              onClick={() => toggleSection('assignments')}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '16px' }}>
+                  {sectionsCollapsed.assignments ? '▶️' : '▼️'}
+                </span>
+                <h3 style={{ margin: 0, color: '#333' }}>🎯 Solution Assignments</h3>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {/* View Mode Toggle */}
+                <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
                   <span style={{ fontSize: '14px', color: '#666' }}>View:</span>
                   <button
-                    onClick={() => setViewMode('list')}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setViewMode('list');
+                    }}
                     style={{
                       padding: '6px 12px',
                       border: '1px solid #6c757d',
@@ -399,7 +490,10 @@ const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear })
                     📋 List
                   </button>
                   <button
-                    onClick={() => setViewMode('gantt')}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setViewMode('gantt');
+                    }}
                     style={{
                       padding: '6px 12px',
                       border: '1px solid #6c757d',
@@ -413,35 +507,30 @@ const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear })
                     📊 Gantt
                   </button>
                 </div>
-              )}
+              </div>
             </div>
-
-            {/* Solution Summary */}
-            {(solutionData.schedule?.assignments || solutionData.assignments) && (
-              <div style={{
-                marginBottom: '20px',
-                padding: '15px',
-                backgroundColor: '#e8f5e8',
-                borderRadius: '5px',
-                border: '1px solid #c3e6c3'
-              }}>
-                <h3 style={{ margin: '0 0 10px 0' }}>📊 Solution Summary</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
-                  <div>
-                    <strong>Total Assignments:</strong> {(solutionData.schedule?.assignments || solutionData.assignments)?.length || 0}
-                  </div>
-                  <div>
-                    <strong>Request ID:</strong> {solutionData.request_id || 'N/A'}
+            {!sectionsCollapsed.assignments && (
+              <div style={{ padding: '20px' }}>
+                {/* Solution Summary */}
+                <div style={{
+                  marginBottom: '20px',
+                  padding: '15px',
+                  backgroundColor: '#e8f5e8',
+                  borderRadius: '5px',
+                  border: '1px solid #c3e6c3'
+                }}>
+                  <h4 style={{ margin: '0 0 10px 0' }}>📊 Solution Summary</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
+                    <div>
+                      <strong>Total Assignments:</strong> {(solutionData.schedule?.assignments || solutionData.assignments)?.length || 0}
+                    </div>
+                    <div>
+                      <strong>Request ID:</strong> {solutionData.request_id || 'N/A'}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
 
-            {/* Assignments Details */}
-            {(solutionData.schedule?.assignments || solutionData.assignments) && (
-              <div style={{ marginBottom: '20px' }}>
-                <h3 style={{ margin: '0 0 15px 0' }}>🎯 Assignments</h3>
-                
+                {/* Assignment Details */}
                 {viewMode === 'list' ? (
                   <div style={{ display: 'grid', gap: '10px' }}>
                     {(solutionData.schedule?.assignments || solutionData.assignments).map((assignment, index) => (
@@ -468,60 +557,119 @@ const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear })
                 )}
               </div>
             )}
-
-            {/* Complete Solution */}
-            <div style={{
-              marginBottom: '20px'
-            }}>
-              <h3 style={{ margin: '0 0 10px 0' }}>📄 Complete Solution</h3>
-              <pre style={{
-                backgroundColor: '#f8f9fa',
-                padding: '15px',
-                borderRadius: '4px',
-                border: '1px solid #ddd',
-                overflow: 'auto',
-                maxHeight: '400px',
-                fontSize: '12px',
-                fontFamily: 'monospace',
-                margin: 0
-              }}>
-                {JSON.stringify(solutionData, null, 2)}
-              </pre>
-            </div>
-
-            {/* Next Steps */}
-            <div style={{
-              padding: '15px',
-              backgroundColor: '#e3f2fd',
-              borderRadius: '5px',
-              fontSize: '14px',
-              border: '1px solid #bbdefb'
-            }}>
-              <strong>ℹ️ Next Steps:</strong>
-              <ul style={{ margin: '10px 0', paddingLeft: '20px' }}>
-                <li>Review the solution assignments above</li>
-                <li>Copy or download the solution for further analysis</li>
-                <li>Modify your problem statement and solve again if needed</li>
-                <li>Use the assignment data to visualize the solution</li>
-              </ul>
-            </div>
           </div>
         )}
 
-        {/* Log Viewer Section */}
-        <div style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          border: '1px solid #ddd',
-          overflow: 'hidden',
-          height: 'fit-content'
-        }}>
-          <LogViewer
-            logs={logs || []}
-            isStreaming={isStreaming || false}
-            onClearLogs={onClearLogs || (() => {})}
-          />
-        </div>
+        {/* Complete Solution JSON Section */}
+        {solutionData && (
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            border: '1px solid #ddd',
+            overflow: 'hidden'
+          }}>
+            <div 
+              style={{
+                padding: '15px 20px',
+                backgroundColor: '#f8f9fa',
+                borderBottom: sectionsCollapsed.solution ? 'none' : '1px solid #ddd',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                cursor: 'pointer'
+              }}
+              onClick={() => toggleSection('solution')}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '16px' }}>
+                  {sectionsCollapsed.solution ? '▶️' : '▼️'}
+                </span>
+                <h3 style={{ margin: 0, color: '#333' }}>📄 Complete Solution JSON</h3>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(JSON.stringify(solutionData, null, 2)).then(() => {
+                      console.log('Solution copied to clipboard');
+                    });
+                  }}
+                  style={{
+                    padding: '6px 12px',
+                    border: '1px solid #007bff',
+                    borderRadius: '4px',
+                    backgroundColor: '#007bff',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontSize: '12px'
+                  }}
+                >
+                  📋 Copy
+                </button>
+                
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(solutionData, null, 2));
+                    const downloadAnchorNode = document.createElement('a');
+                    downloadAnchorNode.setAttribute("href", dataStr);
+                    downloadAnchorNode.setAttribute("download", "solution.json");
+                    document.body.appendChild(downloadAnchorNode);
+                    downloadAnchorNode.click();
+                    downloadAnchorNode.remove();
+                  }}
+                  style={{
+                    padding: '6px 12px',
+                    border: '1px solid #28a745',
+                    borderRadius: '4px',
+                    backgroundColor: '#28a745',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontSize: '12px'
+                  }}
+                >
+                  💾 Download
+                </button>
+              </div>
+            </div>
+            {!sectionsCollapsed.solution && (
+              <div style={{ padding: '20px' }}>
+                <pre style={{
+                  backgroundColor: '#f8f9fa',
+                  padding: '15px',
+                  borderRadius: '4px',
+                  border: '1px solid #ddd',
+                  overflow: 'auto',
+                  maxHeight: '400px',
+                  fontSize: '12px',
+                  fontFamily: 'monospace',
+                  margin: 0
+                }}>
+                  {JSON.stringify(solutionData, null, 2)}
+                </pre>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Next Steps */}
+        {solutionData && (
+          <div style={{
+            padding: '15px',
+            backgroundColor: '#e3f2fd',
+            borderRadius: '5px',
+            fontSize: '14px',
+            border: '1px solid #bbdefb'
+          }}>
+            <strong>ℹ️ Next Steps:</strong>
+            <ul style={{ margin: '10px 0', paddingLeft: '20px' }}>
+              <li>Review the solution assignments above</li>
+              <li>Copy or download the complete solution for further analysis</li>
+              <li>Modify your problem statement and solve again if needed</li>
+              <li>Use the assignment data to visualize the solution in external tools</li>
+            </ul>
+          </div>
+        )}
       </div>
 
       {/* CSS for animation */}

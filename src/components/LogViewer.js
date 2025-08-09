@@ -1,7 +1,7 @@
 // src/components/LogViewer.js
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 
-const LogViewer = ({ logs, isStreaming, onClearLogs }) => {
+const LogViewer = ({ logs, isStreaming, onClearLogs, embedded = false }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [autoScroll, setAutoScroll] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -94,25 +94,26 @@ const LogViewer = ({ logs, isStreaming, onClearLogs }) => {
 
   return (
     <div style={{
-      marginTop: '20px',
-      border: '1px solid #ddd',
-      borderRadius: '8px',
+      marginTop: embedded ? '0' : '20px',
+      border: embedded ? 'none' : '1px solid #ddd',
+      borderRadius: embedded ? '0' : '8px',
       backgroundColor: '#fff',
       overflow: 'hidden'
     }}>
-      {/* Header */}
-      <div 
-        style={{
-          padding: '12px 16px',
-          backgroundColor: isStreaming ? '#e8f5e8' : '#f8f9fa',
-          borderBottom: '1px solid #ddd',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          cursor: 'pointer'
-        }}
-        onClick={() => setIsCollapsed(!isCollapsed)}
-      >
+      {/* Header - only show when not embedded */}
+      {!embedded && (
+        <div 
+          style={{
+            padding: '12px 16px',
+            backgroundColor: isStreaming ? '#e8f5e8' : '#f8f9fa',
+            borderBottom: '1px solid #ddd',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            cursor: 'pointer'
+          }}
+          onClick={() => setIsCollapsed(!isCollapsed)}
+        >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{ fontSize: '16px' }}>
             {isCollapsed ? '▶️' : '▼️'}
@@ -171,10 +172,11 @@ const LogViewer = ({ logs, isStreaming, onClearLogs }) => {
             </button>
           )}
         </div>
-      </div>
+        </div>
+      )}
 
       {/* Content */}
-      {!isCollapsed && (
+      {(!embedded || !isCollapsed) && (
         <div>
           {/* Search and Filter Controls */}
           <div style={{

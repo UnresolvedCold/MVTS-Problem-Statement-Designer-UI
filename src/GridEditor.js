@@ -33,6 +33,7 @@ const GridEditor = () => {
   } = schemaManager;
 
   const serverAPI = useServerAPI();
+  const { logs, isStreaming, clearLogs } = serverAPI;
   const configManager = useConfigManager();
 
   // Grid state management
@@ -146,10 +147,16 @@ const GridEditor = () => {
         />
       )}
 
-      {solutionData && (
+      {(solutionData || logs.length > 0 || isStreaming) && (
         <SolutionDisplay
           solutionData={solutionData}
-          onClose={() => setSolutionData(null)}
+          logs={logs}
+          isStreaming={isStreaming}
+          onClearLogs={clearLogs}
+          onClose={() => {
+            setSolutionData(null);
+            clearLogs();
+          }}
         />
       )}
     </div>

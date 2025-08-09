@@ -1,8 +1,9 @@
 // src/components/SolutionDisplay.js
 import React from 'react';
+import LogViewer from './LogViewer';
 
-const SolutionDisplay = ({ solutionData, onClose }) => {
-  if (!solutionData) return null;
+const SolutionDisplay = ({ solutionData, logs, isStreaming, onClearLogs, onClose }) => {
+  if (!solutionData && (!logs || logs.length === 0) && !isStreaming) return null;
 
   const handleDownload = () => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(solutionData, null, 2));
@@ -53,7 +54,12 @@ const SolutionDisplay = ({ solutionData, onClose }) => {
           borderBottom: '1px solid #eee',
           paddingBottom: '10px'
         }}>
-          <h2 style={{ margin: 0, color: '#28a745' }}>🎉 Problem Solved!</h2>
+          <h2 style={{ 
+            margin: 0, 
+            color: solutionData ? '#28a745' : isStreaming ? '#17a2b8' : '#ffc107' 
+          }}>
+            {solutionData ? '🎉 Problem Solved!' : isStreaming ? '⚡ Solving Problem...' : '📊 Processing Logs'}
+          </h2>
           <button
             onClick={onClose}
             style={{
@@ -68,46 +74,48 @@ const SolutionDisplay = ({ solutionData, onClose }) => {
           </button>
         </div>
 
-        {/* Actions */}
-        <div style={{
-          display: 'flex',
-          gap: '10px',
-          marginBottom: '20px',
-          flexWrap: 'wrap'
-        }}>
-          <button
-            onClick={handleCopyToClipboard}
-            style={{
-              padding: '8px 16px',
-              border: '1px solid #007bff',
-              borderRadius: '4px',
-              backgroundColor: '#007bff',
-              color: 'white',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            📋 Copy Solution
-          </button>
-          
-          <button
-            onClick={handleDownload}
-            style={{
-              padding: '8px 16px',
-              border: '1px solid #28a745',
-              borderRadius: '4px',
-              backgroundColor: '#28a745',
-              color: 'white',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            💾 Download Solution
-          </button>
-        </div>
+        {/* Actions - only show when solution is available */}
+        {solutionData && (
+          <div style={{
+            display: 'flex',
+            gap: '10px',
+            marginBottom: '20px',
+            flexWrap: 'wrap'
+          }}>
+            <button
+              onClick={handleCopyToClipboard}
+              style={{
+                padding: '8px 16px',
+                border: '1px solid #007bff',
+                borderRadius: '4px',
+                backgroundColor: '#007bff',
+                color: 'white',
+                cursor: 'pointer',
+                fontSize: '14px'
+              }}
+            >
+              📋 Copy Solution
+            </button>
+            
+            <button
+              onClick={handleDownload}
+              style={{
+                padding: '8px 16px',
+                border: '1px solid #28a745',
+                borderRadius: '4px',
+                backgroundColor: '#28a745',
+                color: 'white',
+                cursor: 'pointer',
+                fontSize: '14px'
+              }}
+            >
+              💾 Download Solution
+            </button>
+          </div>
+        )}
 
         {/* Solution Summary */}
-        {solutionData.assignments && (
+        {solutionData && solutionData.assignments && (
           <div style={{
             marginBottom: '20px',
             padding: '15px',
@@ -133,44 +141,56 @@ const SolutionDisplay = ({ solutionData, onClose }) => {
           </div>
         )}
 
-        {/* Full Solution JSON */}
-        <div style={{
-          marginBottom: '15px',
-          padding: '15px',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '5px'
-        }}>
-          <h3 style={{ margin: '0 0 10px 0' }}>Complete Solution</h3>
-          <pre style={{
-            backgroundColor: '#fff',
+        {/* Complete Solution */}
+        {solutionData && (
+          <div style={{
+            marginBottom: '20px',
             padding: '15px',
-            borderRadius: '4px',
-            border: '1px solid #ddd',
-            overflow: 'auto',
-            maxHeight: '400px',
-            fontSize: '12px',
-            fontFamily: 'monospace',
-            margin: 0
+            backgroundColor: '#f8f9fa',
+            borderRadius: '5px'
           }}>
-            {JSON.stringify(solutionData, null, 2)}
-          </pre>
-        </div>
+            <h3 style={{ margin: '0 0 10px 0' }}>Complete Solution</h3>
+            <pre style={{
+              backgroundColor: '#fff',
+              padding: '15px',
+              borderRadius: '4px',
+              border: '1px solid #ddd',
+              overflow: 'auto',
+              maxHeight: '400px',
+              fontSize: '12px',
+              fontFamily: 'monospace',
+              margin: 0
+            }}>
+              {JSON.stringify(solutionData, null, 2)}
+            </pre>
+          </div>
+        )}
+
+        {/* Log Viewer */}
+        <LogViewer
+          logs={logs || []}
+          isStreaming={isStreaming || false}
+          onClearLogs={onClearLogs || (() => {})}
+        />
 
         {/* Info */}
-        <div style={{
-          padding: '15px',
-          backgroundColor: '#e3f2fd',
-          borderRadius: '5px',
-          fontSize: '14px'
-        }}>
-          <strong>ℹ️ Next Steps:</strong>
-          <ul style={{ margin: '10px 0', paddingLeft: '20px' }}>
-            <li>Review the solution assignments above</li>
-            <li>Copy or download the solution for further analysis</li>
-            <li>Modify your problem statement and solve again if needed</li>
-            <li>Use the assignment data to visualize the solution</li>
-          </ul>
-        </div>
+        {solutionData && (
+          <div style={{
+            padding: '15px',
+            backgroundColor: '#e3f2fd',
+            borderRadius: '5px',
+            fontSize: '14px',
+            marginTop: '20px'
+          }}>
+            <strong>ℹ️ Next Steps:</strong>
+            <ul style={{ margin: '10px 0', paddingLeft: '20px' }}>
+              <li>Review the solution assignments above</li>
+              <li>Copy or download the solution for further analysis</li>
+              <li>Modify your problem statement and solve again if needed</li>
+              <li>Use the assignment data to visualize the solution</li>
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );

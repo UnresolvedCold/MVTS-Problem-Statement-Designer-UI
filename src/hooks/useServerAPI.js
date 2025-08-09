@@ -9,6 +9,8 @@ export const useServerAPI = () => {
   const socketRef = useRef(null);
   const pendingRequestsRef = useRef(new Map());
   const [schemas, setSchemas] = useState({});
+  const [logs, setLogs] = useState([]);
+  const [isStreaming, setIsStreaming] = useState(false);
 
   // Generate unique request ID
   const generateRequestId = useCallback(() => {
@@ -42,6 +44,20 @@ export const useServerAPI = () => {
         try {
           const data = JSON.parse(event.data);
           console.log('Received from server:', data);
+
+          // Handle streaming log messages
+          if (data.type === 'SOLVING_PROBLEM_STATEMENT') {
+            setLogs(prevLogs => [...prevLogs, {
+              id: Date.now() + Math.random(),
+              timestamp: data.data?.timestamp || Date.now(),
+              level: data.data?.level || 'INFO',
+              logger: data.data?.logger || 'Unknown',
+              message: data.data?.log || 'No message',
+              receivedAt: new Date().toLocaleString()
+            }]);
+            setIsStreaming(true);
+            return; // Don't process as regular request response
+          }
 
           // Handle responses to pending requests
           if (data.requestId && pendingRequestsRef.current.has(data.requestId)) {
@@ -236,6 +252,8 @@ export const useServerAPI = () => {
   const solveProblemStatement = useCallback(async (problemStatementData, configData = null) => {
     setIsLoading(true);
     setLoadingMessage('Solving problem statement...');
+    setLogs([]); // Clear previous logs
+    setIsStreaming(false);
     
     try {
       await connect();
@@ -254,14 +272,21 @@ export const useServerAPI = () => {
       const response = await sendRequest('SOLVE_PROBLEM_STATEMENT', requestData);
       setIsLoading(false);
       setLoadingMessage('');
+      setIsStreaming(false); // Problem solving completed
       return response.solution;
     } catch (error) {
       setIsLoading(false);
       setLoadingMessage('');
+      setIsStreaming(false);
       console.error('Failed to solve problem statement:', error);
       throw error;
     }
   }, [connect, sendRequest]);
+
+  // Clear logs
+  const clearLogs = useCallback(() => {
+    setLogs([]);
+  }, []);
 
   // Disconnect from server
   const disconnect = useCallback(() => {
@@ -284,7 +309,10 @@ export const useServerAPI = () => {
     getTaskTemplate,
     getProblemStatementTemplate,
     getAllSchemas,
-    solveProblemStatement
+    solveProblemStatement,
+    logs,
+    isStreaming,
+    clearLogs
   };
 };
 

@@ -10,8 +10,8 @@ import { useGridEditorHandlers } from "./hooks/useGridEditorHandlers";
 import GridView from "./components/GridView";
 import ConfigPanel from "./components/ConfigPanel";
 import ProblemStatementViewer from "./components/ProblemStatementViewer";
+import SolutionPage from "./components/SolutionPage";
 import TemplateManager from "./components/TemplateManager";
-import SolutionDisplay from "./components/SolutionDisplay";
 import LoadingOverlay from "./components/LoadingOverlay";
 import TabNavigation from "./components/TabNavigation";
 
@@ -65,7 +65,8 @@ const GridEditor = () => {
     setSolutionData,
     setSelectedObject,
     cols,
-    cellSize
+    cellSize,
+    setActiveTab  // Add setActiveTab to switch to solution tab
   );
 
   // Load objects and tasks when local warehouse data changes
@@ -82,6 +83,26 @@ const GridEditor = () => {
     }
   }, [localWarehouseData, loadObjectsFromWarehouse, setCols, setRows]);
 
+  // Effect to handle tab switching and auto-switch to solution tab
+  useEffect(() => {
+    // Auto-switch to solution tab when streaming starts or solution is received
+    if ((isStreaming || solutionData || logs.length > 0) && activeTab !== 'solution') {
+      // Only auto-switch if currently on grid tab (don't interrupt user if they're on other tabs)
+      if (activeTab === 'grid') {
+        setActiveTab('solution');
+      }
+    }
+  }, [solutionData, isStreaming, logs.length, activeTab]);
+
+  // Handler for clearing solution data
+  const handleClearSolution = () => {
+    setSolutionData(null);
+    clearLogs();
+    if (activeTab === 'solution') {
+      setActiveTab('grid');
+    }
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       {/* Loading Overlay */}
@@ -96,7 +117,12 @@ const GridEditor = () => {
       <TabNavigation 
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        tabs={['grid', 'json', 'config']}
+        tabs={[
+          'grid', 
+          'json', 
+          'config', 
+          ...(solutionData || logs.length > 0 || isStreaming ? ['solution'] : [])
+        ]}
       />
 
       {/* Main Content */}
@@ -134,6 +160,14 @@ const GridEditor = () => {
           onClose={() => setActiveTab('grid')}
           onSave={handlers.handleJsonSave}
         />
+      ) : activeTab === 'solution' ? (
+        <SolutionPage
+          solutionData={solutionData}
+          logs={logs}
+          isStreaming={isStreaming}
+          onClearLogs={clearLogs}
+          onClear={handleClearSolution}
+        />
       ) : (
         <ConfigPanel configManager={configManager} />
       )}
@@ -144,19 +178,6 @@ const GridEditor = () => {
           schemaManager={schemaManager}
           localStateManager={localStateManager}
           onClose={() => setShowTemplateManager(false)}
-        />
-      )}
-
-      {(solutionData || logs.length > 0 || isStreaming) && (
-        <SolutionDisplay
-          solutionData={solutionData}
-          logs={logs}
-          isStreaming={isStreaming}
-          onClearLogs={clearLogs}
-          onClose={() => {
-            setSolutionData(null);
-            clearLogs();
-          }}
         />
       )}
     </div>

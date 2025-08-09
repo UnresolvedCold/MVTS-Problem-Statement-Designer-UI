@@ -9,7 +9,8 @@ export const useGridEditorHandlers = (
   setSolutionData,
   setSelectedObject,
   cols,
-  cellSize
+  cellSize,
+  setActiveTab
 ) => {
   const { addObject } = objectManager;
   const { solveProblemStatement } = serverAPI;
@@ -64,11 +65,15 @@ export const useGridEditorHandlers = (
       
       console.log('Received solution from server:', solution);
       setSolutionData(solution);
+      // Automatically switch to solution tab when solution is received
+      if (setActiveTab) {
+        setActiveTab('solution');
+      }
     } catch (error) {
       console.error('Failed to solve problem statement:', error);
       alert(`Failed to solve problem statement: ${error.message}`);
     }
-  }, [solveProblemStatement, setSolutionData, getConfigForProblemStatement]);
+  }, [solveProblemStatement, setSolutionData, getConfigForProblemStatement, setActiveTab]);
 
   const handleAddTask = useCallback(async (taskData) => {
     try {

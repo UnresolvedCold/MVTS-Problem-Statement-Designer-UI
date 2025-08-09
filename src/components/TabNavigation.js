@@ -4,7 +4,8 @@ const TabNavigation = ({ activeTab, onTabChange, tabs = ['grid', 'json'] }) => {
   const tabConfig = {
     grid: { label: '🎯 Grid Editor', icon: '🎯' },
     json: { label: '📄 JSON Viewer', icon: '📄' },
-    config: { label: '⚙️ Configuration', icon: '⚙️' }
+    config: { label: '⚙️ Configuration', icon: '⚙️' },
+    solution: { label: '🎉 Solution', icon: '🎉' }
   };
 
   return (

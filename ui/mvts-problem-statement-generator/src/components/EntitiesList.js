@@ -89,11 +89,17 @@ const EntitiesList = ({
         // Add details for better identification
         let details = '';
         if (obj.type === 'pps' && obj.properties) {
-          details = `Position: (${obj.properties.x || obj.x || 0}, ${obj.properties.y || obj.y || 0})`;
+          const ppsId = obj.properties.id || 'N/A';
+          const coordinate = obj.properties.coordinate || {};
+          details = `ID: ${ppsId}, Pos: (${coordinate.x || 0}, ${coordinate.y || 0})`;
         } else if (obj.type === 'msu' && obj.properties) {
-          details = `ID: ${obj.properties.msu_id || obj.properties.id || 'N/A'}`;
+          const msuId = obj.properties.id || 'N/A';
+          const coordinate = obj.properties.coordinate || {};
+          details = `ID: ${msuId}, Pos: (${coordinate.x || 0}, ${coordinate.y || 0})`;
         } else if (obj.type === 'bot' && obj.properties) {
-          details = `ID: ${obj.properties.ranger_id || obj.properties.id || 'N/A'}`;
+          const botId = obj.properties.id || 'N/A';
+          const coordinate = obj.properties.coordinate || {};
+          details = `ID: ${botId}, Pos: (${coordinate.x || 0}, ${coordinate.y || 0})`;
         }
 
         const entityItem = {

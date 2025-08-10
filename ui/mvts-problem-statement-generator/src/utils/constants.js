@@ -4,7 +4,9 @@ export const WEBSOCKET_CONFIG = {
   DEFAULT_HOST: 'localhost',
   DEFAULT_PROTOCOL: 'ws',
   ENDPOINT: '/ws',
-  TIMEOUT_MS: 60000 
+  TIMEOUT_MS: 60000,
+  // Use relative URL when served from same server
+  USE_RELATIVE_URL: true
 };
 
 // REST API configuration for schemas
@@ -12,7 +14,9 @@ export const REST_API_CONFIG = {
   DEFAULT_PORT: 8192,
   DEFAULT_HOST: 'localhost',
   DEFAULT_PROTOCOL: 'http',
-  SCHEMAS_ENDPOINT: '/api/schemas'
+  SCHEMAS_ENDPOINT: '/api/schemas',
+  // Use relative URL when served from same server
+  USE_RELATIVE_URL: true
 };
 
 // Server configuration for config management
@@ -20,7 +24,9 @@ export const SERVER_CONFIG = {
   DEFAULT_PORT: 8192,
   DEFAULT_HOST: 'localhost',
   DEFAULT_PROTOCOL: 'http',
-  CONFIG_ENDPOINT: '/api/config/default'
+  CONFIG_ENDPOINT: '/api/config/default',
+  // Use relative URL when served from same server
+  USE_RELATIVE_URL: true
 };
 
 // Local storage configuration

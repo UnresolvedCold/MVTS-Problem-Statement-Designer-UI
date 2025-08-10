@@ -25,11 +25,21 @@ export const useConfigManager = () => {
 
   // Get server URL for direct API calls
   const getServerUrl = () => {
-    const port = process.env.REACT_APP_MVTS_PORT || SERVER_CONFIG.DEFAULT_PORT;
-    const host = process.env.REACT_APP_MVTS_HOST || SERVER_CONFIG.DEFAULT_HOST;
-    const protocol = process.env.REACT_APP_MVTS_PROTOCOL || SERVER_CONFIG.DEFAULT_PROTOCOL;
-    console.log(`Using server URL: ${protocol}://${host}:${port}`);
-    return `${protocol}://${host}:${port}`;
+    // Check if we should use relative URL (when served from same server)
+    const useRelativeUrl = !process.env.REACT_APP_MVTS_HOST && SERVER_CONFIG.USE_RELATIVE_URL;
+    
+    if (useRelativeUrl) {
+      // Use relative URL - empty string means same origin
+      console.log('Using relative server URL (same origin)');
+      return '';
+    } else {
+      // Use explicit host/port configuration
+      const port = process.env.REACT_APP_MVTS_PORT || SERVER_CONFIG.DEFAULT_PORT;
+      const host = process.env.REACT_APP_MVTS_HOST || SERVER_CONFIG.DEFAULT_HOST;
+      const protocol = process.env.REACT_APP_MVTS_PROTOCOL || SERVER_CONFIG.DEFAULT_PROTOCOL;
+      console.log(`Using server URL: ${protocol}://${host}:${port}`);
+      return `${protocol}://${host}:${port}`;
+    }
   };
 
   // Fetch config from server and merge with local

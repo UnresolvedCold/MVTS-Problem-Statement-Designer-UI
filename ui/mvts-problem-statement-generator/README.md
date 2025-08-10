@@ -148,11 +148,35 @@ src/
 ```
 
 ### Environment Variables
+
+The application now supports **relative URLs** by default, which means it will automatically connect to APIs on the same server hosting the React app. This is ideal for production deployments.
+
+For development or when connecting to external servers, you can override this behavior:
+
 ```bash
-REACT_APP_WEBSOCKET_HOST=localhost
-REACT_APP_WEBSOCKET_PORT=8089
-REACT_APP_WEBSOCKET_PROTOCOL=ws
+# Only set these if connecting to a different server
+# Leave commented out to use relative URLs (same server)
+
+# WebSocket Configuration
+#REACT_APP_WEBSOCKET_HOST=localhost
+#REACT_APP_WEBSOCKET_PORT=8089
+#REACT_APP_WEBSOCKET_PROTOCOL=ws
+
+# REST API Configuration  
+#REACT_APP_REST_HOST=localhost
+#REACT_APP_REST_PORT=8088
+#REACT_APP_REST_PROTOCOL=http
+
+# MVTS API Configuration
+#REACT_APP_MVTS_HOST=localhost
+#REACT_APP_MVTS_PORT=8088
+#REACT_APP_MVTS_PROTOCOL=http
 ```
+
+**Relative URL Behavior:**
+- When `REACT_APP_WEBSOCKET_HOST` is not set, WebSocket connections use `wss://` (for HTTPS) or `ws://` (for HTTP) with the same host and port as the React app
+- When `REACT_APP_REST_HOST` or `REACT_APP_MVTS_HOST` are not set, API calls use relative paths to the same origin
+- This approach works seamlessly when the server hosts both the React app and the backend APIs
 
 ## Learn More
 

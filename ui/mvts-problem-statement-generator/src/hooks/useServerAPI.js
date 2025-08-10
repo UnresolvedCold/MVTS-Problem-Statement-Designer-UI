@@ -34,14 +34,36 @@ export const useServerAPI = () => {
     }
 
     return new Promise((resolve, reject) => {
-      const port = process.env.REACT_APP_WEBSOCKET_PORT || WEBSOCKET_CONFIG.DEFAULT_PORT;
-      const host = process.env.REACT_APP_WEBSOCKET_HOST || WEBSOCKET_CONFIG.DEFAULT_HOST;
-      const protocol = process.env.REACT_APP_WEBSOCKET_PROTOCOL || WEBSOCKET_CONFIG.DEFAULT_PROTOCOL;
-      const endpoint = WEBSOCKET_CONFIG.ENDPOINT;
-
-      console.log(`Connecting to server: ${protocol}://${host}:${port}${endpoint}`);
+      // Determine protocol based on current page protocol (https -> wss, http -> ws)
+      const wsProtocol = process.env.REACT_APP_WEBSOCKET_PROTOCOL || 
+        (window.location.protocol === 'https:' ? 'wss' : 'ws');
       
-      const socket = new WebSocket(`${protocol}://${host}:${port}${endpoint}`);
+      let socketUrl;
+      const endpoint = WEBSOCKET_CONFIG.ENDPOINT;
+      
+      // Check if we should use same host but potentially different port
+      if (!process.env.REACT_APP_WEBSOCKET_HOST) {
+        // Use same host as the web app
+        const host = window.location.hostname;
+        const port = process.env.REACT_APP_WEBSOCKET_PORT;
+        
+        if (port) {
+          // Same host, different port
+          socketUrl = `${wsProtocol}://${host}:${port}${endpoint}`;
+        } else {
+          // Same host, same port (relative URL)
+          socketUrl = `${wsProtocol}://${window.location.host}${endpoint}`;
+        }
+      } else {
+        // Use explicit host/port configuration
+        const port = process.env.REACT_APP_WEBSOCKET_PORT || WEBSOCKET_CONFIG.DEFAULT_PORT;
+        const host = process.env.REACT_APP_WEBSOCKET_HOST;
+        socketUrl = `${wsProtocol}://${host}:${port}${endpoint}`;
+      }
+
+      console.log(`Connecting to server: ${socketUrl}`);
+      
+      const socket = new WebSocket(socketUrl);
       socketRef.current = socket;
 
       socket.onopen = () => {
@@ -158,12 +180,22 @@ export const useServerAPI = () => {
 
   // Fetch schema from REST API
   const fetchSchema = useCallback(async (schemaType) => {
-    const port = process.env.REACT_APP_REST_PORT || REST_API_CONFIG.DEFAULT_PORT;
-    const host = process.env.REACT_APP_REST_HOST || REST_API_CONFIG.DEFAULT_HOST;
-    const protocol = process.env.REACT_APP_REST_PROTOCOL || REST_API_CONFIG.DEFAULT_PROTOCOL;
-    const endpoint = REST_API_CONFIG.SCHEMAS_ENDPOINT;
-
-    const url = `${protocol}://${host}:${port}${endpoint}/${schemaType}`;
+    // Check if we should use relative URL (when served from same server)
+    const useRelativeUrl = !process.env.REACT_APP_REST_HOST && REST_API_CONFIG.USE_RELATIVE_URL;
+    
+    let url;
+    if (useRelativeUrl) {
+      // Use relative REST API URL - automatically uses same host/port as the web app
+      const endpoint = REST_API_CONFIG.SCHEMAS_ENDPOINT;
+      url = `${endpoint}/${schemaType}`;
+    } else {
+      // Use explicit host/port configuration
+      const port = process.env.REACT_APP_REST_PORT || REST_API_CONFIG.DEFAULT_PORT;
+      const host = process.env.REACT_APP_REST_HOST || REST_API_CONFIG.DEFAULT_HOST;
+      const protocol = process.env.REACT_APP_REST_PROTOCOL || REST_API_CONFIG.DEFAULT_PROTOCOL;
+      const endpoint = REST_API_CONFIG.SCHEMAS_ENDPOINT;
+      url = `${protocol}://${host}:${port}${endpoint}/${schemaType}`;
+    }
     
     try {
       console.log(`Fetching schema from: ${url}`);

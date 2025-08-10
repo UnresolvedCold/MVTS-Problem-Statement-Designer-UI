@@ -26,6 +26,8 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -321,11 +323,25 @@ public class ProblemStatementStudio {
         ContextHandler apiContext = new ContextHandler("/api");
         apiContext.setHandler(new PSStudioRestApiHandler());
 
-        // Serve static files from React build folder
+        // Serve static files from React build folder (from classpath in fat JAR)
         ResourceHandler staticHandler = new ResourceHandler();
         staticHandler.setDirectoriesListed(false);
         staticHandler.setWelcomeFiles(new String[]{"index.html"});
-        staticHandler.setResourceBase(reactBuildPath);
+        
+        // Check if running from JAR (classpath) or development (filesystem)
+        URL resourceUrl = ProblemStatementStudio.class.getClassLoader().getResource(reactBuildPath);
+        if (resourceUrl != null) {
+          // Running from JAR - serve from classpath
+          try {
+            staticHandler.setResourceBase(resourceUrl.toURI().toString());
+          } catch (URISyntaxException e) {
+            e.printStackTrace();
+            staticHandler.setResourceBase(reactBuildPath);
+          }
+        } else {
+          // Development mode - serve from filesystem
+          staticHandler.setResourceBase(reactBuildPath);
+        }
 
         // Main handler for "/" (static + SPA fallback)
         HandlerWrapper spaHandler = new HandlerWrapper() {
@@ -334,20 +350,49 @@ public class ProblemStatementStudio {
                              HttpServletRequest request, HttpServletResponse response)
               throws IOException, ServletException {
 
-            Path filePath = Paths.get(reactBuildPath, target);
-            File file = filePath.toFile();
+            // Check if resource exists (either filesystem or classpath)
+            boolean resourceExists = false;
+            
+            if (resourceUrl != null) {
+              // Running from JAR - check classpath
+              URL targetResource = ProblemStatementStudio.class.getClassLoader()
+                  .getResource(reactBuildPath + target);
+              resourceExists = targetResource != null;
+            } else {
+              // Development mode - check filesystem
+              Path filePath = Paths.get(reactBuildPath, target);
+              File file = filePath.toFile();
+              resourceExists = file.exists() && file.isFile();
+            }
 
-            if (file.exists() && file.isFile()) {
+            if (resourceExists) {
               // Let ResourceHandler serve static assets
               super.handle(target, baseRequest, request, response);
             } else {
               // Fallback to index.html for React routing
-              File indexFile = new File(reactBuildPath, "index.html");
-              if (indexFile.exists()) {
-                response.setContentType("text/html; charset=UTF-8");
-                response.setStatus(HttpServletResponse.SC_OK);
-                Files.copy(indexFile.toPath(), response.getOutputStream());
-                baseRequest.setHandled(true);
+              try {
+                if (resourceUrl != null) {
+                  // Running from JAR - serve index.html from classpath
+                  URL indexUrl = ProblemStatementStudio.class.getClassLoader()
+                      .getResource(reactBuildPath + "/index.html");
+                  if (indexUrl != null) {
+                    response.setContentType("text/html; charset=UTF-8");
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    indexUrl.openStream().transferTo(response.getOutputStream());
+                    baseRequest.setHandled(true);
+                  }
+                } else {
+                  // Development mode - serve from filesystem
+                  File indexFile = new File(reactBuildPath, "index.html");
+                  if (indexFile.exists()) {
+                    response.setContentType("text/html; charset=UTF-8");
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    Files.copy(indexFile.toPath(), response.getOutputStream());
+                    baseRequest.setHandled(true);
+                  }
+                }
+              } catch (Exception e) {
+                e.printStackTrace();
               }
             }
           }

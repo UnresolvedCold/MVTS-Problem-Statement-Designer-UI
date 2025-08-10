@@ -15,17 +15,22 @@ import com.greyorange.multifleetplanner_common.transit_time.TransitTimeDB;
 import com.greyorange.mvts.core.Optimizer;
 import com.greyorange.mvts.costs.ObjectiveFunction;
 import com.greyorange.mvts.database.BotCycleTimeDB;
-import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.handler.HandlerCollection;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.eclipse.jetty.server.*;
+import org.eclipse.jetty.server.handler.*;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer;
 import org.joda.time.DateTime;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.*;
 
@@ -311,15 +316,68 @@ public class ProblemStatementStudio {
     new Thread(() -> {
       try {
         Server apiServer = new Server(8088);
-        apiServer.setHandler(new PSStudioRestApiHandler());
+
+        String reactBuildPath = "/Users/shubham.kumar/Projects/GreyOrange/MVTSProblemStatementDesigner/build";
+
+        // API handler at /api/*
+        ContextHandler apiContext = new ContextHandler("/api");
+        apiContext.setHandler(new PSStudioRestApiHandler());
+
+        // Serve static files from React build folder
+        ResourceHandler staticHandler = new ResourceHandler();
+        staticHandler.setDirectoriesListed(false);
+        staticHandler.setWelcomeFiles(new String[]{"index.html"});
+        staticHandler.setResourceBase(reactBuildPath);
+
+        // Main handler for "/" (static + SPA fallback)
+        HandlerWrapper spaHandler = new HandlerWrapper() {
+          @Override
+          public void handle(String target, Request baseRequest,
+                             HttpServletRequest request, HttpServletResponse response)
+              throws IOException, ServletException {
+
+            Path filePath = Paths.get(reactBuildPath, target);
+            File file = filePath.toFile();
+
+            if (file.exists() && file.isFile()) {
+              // Let ResourceHandler serve static assets
+              super.handle(target, baseRequest, request, response);
+            } else {
+              // Fallback to index.html for React routing
+              File indexFile = new File(reactBuildPath, "index.html");
+              if (indexFile.exists()) {
+                response.setContentType("text/html; charset=UTF-8");
+                response.setStatus(HttpServletResponse.SC_OK);
+                Files.copy(indexFile.toPath(), response.getOutputStream());
+                baseRequest.setHandled(true);
+              }
+            }
+          }
+        };
+        spaHandler.setHandler(staticHandler);
+
+        ContextHandler rootContext = new ContextHandler("/");
+        rootContext.setHandler(spaHandler);
+
+        // Combine API first, then React
+        HandlerList handlers = new HandlerList();
+        handlers.addHandler(apiContext);
+        handlers.addHandler(rootContext);
+
+        apiServer.setHandler(handlers);
+
         apiServer.start();
         System.out.println("API Server at http://localhost:8088/api");
+        System.out.println("React app at http://localhost:8088/");
         apiServer.join();
+
       } catch (Exception e) {
         e.printStackTrace();
       }
     }).start();
   }
+
+
 
   private static void startWsServer() {
     new Thread(() -> {

@@ -58,17 +58,17 @@ public class PSStudioRestApiHandler extends AbstractHandler {
       try {
         String responseBody = "";
 
-        if (target.startsWith("/api/schemas/bot")) {
+        if (target.startsWith("/schemas/bot")) {
           responseBody = Helper.getObjectMapper().writeValueAsString(ProblemStatementStudio.getInstance().getBot());
-        } else if (target.startsWith("/api/schemas/pps")) {
+        } else if (target.startsWith("/schemas/pps")) {
           responseBody = Helper.getObjectMapper().writeValueAsString(ProblemStatementStudio.getInstance().getPps());
-        } else if (target.startsWith("/api/schemas/msu")) {
+        } else if (target.startsWith("/schemas/msu")) {
           responseBody = Helper.getObjectMapper().writeValueAsString(ProblemStatementStudio.getInstance().getMSU());
-        } else if (target.startsWith("/api/schemas/task")) {
+        } else if (target.startsWith("/schemas/task")) {
           responseBody = Helper.getObjectMapper().writeValueAsString(ProblemStatementStudio.getInstance().getTask());
-        } else if (target.startsWith("/api/schemas/assignment")) {
+        } else if (target.startsWith("/schemas/assignment")) {
           responseBody = Helper.getObjectMapper().writeValueAsString(ProblemStatementStudio.getInstance().getAssignment());
-        } else if (target.startsWith("/api/schemas/problem-statement")) {
+        } else if (target.startsWith("/schemas/problem-statement")) {
           responseBody = Helper.getObjectMapper().writeValueAsString(ProblemStatementStudio.getInstance().getInputMessage());
         }
 

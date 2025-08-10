@@ -1,33 +1,22 @@
 package com.greyorange.mvts.designer;
 
-import com.fasterxml.jackson.core.JacksonException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.greyorange.multifleetplanner.PathVerifier;
-import com.greyorange.multifleetplanner.core.ApplicationProperties;
-import com.greyorange.multifleetplanner.core.Config;
 import com.greyorange.multifleetplanner.helpers.Helper;
-import com.greyorange.multifleetplanner.pojo.*;
-import com.greyorange.multifleetplanner_common.db.MultifleetDB;
-import com.greyorange.multifleetplanner_common.pojo.DiagnosticData;
-import com.greyorange.multifleetplanner_common.pojo.DiagnosticEnum;
-import com.greyorange.mvts.designer.pojo.WSData;
-import com.greyorange.mvts.designer.pojo.WSEvent;
-import com.greyorange.taskscheduler.models.TransitTimeTable;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.annotations.*;
-import pl.jalokim.propertiestojson.util.PropertiesToJsonConverter;
-
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 public class PSStudioRestApiHandler extends AbstractHandler {
 
+  private String cacheDefaultConfig = null;
   private Map<String, String> queryParams;
 
   @Override
@@ -70,6 +59,8 @@ public class PSStudioRestApiHandler extends AbstractHandler {
           responseBody = Helper.getObjectMapper().writeValueAsString(ProblemStatementStudio.getInstance().getAssignment());
         } else if (target.startsWith("/schemas/problem-statement")) {
           responseBody = Helper.getObjectMapper().writeValueAsString(ProblemStatementStudio.getInstance().getInputMessage());
+        } else if (target.startsWith("/config/default")) {
+          responseBody = getDefaultConfigFromMVTS();
         }
 
         response.setContentType("application/json");
@@ -84,4 +75,34 @@ public class PSStudioRestApiHandler extends AbstractHandler {
       }
     }
   }
+
+  private String getDefaultConfigFromMVTS() {
+
+    if (cacheDefaultConfig != null) {
+      return cacheDefaultConfig;
+    }
+
+    String apiUrl = "http://localhost:8080/mvts/config/all";
+    try {
+      HttpClient client = HttpClient.newHttpClient();
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(URI.create(apiUrl))
+          .GET()
+          .build();
+
+      HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+      if (response.statusCode() == 200) {
+        String responseBody = response.body();
+        cacheDefaultConfig = responseBody;
+        return responseBody;
+      } else {
+        throw new RuntimeException("Failed to fetch config from MVTS: HTTP " + response.statusCode());
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
 }

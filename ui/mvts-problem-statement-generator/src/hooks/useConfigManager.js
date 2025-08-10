@@ -28,6 +28,7 @@ export const useConfigManager = () => {
     const port = process.env.REACT_APP_MVTS_PORT || SERVER_CONFIG.DEFAULT_PORT;
     const host = process.env.REACT_APP_MVTS_HOST || SERVER_CONFIG.DEFAULT_HOST;
     const protocol = process.env.REACT_APP_MVTS_PROTOCOL || SERVER_CONFIG.DEFAULT_PROTOCOL;
+    console.log(`Using server URL: ${protocol}://${host}:${port}`);
     return `${protocol}://${host}:${port}`;
   };
 

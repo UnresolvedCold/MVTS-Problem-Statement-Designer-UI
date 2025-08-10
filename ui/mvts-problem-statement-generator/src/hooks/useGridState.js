@@ -1,8 +1,10 @@
 // src/hooks/useGridState.js
 import { useState, useCallback } from 'react';
-import { GRID_CONFIG } from '../utils/constants';
+import { getGridCfg } from '../utils/constants';
 
 export const useGridState = (localStateManager) => {
+  const GRID_CONFIG = getGridCfg();
+  
   const [rows, setRows] = useState(GRID_CONFIG.DEFAULT_ROWS);
   const [cols, setCols] = useState(GRID_CONFIG.DEFAULT_COLS);
   const [cellSize, setCellSize] = useState(GRID_CONFIG.DEFAULT_CELL_SIZE);

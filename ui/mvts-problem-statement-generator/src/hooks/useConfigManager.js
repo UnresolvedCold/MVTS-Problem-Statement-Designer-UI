@@ -1,10 +1,11 @@
-import { useState, useCallback, useEffect } from 'react';
-import { SERVER_CONFIG, LOCAL_STORAGE_CONFIG } from '../utils/constants';
+import { useState, useEffect, useCallback } from 'react';
+import { getServerCfg, getLocalStorageCfg } from '../utils/constants';
 
 export const useConfigManager = () => {
   // Initialize config from localStorage or empty object
   const [localConfig, setLocalConfig] = useState(() => {
     try {
+      const LOCAL_STORAGE_CONFIG = getLocalStorageCfg();
       const saved = localStorage.getItem(LOCAL_STORAGE_CONFIG.CONFIG_KEY);
       return saved ? JSON.parse(saved) : {};
     } catch (e) {
@@ -20,13 +21,22 @@ export const useConfigManager = () => {
 
   // Save local config to localStorage whenever it changes
   useEffect(() => {
+    const LOCAL_STORAGE_CONFIG = getLocalStorageCfg();
     localStorage.setItem(LOCAL_STORAGE_CONFIG.CONFIG_KEY, JSON.stringify(localConfig));
   }, [localConfig]);
 
   // Get server URL for direct API calls
   const getServerUrl = () => {
+    // Get current server configuration
+    const SERVER_CONFIG = getServerCfg();
+    
+    // Get host and port from runtime config with env fallbacks
+    const configHost = SERVER_CONFIG.DEFAULT_HOST || process.env.REACT_APP_MVTS_HOST;
+    const configPort = SERVER_CONFIG.DEFAULT_PORT || process.env.REACT_APP_MVTS_PORT;
+    const configProtocol = SERVER_CONFIG.DEFAULT_PROTOCOL || process.env.REACT_APP_MVTS_PROTOCOL;
+    
     // Check if we should use relative URL (when served from same server)
-    const useRelativeUrl = !process.env.REACT_APP_MVTS_HOST && SERVER_CONFIG.USE_RELATIVE_URL;
+    const useRelativeUrl = !configHost && SERVER_CONFIG.USE_RELATIVE_URL;
     
     if (useRelativeUrl) {
       // Use relative URL - empty string means same origin
@@ -34,9 +44,9 @@ export const useConfigManager = () => {
       return '';
     } else {
       // Use explicit host/port configuration
-      const port = process.env.REACT_APP_MVTS_PORT || SERVER_CONFIG.DEFAULT_PORT;
-      const host = process.env.REACT_APP_MVTS_HOST || SERVER_CONFIG.DEFAULT_HOST;
-      const protocol = process.env.REACT_APP_MVTS_PROTOCOL || SERVER_CONFIG.DEFAULT_PROTOCOL;
+      const port = configPort;
+      const host = configHost;
+      const protocol = configProtocol || (window.location.protocol === 'https:' ? 'https' : 'http');
       console.log(`Using server URL: ${protocol}://${host}:${port}`);
       return `${protocol}://${host}:${port}`;
     }
@@ -48,6 +58,7 @@ export const useConfigManager = () => {
     setError(null);
     
     try {
+      const SERVER_CONFIG = getServerCfg();
       const response = await fetch(`${getServerUrl()}${SERVER_CONFIG.CONFIG_ENDPOINT}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -111,6 +122,7 @@ export const useConfigManager = () => {
 
   // Clear all local config
   const clearLocalConfig = useCallback(() => {
+    const LOCAL_STORAGE_CONFIG = getLocalStorageCfg();
     setLocalConfig({});
     setHasLocalChanges(Object.keys(serverConfig).length > 0);
     localStorage.removeItem(LOCAL_STORAGE_CONFIG.CONFIG_KEY);

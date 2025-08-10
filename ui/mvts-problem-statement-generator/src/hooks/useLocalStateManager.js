@@ -1,6 +1,6 @@
 // src/hooks/useLocalStateManager.js
-import { useState, useCallback, useEffect } from 'react';
-import { GRID_CONFIG } from '../utils/constants';
+import { useState, useEffect, useCallback } from 'react';
+import { getGridCfg } from '../utils/constants';
 
 // Default problem statement template
 const DEFAULT_PROBLEM_STATEMENT = {
@@ -17,6 +17,8 @@ const DEFAULT_PROBLEM_STATEMENT = {
 };
 
 export const useLocalStateManager = (schemaManager = null) => {
+  const GRID_CONFIG = getGridCfg();
+  
   // Local warehouse data state
   const [localWarehouseData, setLocalWarehouseData] = useState(() => {
     // Try to load from localStorage on initialization

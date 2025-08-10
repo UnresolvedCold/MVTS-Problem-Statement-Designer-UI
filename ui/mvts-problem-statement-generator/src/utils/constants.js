@@ -1,50 +1,90 @@
-// WebSocket configuration
-export const WEBSOCKET_CONFIG = {
-  DEFAULT_PORT: 8191,
-  DEFAULT_HOST: 'localhost',
-  DEFAULT_PROTOCOL: 'ws',
-  ENDPOINT: '/ws',
-  TIMEOUT_MS: 60000,
-  // Use relative URL when served from same server
-  USE_RELATIVE_URL: true
+import { 
+  getWebSocketConfig, 
+  getRestApiConfig, 
+  getServerConfig, 
+  getLocalStorageConfig, 
+  getGridConfig 
+} from './runtimeConfig';
+
+// Configuration getters that use runtime config when available
+// These will fall back to static defaults if runtime config is not loaded
+export const getWSConfig = () => {
+  try {
+    return getWebSocketConfig();
+  } catch (error) {
+    // Fallback to static config if runtime config not loaded
+    return {
+      DEFAULT_PORT: 8191,
+      DEFAULT_HOST: null,  // null = same host as web app
+      DEFAULT_PROTOCOL: null,  // null = auto-detect
+      ENDPOINT: '/ws',
+      TIMEOUT_MS: 60000,
+      USE_RELATIVE_URL: true
+    };
+  }
 };
 
-// REST API configuration for schemas
-export const REST_API_CONFIG = {
-  DEFAULT_PORT: 8192,
-  DEFAULT_HOST: 'localhost',
-  DEFAULT_PROTOCOL: 'http',
-  SCHEMAS_ENDPOINT: '/api/schemas',
-  // Use relative URL when served from same server
-  USE_RELATIVE_URL: true
+export const getRestConfig = () => {
+  try {
+    return getRestApiConfig();
+  } catch (error) {
+    return {
+      DEFAULT_PORT: null,  // null = same port as web app
+      DEFAULT_HOST: null,  // null = same host as web app
+      DEFAULT_PROTOCOL: null,  // null = auto-detect
+      SCHEMAS_ENDPOINT: '/api/schemas',
+      USE_RELATIVE_URL: true
+    };
+  }
 };
 
-// Server configuration for config management
-export const SERVER_CONFIG = {
-  DEFAULT_PORT: 8192,
-  DEFAULT_HOST: 'localhost',
-  DEFAULT_PROTOCOL: 'http',
-  CONFIG_ENDPOINT: '/api/config/default',
-  // Use relative URL when served from same server
-  USE_RELATIVE_URL: true
+export const getServerCfg = () => {
+  try {
+    return getServerConfig();
+  } catch (error) {
+    return {
+      DEFAULT_PORT: null,  // null = same port as web app
+      DEFAULT_HOST: null,  // null = same host as web app
+      DEFAULT_PROTOCOL: null,  // null = auto-detect
+      CONFIG_ENDPOINT: '/api/config/default',
+      USE_RELATIVE_URL: true
+    };
+  }
 };
 
-// Local storage configuration
-export const LOCAL_STORAGE_CONFIG = {
-  CONFIG_KEY: 'mvts-local-config'
+export const getLocalStorageCfg = () => {
+  try {
+    return getLocalStorageConfig();
+  } catch (error) {
+    return {
+      CONFIG_KEY: 'mvts-local-config'
+    };
+  }
 };
 
-// Grid configuration
-export const GRID_CONFIG = {
-  DEFAULT_ROWS: 10,
-  DEFAULT_COLS: 10,
-  DEFAULT_CELL_SIZE: 50,
-  OBJECT_SIZE: 50,
-  MIN_GRID_SIZE: 1,
-  MAX_GRID_SIZE: 1000, // Increased from 50 to allow much larger grids
-  MIN_CELL_SIZE: 20,
-  MAX_CELL_SIZE: 200  // Increased from 100 to allow larger cell sizes
+export const getGridCfg = () => {
+  try {
+    return getGridConfig();
+  } catch (error) {
+    return {
+      DEFAULT_ROWS: 10,
+      DEFAULT_COLS: 10,
+      DEFAULT_CELL_SIZE: 50,
+      OBJECT_SIZE: 50,
+      MIN_GRID_SIZE: 1,
+      MAX_GRID_SIZE: 1000,
+      MIN_CELL_SIZE: 20,
+      MAX_CELL_SIZE: 200
+    };
+  }
 };
+
+// Legacy static exports for backward compatibility
+export const WEBSOCKET_CONFIG = getWSConfig();
+export const REST_API_CONFIG = getRestConfig();
+export const SERVER_CONFIG = getServerCfg();
+export const LOCAL_STORAGE_CONFIG = getLocalStorageCfg();
+export const GRID_CONFIG = getGridCfg();
 
 // Object types
 export const OBJECT_TYPES = {

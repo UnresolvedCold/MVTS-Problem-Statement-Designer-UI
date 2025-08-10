@@ -153,30 +153,101 @@ The application now supports **relative URLs** by default, which means it will a
 
 For development or when connecting to external servers, you can override this behavior:
 
-```bash
-# Only set these if connecting to a different server
-# Leave commented out to use relative URLs (same server)
+## Configuration
 
-# WebSocket Configuration
-#REACT_APP_WEBSOCKET_HOST=localhost
-#REACT_APP_WEBSOCKET_PORT=8089
-#REACT_APP_WEBSOCKET_PROTOCOL=ws
+The application uses a **runtime configuration system** that allows you to modify settings after the application is built, without requiring a rebuild. This is perfect for deployment flexibility.
 
-# REST API Configuration  
-#REACT_APP_REST_HOST=localhost
-#REACT_APP_REST_PORT=8088
-#REACT_APP_REST_PROTOCOL=http
+### Configuration Files
 
-# MVTS API Configuration
-#REACT_APP_MVTS_HOST=localhost
-#REACT_APP_MVTS_PORT=8088
-#REACT_APP_MVTS_PROTOCOL=http
+1. **Development**: Use `.env` file (copy from `.env.sample`)
+2. **Production**: Modify `public/config.js` after build
+
+### Runtime Configuration (`public/config.js`)
+
+The application loads configuration at runtime from `public/config.js`. This allows you to modify settings after deployment:
+
+```javascript
+// public/config.js
+window.MVTS_CONFIG = {
+  // WebSocket Configuration
+  websocket: {
+    port: 8191,        // WebSocket server port
+    host: null,        // null = same host as web app
+    protocol: null,    // null = auto-detect (ws/wss)
+    endpoint: '/ws',
+    timeout: 60000,
+    useRelativeUrl: true
+  },
+  
+  // REST API Configuration
+  restApi: {
+    port: null,        // null = same port as web app
+    host: null,        // null = same host as web app
+    protocol: null,    // null = auto-detect (http/https)
+    schemasEndpoint: '/api/schemas',
+    useRelativeUrl: true
+  }
+};
 ```
 
-**Relative URL Behavior:**
-- When `REACT_APP_WEBSOCKET_HOST` is not set, WebSocket connections use `wss://` (for HTTPS) or `ws://` (for HTTP) with the same host and port as the React app
-- When `REACT_APP_REST_HOST` or `REACT_APP_MVTS_HOST` are not set, API calls use relative paths to the same origin
-- This approach works seamlessly when the server hosts both the React app and the backend APIs
+### Current Setup (Same Host, Different Port)
+
+Your current configuration is optimized for a single server hosting:
+- **Web App**: Port determined by server (typically 8192)
+- **WebSocket**: Port 8191 (different port, same host)
+- **REST API**: Same port as web app (relative URLs)
+
+### Environment Variables (.env for development)
+
+```bash
+# Copy .env.sample to .env for local development
+cp .env.sample .env
+
+# WebSocket Configuration
+REACT_APP_WEBSOCKET_PORT=8191
+# REACT_APP_WEBSOCKET_HOST=localhost  # Uncomment only if needed
+# REACT_APP_WEBSOCKET_PROTOCOL=ws     # Uncomment only if needed
+```
+
+### Configuration Priority
+
+1. **Runtime Config** (highest) - Values from `public/config.js`
+2. **Environment Variables** - Values from `.env`
+3. **Defaults** (lowest) - Fallback values in code
+
+### Post-Build Configuration Changes
+
+After building the app, you can modify the configuration without rebuilding:
+
+```bash
+# Build the app
+npm run build
+
+# Modify configuration for deployment
+vi build/config.js
+
+# Deploy - no rebuild needed!
+```
+
+### URL Construction Examples
+
+Based on your current setup:
+
+| Service | URL Pattern | Example |
+|---------|-------------|---------|
+| WebSocket | `wss://hostname:8191/ws` | `wss://myapp.com:8191/ws` |
+| REST API | `https://hostname/api/schemas/bot` | `https://myapp.com/api/schemas/bot` |
+| Config API | `https://hostname/api/config/default` | `https://myapp.com/api/config/default` |
+
+### Testing Configuration
+
+Use the test script to validate your configuration:
+
+```bash
+./test-config.sh
+```
+
+For detailed configuration options and examples, see [CONFIGURATION.md](./CONFIGURATION.md).
 
 ## Learn More
 

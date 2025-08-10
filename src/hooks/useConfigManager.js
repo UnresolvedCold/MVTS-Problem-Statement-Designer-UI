@@ -1,12 +1,11 @@
 import { useState, useCallback, useEffect } from 'react';
-
-const LOCAL_CONFIG_KEY = 'mvts-local-config';
+import { SERVER_CONFIG, LOCAL_STORAGE_CONFIG } from '../utils/constants';
 
 export const useConfigManager = () => {
   // Initialize config from localStorage or empty object
   const [localConfig, setLocalConfig] = useState(() => {
     try {
-      const saved = localStorage.getItem(LOCAL_CONFIG_KEY);
+      const saved = localStorage.getItem(LOCAL_STORAGE_CONFIG.CONFIG_KEY);
       return saved ? JSON.parse(saved) : {};
     } catch (e) {
       console.warn('Failed to parse saved config:', e);
@@ -21,12 +20,15 @@ export const useConfigManager = () => {
 
   // Save local config to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem(LOCAL_CONFIG_KEY, JSON.stringify(localConfig));
+    localStorage.setItem(LOCAL_STORAGE_CONFIG.CONFIG_KEY, JSON.stringify(localConfig));
   }, [localConfig]);
 
-  // Use relative URLs since we have a proxy setup
-  const getMvtsApiUrl = () => {
-    return ''; // Empty string for relative URLs - proxy will handle routing
+  // Get server URL for direct API calls
+  const getServerUrl = () => {
+    const port = process.env.REACT_APP_MVTS_PORT || SERVER_CONFIG.DEFAULT_PORT;
+    const host = process.env.REACT_APP_MVTS_HOST || SERVER_CONFIG.DEFAULT_HOST;
+    const protocol = process.env.REACT_APP_MVTS_PROTOCOL || SERVER_CONFIG.DEFAULT_PROTOCOL;
+    return `${protocol}://${host}:${port}`;
   };
 
   // Fetch config from server and merge with local
@@ -35,7 +37,7 @@ export const useConfigManager = () => {
     setError(null);
     
     try {
-      const response = await fetch(`${getMvtsApiUrl()}/mvts/config/all`);
+      const response = await fetch(`${getServerUrl()}${SERVER_CONFIG.CONFIG_ENDPOINT}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -100,7 +102,7 @@ export const useConfigManager = () => {
   const clearLocalConfig = useCallback(() => {
     setLocalConfig({});
     setHasLocalChanges(Object.keys(serverConfig).length > 0);
-    localStorage.removeItem(LOCAL_CONFIG_KEY);
+    localStorage.removeItem(LOCAL_STORAGE_CONFIG.CONFIG_KEY);
   }, [serverConfig]);
 
   // Get the config that should be sent with problem statement

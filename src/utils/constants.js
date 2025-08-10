@@ -9,18 +9,23 @@ export const WEBSOCKET_CONFIG = {
 
 // REST API configuration for schemas
 export const REST_API_CONFIG = {
-  DEFAULT_PORT: 8089,
+  DEFAULT_PORT: 8088,
   DEFAULT_HOST: 'localhost',
   DEFAULT_PROTOCOL: 'http',
   SCHEMAS_ENDPOINT: '/api/schemas'
 };
 
-// MVTS API configuration
-export const MVTS_CONFIG = {
-  DEFAULT_PORT: 8080,
+// Server configuration for config management
+export const SERVER_CONFIG = {
+  DEFAULT_PORT: 8088,
   DEFAULT_HOST: 'localhost',
   DEFAULT_PROTOCOL: 'http',
-  CONFIG_ENDPOINT: '/mvts/config'
+  CONFIG_ENDPOINT: '/api/config/default'
+};
+
+// Local storage configuration
+export const LOCAL_STORAGE_CONFIG = {
+  CONFIG_KEY: 'mvts-local-config'
 };
 
 // Grid configuration

@@ -4,8 +4,8 @@ import java.io.FileInputStream;
 import java.util.Properties;
 
 public enum ApplicationProperties {
-  WS_SERVER_PORT("WS_SERVER_PORT", "8089"),
-  REST_SERVER_PORT("REST_SERVER_PORT", "8088"),
+  WS_SERVER_PORT("WS_SERVER_PORT", "8191"),
+  REST_SERVER_PORT("REST_SERVER_PORT", "8192"),
   UI_BASE_PATH("UI_BASE_PATH", "build"),
   SERVER_HEADERS("SERVER_HEADERS", """
       {

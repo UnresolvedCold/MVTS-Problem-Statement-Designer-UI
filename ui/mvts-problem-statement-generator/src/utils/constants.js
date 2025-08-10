@@ -1,6 +1,6 @@
 // WebSocket configuration
 export const WEBSOCKET_CONFIG = {
-  DEFAULT_PORT: 8089,
+  DEFAULT_PORT: 8191,
   DEFAULT_HOST: 'localhost',
   DEFAULT_PROTOCOL: 'ws',
   ENDPOINT: '/ws',
@@ -9,7 +9,7 @@ export const WEBSOCKET_CONFIG = {
 
 // REST API configuration for schemas
 export const REST_API_CONFIG = {
-  DEFAULT_PORT: 8088,
+  DEFAULT_PORT: 8192,
   DEFAULT_HOST: 'localhost',
   DEFAULT_PROTOCOL: 'http',
   SCHEMAS_ENDPOINT: '/api/schemas'
@@ -17,7 +17,7 @@ export const REST_API_CONFIG = {
 
 // Server configuration for config management
 export const SERVER_CONFIG = {
-  DEFAULT_PORT: 8088,
+  DEFAULT_PORT: 8192,
   DEFAULT_HOST: 'localhost',
   DEFAULT_PROTOCOL: 'http',
   CONFIG_ENDPOINT: '/api/config/default'

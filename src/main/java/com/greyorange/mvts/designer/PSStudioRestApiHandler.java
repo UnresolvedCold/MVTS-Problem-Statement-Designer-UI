@@ -1,6 +1,8 @@
 package com.greyorange.mvts.designer;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.greyorange.multifleetplanner.helpers.Helper;
+import com.greyorange.mvts.designer.properties.ApplicationProperties;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -23,10 +25,11 @@ public class PSStudioRestApiHandler extends AbstractHandler {
   public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
       throws IOException, ServletException {
 
-    response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
-    response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    response.setHeader("Access-Control-Allow-Credentials", "true");
+    JsonNode jsonHeader = Helper.getObjectMapper().readTree(ApplicationProperties.SERVER_HEADERS.getValue());
+    for (Iterator<Map.Entry<String, JsonNode>> it = jsonHeader.fields(); it.hasNext(); ) {
+      Map.Entry<String, JsonNode> entry = it.next();
+      response.setHeader(entry.getKey(), entry.getValue().asText());
+    }
 
     if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
       response.setStatus(HttpServletResponse.SC_OK);
@@ -82,7 +85,7 @@ public class PSStudioRestApiHandler extends AbstractHandler {
       return cacheDefaultConfig;
     }
 
-    String apiUrl = "http://localhost:8080/mvts/config/all";
+    String apiUrl = ApplicationProperties.MVTS_CONFIG_URL.getValue();
     try {
       HttpClient client = HttpClient.newHttpClient();
       HttpRequest request = HttpRequest.newBuilder()

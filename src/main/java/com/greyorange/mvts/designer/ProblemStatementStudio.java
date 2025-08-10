@@ -1,11 +1,8 @@
 package com.greyorange.mvts.designer;
 
-import com.greyorange.multifleetplanner.core.ApplicationProperties;
 import com.greyorange.multifleetplanner.core.Config;
 import com.greyorange.multifleetplanner.helpers.Helper;
-import com.greyorange.multifleetplanner.message.QueueManager;
 import com.greyorange.multifleetplanner.multifleet.BackToStoreBotReservationv2;
-import com.greyorange.multifleetplanner.multifleet.Driver;
 import com.greyorange.multifleetplanner.multifleet.cache.BackToStorableCache;
 import com.greyorange.multifleetplanner.multifleet.cache.ChargeTaskCache;
 import com.greyorange.multifleetplanner.multifleet.cache.GoingToPPSCache;
@@ -15,6 +12,7 @@ import com.greyorange.multifleetplanner_common.transit_time.TransitTimeDB;
 import com.greyorange.mvts.core.Optimizer;
 import com.greyorange.mvts.costs.ObjectiveFunction;
 import com.greyorange.mvts.database.BotCycleTimeDB;
+import com.greyorange.mvts.designer.properties.ApplicationProperties;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -39,7 +37,7 @@ public class ProblemStatementStudio {
   static{
     Config config = Config.getInstance();
     Properties properties = config.getProperties();
-    ApplicationProperties.load(properties);
+    com.greyorange.multifleetplanner.core.ApplicationProperties.load(properties);
     com.greyorange.mvts.core.ApplicationProperties.load(properties);
     com.greyorange.taskscheduler.core.ApplicationProperties.load(properties);
     com.greyorange.subtaskplanner.core.ApplicationProperties.load(properties);
@@ -249,7 +247,7 @@ public class ProblemStatementStudio {
       properties.setProperty(key, value);
     }
 
-    ApplicationProperties.load(properties);
+    com.greyorange.multifleetplanner.core.ApplicationProperties.load(properties);
     com.greyorange.mvts.core.ApplicationProperties.load(properties);
     com.greyorange.taskscheduler.core.ApplicationProperties.load(properties);
     com.greyorange.subtaskplanner.core.ApplicationProperties.load(properties);
@@ -260,7 +258,7 @@ public class ProblemStatementStudio {
     Config.reset();
     Config config = Config.getInstance();
     Properties properties = config.getProperties();
-    ApplicationProperties.load(properties);
+    com.greyorange.multifleetplanner.core.ApplicationProperties.load(properties);
     com.greyorange.mvts.core.ApplicationProperties.load(properties);
     com.greyorange.taskscheduler.core.ApplicationProperties.load(properties);
     com.greyorange.subtaskplanner.core.ApplicationProperties.load(properties);
@@ -315,9 +313,9 @@ public class ProblemStatementStudio {
   private static void startApiServer() {
     new Thread(() -> {
       try {
-        Server apiServer = new Server(8088);
+        Server apiServer = new Server(ApplicationProperties.REST_SERVER_PORT.getIntValue());
 
-        String reactBuildPath = "/Users/shubham.kumar/Projects/GreyOrange/MVTSProblemStatementDesigner/build";
+        String reactBuildPath = ApplicationProperties.UI_BASE_PATH.getValue();
 
         // API handler at /api/*
         ContextHandler apiContext = new ContextHandler("/api");
@@ -367,8 +365,8 @@ public class ProblemStatementStudio {
         apiServer.setHandler(handlers);
 
         apiServer.start();
-        System.out.println("API Server at http://localhost:8088/api");
-        System.out.println("React app at http://localhost:8088/");
+        System.out.println("API Server at http://localhost:"+ ApplicationProperties.REST_SERVER_PORT.getValue() +"/api");
+        System.out.println("React app at http://localhost:"+ ApplicationProperties.REST_SERVER_PORT.getValue() +"/");
         apiServer.join();
 
       } catch (Exception e) {
@@ -380,7 +378,7 @@ public class ProblemStatementStudio {
   private static void startWsServer() {
     new Thread(() -> {
       try {
-        Server wsServer = new Server(8089);
+        Server wsServer = new Server(ApplicationProperties.WS_SERVER_PORT.getIntValue());
         ServletContextHandler wsContext = new ServletContextHandler(ServletContextHandler.SESSIONS);
         wsContext.setContextPath("/");
         JettyWebSocketServletContainerInitializer.configure(wsContext, (ctx, container) -> {
@@ -389,7 +387,7 @@ public class ProblemStatementStudio {
         });
         wsServer.setHandler(wsContext);
         wsServer.start();
-        System.out.println("WS Server at ws://localhost:8089/ws");
+        System.out.println("WS Server at ws://localhost:"+ApplicationProperties.WS_SERVER_PORT.getIntValue()+"/ws");
         wsServer.join();
       } catch (Exception e) {
         e.printStackTrace();

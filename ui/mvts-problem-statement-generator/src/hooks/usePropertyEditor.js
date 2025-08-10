@@ -72,6 +72,10 @@ export const usePropertyEditor = (selectedObject, selectedTask, selectedAssignme
     // Check if there are unsaved changes
     const hasChanges = JSON.stringify(updatedValues) !== JSON.stringify(originalValues);
     setHasUnsavedChanges(hasChanges);
+    
+    // Update JSON representation for consistency
+    setJsonEditValue(JSON.stringify(updatedValues, null, 2));
+    setJsonError(null); // Form changes should always produce valid JSON
   }, [pendingFormValues, originalValues]);
 
   // Handle nested object changes (like coordinate or aisle_info)
@@ -89,6 +93,10 @@ export const usePropertyEditor = (selectedObject, selectedTask, selectedAssignme
     // Check if there are unsaved changes
     const hasChanges = JSON.stringify(updatedValues) !== JSON.stringify(originalValues);
     setHasUnsavedChanges(hasChanges);
+    
+    // Update JSON representation for consistency
+    setJsonEditValue(JSON.stringify(updatedValues, null, 2));
+    setJsonError(null); // Form changes should always produce valid JSON
   }, [pendingFormValues, originalValues]);
 
   // Handle JSON text change
@@ -110,7 +118,8 @@ export const usePropertyEditor = (selectedObject, selectedTask, selectedAssignme
 
   // Save current changes
   const handleSave = useCallback(() => {
-    if (onUpdateProperties && currentItem && hasUnsavedChanges) {
+    // Only save if there are no JSON errors and there are changes to save
+    if (onUpdateProperties && currentItem && hasUnsavedChanges && !jsonError) {
       let itemId;
       
       if (isTask) {
@@ -129,7 +138,7 @@ export const usePropertyEditor = (selectedObject, selectedTask, selectedAssignme
       setOriginalValues(formValues);
       setHasUnsavedChanges(false);
     }
-  }, [currentItem, formValues, onUpdateProperties, isTask, isAssignment, hasUnsavedChanges]);
+  }, [currentItem, formValues, onUpdateProperties, isTask, isAssignment, hasUnsavedChanges, jsonError]);
 
   // Reset changes to original values
   const handleReset = useCallback(() => {

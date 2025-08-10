@@ -21,12 +21,15 @@ const SaveControls = ({ hasUnsavedChanges, onSave, onReset, jsonError }) => {
     transition: "all 0.2s ease"
   };
 
+  // Save button is enabled when there are changes and no JSON errors
+  const canSave = hasUnsavedChanges && !jsonError;
+  
   const saveButtonStyle = {
     ...buttonStyle,
-    backgroundColor: hasUnsavedChanges && !jsonError ? "#28a745" : "#e9ecef",
-    color: hasUnsavedChanges && !jsonError ? "#fff" : "#6c757d",
-    cursor: hasUnsavedChanges && !jsonError ? "pointer" : "not-allowed",
-    border: hasUnsavedChanges && !jsonError ? "1px solid #28a745" : "1px solid #ced4da"
+    backgroundColor: canSave ? "#28a745" : "#e9ecef",
+    color: canSave ? "#fff" : "#6c757d",
+    cursor: canSave ? "pointer" : "not-allowed",
+    border: canSave ? "1px solid #28a745" : "1px solid #ced4da"
   };
 
   const resetButtonStyle = {
@@ -37,7 +40,7 @@ const SaveControls = ({ hasUnsavedChanges, onSave, onReset, jsonError }) => {
     border: hasUnsavedChanges ? "1px solid #dc3545" : "1px solid #ced4da"
   };
 
-  // Don't render the controls if there are no unsaved changes and no JSON error
+  // Always show the controls if there are unsaved changes or JSON errors
   if (!hasUnsavedChanges && !jsonError) {
     return null;
   }
@@ -53,16 +56,19 @@ const SaveControls = ({ hasUnsavedChanges, onSave, onReset, jsonError }) => {
       alignItems: "center",
       gap: "8px"
     }}>
+      {/* Always show save and reset buttons when there are changes, enable based on JSON validity */}
       {hasUnsavedChanges && (
         <>
           <button
             onClick={onSave}
-            disabled={jsonError}
+            disabled={!canSave}
             style={saveButtonStyle}
             title={
               jsonError 
                 ? "Fix JSON errors before saving" 
-                : "Save changes"
+                : canSave
+                ? "Save changes"
+                : "No changes to save"
             }
           >
             💾 Save

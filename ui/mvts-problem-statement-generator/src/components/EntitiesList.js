@@ -19,6 +19,15 @@ const EntitiesList = ({
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [filter, setFilter] = useState('all'); // 'all', 'bots', 'pps', 'msu', 'tasks', 'assignments'
 
+  console.log('EntitiesList - Component rendered with props:', {
+    objects: objects,
+    objectsLength: objects?.length,
+    objectsStructure: objects?.map(o => ({ id: o.id, type: o.type, properties: o.properties })),
+    tasks: tasks,
+    tasksLength: tasks?.length,
+    filter: filter
+  });
+
   // Get entity color and icon based on type
   const getEntityStyle = (type) => {
     const styles = {
@@ -35,18 +44,71 @@ const EntitiesList = ({
   const getAllEntities = () => {
     const entities = [];
     
+    console.log('EntitiesList - getAllEntities called with:', {
+      objects: objects,
+      objectsLength: objects?.length,
+      filter: filter,
+      objectTypes: objects?.map(o => o.type)
+    });
+    
     // Add objects (bots, pps, msu)
     objects.forEach(obj => {
-      if (filter === 'all' || filter === `${obj.type}s`) {
-        entities.push({
+      // Fix the filtering logic - need to handle pluralization correctly
+      let shouldInclude = false;
+      if (filter === 'all') {
+        shouldInclude = true;
+      } else if (filter === 'bots' && obj.type === 'bot') {
+        shouldInclude = true;
+      } else if (filter === 'pps' && obj.type === 'pps') {
+        shouldInclude = true;
+      } else if (filter === 'msu' && obj.type === 'msu') {
+        shouldInclude = true;
+      }
+      
+      console.log('EntitiesList - Processing object:', {
+        objType: obj.type,
+        objId: obj.id,
+        objProperties: obj.properties,
+        filter: filter,
+        shouldInclude: shouldInclude,
+        oldLogic: filter === 'all' || filter === `${obj.type}s`,
+        newLogic: shouldInclude
+      });
+      
+      if (shouldInclude) {
+        // Create a more robust display name
+        let displayName = `${getEntityStyle(obj.type).label}`;
+        if (obj.properties?.id) {
+          displayName += `-${obj.properties.id}`;
+        } else if (obj.id) {
+          displayName += `-${obj.id}`;
+        } else {
+          displayName += `-${objects.filter(o => o.type === obj.type).indexOf(obj) + 1}`;
+        }
+
+        // Add details for better identification
+        let details = '';
+        if (obj.type === 'pps' && obj.properties) {
+          details = `Position: (${obj.properties.x || obj.x || 0}, ${obj.properties.y || obj.y || 0})`;
+        } else if (obj.type === 'msu' && obj.properties) {
+          details = `ID: ${obj.properties.msu_id || obj.properties.id || 'N/A'}`;
+        } else if (obj.type === 'bot' && obj.properties) {
+          details = `ID: ${obj.properties.ranger_id || obj.properties.id || 'N/A'}`;
+        }
+
+        const entityItem = {
           id: obj.id,
           type: obj.type,
           data: obj,
-          displayName: `${getEntityStyle(obj.type).label}-${obj.properties?.id || obj.id}`,
+          displayName: displayName,
+          details: details,
           onSelect: () => onObjectSelect(obj),
           onRemove: () => onRemoveObject(obj.id),
           isSelected: selectedObject?.id === obj.id
-        });
+        };
+        
+        console.log('EntitiesList - Adding entity to list:', entityItem);
+        entities.push(entityItem);
       }
     });
 
@@ -89,10 +151,13 @@ const EntitiesList = ({
       }
     }
 
+    console.log('EntitiesList - Final entities array:', entities);
+    console.log('EntitiesList - Entities length:', entities.length);
     return entities;
   };
 
   const entities = getAllEntities();
+  console.log('EntitiesList - Rendered entities:', entities);
   const totalCounts = {
     bots: objects.filter(o => o.type === 'bot').length,
     pps: objects.filter(o => o.type === 'pps').length,
@@ -171,6 +236,11 @@ const EntitiesList = ({
             maxHeight: '400px', 
             overflowY: 'auto'
           }}>
+            {console.log('EntitiesList - Rendering entities list with:', {
+              entitiesLength: entities.length,
+              entities: entities.map(e => ({ id: e.id, type: e.type, displayName: e.displayName })),
+              filter: filter
+            })}
             {entities.length === 0 ? (
               <div style={{
                 textAlign: 'center',
@@ -179,9 +249,16 @@ const EntitiesList = ({
                 padding: '20px'
               }}>
                 No {filter === 'all' ? 'entities' : filter} found
+                {console.log('EntitiesList - Showing no entities message for filter:', filter)}
               </div>
             ) : (
               entities.map((entity) => {
+                console.log('EntitiesList - Rendering entity:', {
+                  id: entity.id,
+                  type: entity.type,
+                  displayName: entity.displayName,
+                  details: entity.details
+                });
                 const style = getEntityStyle(entity.type);
                 return (
                   <div

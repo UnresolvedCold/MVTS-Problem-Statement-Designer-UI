@@ -1,0 +1,37 @@
+{
+  "task_key": "task-1",
+  "serviced_orders": [
+    {
+      "order_priority": "MEDIUM",
+      "order_allocation_time": 0,
+      "order_pbt": 0,
+      "order_id": "task-1",
+      "is_order_critical": false,
+      "operator_time": 0
+    }
+  ],
+  "serviced_bins": [
+    {
+      "id": "1-1",
+      "index": 0
+    }
+  ],
+  "destination": {
+    "x": 0,
+    "y": 0
+  },
+  "destination_id": 1,
+  "transport_entity_id": 1,
+  "transport_entity_type": "rack",
+  "task_type": "picktask",
+  "status": "to_be_assigned",
+  "task_subtype": "storable_to_conveyor",
+  "assigned_ranger_id": null,
+  "aisle_info": {
+    "aisle_id": 1,
+    "aisle_coordinate": [
+      0,
+      0
+    ]
+  }
+}

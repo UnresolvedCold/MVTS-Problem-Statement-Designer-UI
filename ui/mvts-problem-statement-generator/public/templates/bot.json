@@ -1,0 +1,26 @@
+{
+  "id": 1,
+  "paused": false,
+  "available_at_time": 0,
+  "coordinate": {
+    "x": 0,
+    "y": 0
+  },
+  "available_at_coordinate": {
+    "x": 0,
+    "y": 0
+  },
+  "total_capacity": 1,
+  "available_capacity": 1,
+  "is_paused": false,
+  "status": "ready",
+  "version": "ttp_demo",
+  "ranger_schedule": [],
+  "current_aisle_info": {
+    "aisle_id": 0,
+    "aisle_coordinate": [
+      0,
+      0
+    ]
+  }
+}

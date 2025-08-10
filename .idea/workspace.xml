@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="c6a84a51-6b8b-4314-a475-15bf24890952" name="Changes" comment="Added application properties">
+      <change afterPath="$PROJECT_DIR$/README.MD" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/server/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/google-java-format.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/greyorange/mvts/designer/PSStudioRestApiHandler.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/greyorange/mvts/designer/PSStudioWebSocketHandler.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/greyorange/mvts/designer/ProblemStatementStudio.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/greyorange/mvts/designer/WebSocketLogAppender.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/greyorange/mvts/designer/pojo/ProblemStatement.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/greyorange/mvts/designer/pojo/WSData.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/greyorange/mvts/designer/pojo/WSEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/greyorange/mvts/designer/pojo/WSNewAssignmentData.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/greyorange/mvts/designer/pojo/WSNewTaskData.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/greyorange/mvts/designer/properties/ApplicationProperties.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/logback.xml" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Enum" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "UnresolvedCold"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "git@github.com:UnresolvedCold/MVTS-Problem-Statement-Designer-UI.git",
+    "accountId": "b90841f8-31ea-4652-8345-bdcb10b83918"
+  }
+}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4
+}</component>
+  <component name="ProjectId" id="30VwF9SWQU7S1RgKhIXdAWeB05P" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+    <option name="showMembers" value="true" />
+    <option name="showVisibilityIcons" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.ProblemStatementStudio.executor": "Debug",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "master",
+    "last_opened_file_path": "/Users/shubham.kumar/Projects/GreyOrange/MVTSProblemStatementDesigner/src/data/config",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "settings.editor.selected.configurable": "editor.preferences.fonts.default"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/data/config" />
+      <recent name="$PROJECT_DIR$/src/main/java/com/greyorange/mvts" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/server" />
+      <recent name="$PROJECT_DIR$" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="com.greyorange.mvts.designer" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="ProblemStatementStudio" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.greyorange.mvts.designer.ProblemStatementStudio" />
+      <module name="MVTSProblemStatementDesigner" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.greyorange.mvts.designer.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.ProblemStatementStudio" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="c6a84a51-6b8b-4314-a475-15bf24890952" name="Changes" comment="" />
+      <created>1704132497224</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1704132497224</updated>
+    </task>
+    <task id="LOCAL-00001" summary="Problem statement designer">
+      <option name="closed" value="true" />
+      <created>1753768087135</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1753768087135</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Changing row and column">
+      <option name="closed" value="true" />
+      <created>1753925279332</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1753925279332</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Schemas as demo json">
+      <option name="closed" value="true" />
+      <created>1754205990694</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1754205990695</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Read problem statement json and solve it">
+      <option name="closed" value="true" />
+      <created>1754727175098</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1754727175098</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Stream logs to ws">
+      <option name="closed" value="true" />
+      <created>1754733510241</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1754733510241</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Process parallel request basic">
+      <option name="closed" value="true" />
+      <created>1754733834142</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1754733834142</updated>
+    </task>
+    <task id="LOCAL-00007" summary="fix send null output if processing fails">
+      <option name="closed" value="true" />
+      <created>1754735457765</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1754735457765</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Use reflection as problem statement parsing populates the MSUMAP">
+      <option name="closed" value="true" />
+      <created>1754737446788</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1754737446788</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Minor changes">
+      <option name="closed" value="true" />
+      <created>1754749530053</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1754749530053</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Different Server for API And WS">
+      <option name="closed" value="true" />
+      <created>1754764241803</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1754764241803</updated>
+    </task>
+    <task id="LOCAL-00011" summary="Serve react app using jetty">
+      <option name="closed" value="true" />
+      <created>1754829738423</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1754829738423</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Config proxy server">
+      <option name="closed" value="true" />
+      <created>1754831263294</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1754831263295</updated>
+    </task>
+    <task id="LOCAL-00013" summary="Added application properties">
+      <option name="closed" value="true" />
+      <created>1754832188631</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1754832188631</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Problem statement designer" />
+    <MESSAGE value="Changing row and column" />
+    <MESSAGE value="Schemas as demo json" />
+    <MESSAGE value="Read problem statement json and solve it" />
+    <MESSAGE value="Stream logs to ws" />
+    <MESSAGE value="Process parallel request basic" />
+    <MESSAGE value="fix send null output if processing fails" />
+    <MESSAGE value="Use reflection as problem statement parsing populates the MSUMAP" />
+    <MESSAGE value="Minor changes" />
+    <MESSAGE value="Different Server for API And WS" />
+    <MESSAGE value="Serve react app using jetty" />
+    <MESSAGE value="Config proxy server" />
+    <MESSAGE value="Added application properties" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added application properties" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/greyorange/mvts/designer/PSStudioWebSocketHandler.java</url>
+          <line>123</line>
+          <option name="timeStamp" value="17" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/greyorange/mvts/designer/PSStudioRestApiHandler.java</url>
+          <line>33</line>
+          <option name="timeStamp" value="23" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>

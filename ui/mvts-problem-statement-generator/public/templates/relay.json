@@ -1,0 +1,11 @@
+{
+  "id": null,
+  "coordinate": {
+    "x": 0,
+    "y": 0
+  },
+  "relay_type": "standard",
+  "capacity": 1,
+  "status": "active",
+  "connected_zones": []
+}

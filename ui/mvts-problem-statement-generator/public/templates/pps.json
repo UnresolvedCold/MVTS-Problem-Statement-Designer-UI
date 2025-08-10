@@ -1,0 +1,48 @@
+{
+  "coordinate": {
+    "x": 0,
+    "y": 0
+  },
+  "bin_details": [
+    {
+      "msio": true,
+      "virtualBin": false,
+      "bin_id": "1-1",
+      "is_msio": true,
+      "is_virtual_bin_used": false
+    }
+  ],
+  "queue_length": 1,
+  "id": 1,
+  "ranger_dock_coordinates": [
+    {
+      "coordinate": {
+        "x": 0,
+        "y": 0
+      },
+      "type": "rtp_pps_location"
+    }
+  ],
+  "mode": "pick",
+  "pps_type": "RTP",
+  "current_schedule": {
+    "cost": null,
+    "assignments": [],
+    "reserved_ranger_list": []
+  },
+  "connected_pps_list": [],
+  "can_assign_task": true,
+  "ranger_exit_coordinates": [
+    {
+      "coordinate": {
+        "x": 0,
+        "y": 0
+      },
+      "type": "rtp_pps_location"
+    }
+  ],
+  "msio_bins": [],
+  "pps_status": "open",
+  "pps_logged_in": true,
+  "pps_login_time": 0
+}

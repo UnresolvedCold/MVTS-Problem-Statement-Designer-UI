@@ -2,6 +2,8 @@
 
 This is a React-based application for creating and managing Multi-Vehicle Task Scheduling (MVTS) problem statements. The application now features a **local-first architecture** with browser-based state management and server-side template provision and problem solving.
 
+> Highly vibe coded
+
 ## New Architecture (v2.0)
 
 ### Local-First Design

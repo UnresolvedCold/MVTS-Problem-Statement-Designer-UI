@@ -13,11 +13,94 @@ const VirtualizedGridCanvas = ({
   onObjectDragStart,
   onObjectDragEnd
 }) => {
-  const [viewport, setViewport] = useState({ x: 0, y: 0, width: 800, height: 600 });
+  // Initialize viewport with container dimensions
+  const [viewport, setViewport] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [zoom, setZoom] = useState(1);
   const stageRef = useRef();
   const containerRef = useRef();
   const spatialIndexRef = useRef();
+
+  // Initialize viewport dimensions on mount and resize
+  useEffect(() => {
+    const updateViewport = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        setViewport(prev => ({
+          ...prev,
+          width: rect.width,
+          height: rect.height
+        }));
+      }
+    };
+
+    // Initial viewport setup
+    updateViewport();
+    window.addEventListener('resize', updateViewport);
+
+    // Use ResizeObserver for more accurate container size changes
+    const resizeObserver = new ResizeObserver(updateViewport);
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
+    return () => {
+      window.removeEventListener('resize', updateViewport);
+      resizeObserver.disconnect();
+    };
+  }, []);
+
+  // Calculate initial zoom and position to show entire grid
+  const calculateInitialView = useCallback(() => {
+    if (!containerRef.current || viewport.width === 0 || viewport.height === 0) {
+      return { zoom: 1, x: 0, y: 0 };
+    }
+
+    const gridWidth = cols * cellSize;
+    const gridHeight = rows * cellSize;
+
+    // Calculate zoom to fit entire grid with some padding
+    const padding = 20; // Reduced padding for better space utilization
+    const availableWidth = viewport.width - padding * 2;
+    const availableHeight = viewport.height - padding * 2;
+
+    const scaleX = availableWidth / gridWidth;
+    const scaleY = availableHeight / gridHeight;
+    const fitZoom = Math.min(scaleX, scaleY, 1.5);
+
+    // Ensure minimum zoom is respected
+    const clampedZoom = Math.max(0.1, fitZoom);
+
+    // Calculate position to center the grid
+    const scaledGridWidth = gridWidth * clampedZoom;
+    const scaledGridHeight = gridHeight * clampedZoom;
+    const centerX = (viewport.width - scaledGridWidth) / 2;
+    const centerY = (viewport.height - scaledGridHeight) / 2;
+
+    return {
+      zoom: clampedZoom,
+      x: Math.max(0, centerX),
+      y: Math.max(0, centerY)
+    };
+  }, [cols, rows, cellSize, viewport.width, viewport.height]);
+
+  // Initialize view to show entire grid (only after viewport dimensions are set)
+  useEffect(() => {
+    if (containerRef.current && viewport.width > 0 && viewport.height > 0) {
+      const initialView = calculateInitialView();
+      setZoom(initialView.zoom);
+
+      if (stageRef.current) {
+        stageRef.current.scale({ x: initialView.zoom, y: initialView.zoom });
+        stageRef.current.position({ x: initialView.x, y: initialView.y });
+
+        setViewport(prev => ({
+          ...prev,
+          x: -initialView.x / initialView.zoom,
+          y: -initialView.y / initialView.zoom
+        }));
+      }
+    }
+  }, [cols, rows, cellSize, calculateInitialView, viewport.width, viewport.height]);
 
   // Initialize spatial index for large object counts
   useEffect(() => {
@@ -32,23 +115,6 @@ const VirtualizedGridCanvas = ({
     rows, cols, cellSize, zoom, viewport
   );
 
-  // Update viewport when container resizes
-  useEffect(() => {
-    const updateViewport = () => {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        setViewport(prev => ({
-          ...prev,
-          width: rect.width,
-          height: rect.height
-        }));
-      }
-    };
-
-    updateViewport();
-    window.addEventListener('resize', updateViewport);
-    return () => window.removeEventListener('resize', updateViewport);
-  }, []);
 
   // Calculate visible grid range with performance-based buffer
   const visibleRange = useMemo(() => {
@@ -168,107 +234,109 @@ const VirtualizedGridCanvas = ({
 
   return (
     <div ref={containerRef} style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
-      <Stage
-        ref={stageRef}
-        width={viewport.width}
-        height={viewport.height}
-        draggable
-        onWheel={handleWheel}
-        onDragMove={handleDragMove}
-        scaleX={zoom}
-        scaleY={zoom}
-      >
-        {/* Background Layer */}
-        <Layer>
-          <Rect
-            x={viewport.x}
-            y={viewport.y}
-            width={viewport.width / zoom}
-            height={viewport.height / zoom}
-            fill="white"
-          />
-        </Layer>
-
-        {/* Grid Layer - Optimized rendering with boundaries */}
-        <Layer>
-          {optimizedGridLines.map(line => (
+      {viewport.width > 0 && viewport.height > 0 && (
+        <Stage
+          ref={stageRef}
+          width={viewport.width}
+          height={viewport.height}
+          draggable
+          onWheel={handleWheel}
+          onDragMove={handleDragMove}
+          scaleX={zoom}
+          scaleY={zoom}
+        >
+          {/* Background Layer - Always fill the entire visible area */}
+          <Layer>
             <Rect
-              key={line.key}
-              x={line.x}
-              y={line.y}
-              width={line.width}
-              height={line.height}
-              fill={line.fill || "grey"}
-              opacity={line.opacity}
+              x={0}
+              y={0}
+              width={cols * cellSize}
+              height={rows * cellSize}
+              fill="white"
             />
-          ))}
-          {visibleCoordinates}
-        </Layer>
+          </Layer>
 
-        {/* Objects Layer */}
-        <Layer>
-          {visibleObjects.map((obj) => {
-            let imageSrc;
-            if (obj.type === "bot") {
-              imageSrc = "/bot.png";
-            } else if (obj.type === "msu") {
-              imageSrc = "/msu.png";
-            } else {
-              imageSrc = "/pps.png";
-            }
+          {/* Grid Layer - Optimized rendering with boundaries */}
+          <Layer>
+            {optimizedGridLines.map(line => (
+              <Rect
+                key={line.key}
+                x={line.x}
+                y={line.y}
+                width={line.width}
+                height={line.height}
+                fill={line.fill || "grey"}
+                opacity={line.opacity}
+              />
+            ))}
+            {visibleCoordinates}
+          </Layer>
 
-            return (
-              <Group key={obj.id}>
-                <ObjectImage
-                  x={obj.x}
-                  y={obj.y}
-                  src={imageSrc}
-                  gridWidth={cols * cellSize}
-                  gridHeight={rows * cellSize}
-                  cellSize={cellSize}
-                  isSelected={selectedObject?.id === obj.id}
-                  onClick={() => onObjectClick(obj)}
-                  onDragStart={() => onObjectDragStart && onObjectDragStart(obj)}
-                  onDragEnd={(x, y) => onObjectDragEnd(obj.id, x, y)}
-                />
-                {/* Object ID Label - conditional rendering based on performance */}
-                {renderingConfig.showObjectLabels && (
-                  <Text
-                    x={obj.x + 25}
-                    y={obj.y + 15}
-                    text={obj.properties?.id?.toString() || obj.id.toString()}
-                    fontSize={Math.max(8, Math.min(12, cellSize / 4))}
-                    fontFamily="Arial"
-                    fontStyle="bold"
-                    fill="white"
-                    stroke="black"
-                    strokeWidth={1}
-                    offsetX={6}
-                    offsetY={6}
-                    shadowColor="black"
-                    shadowBlur={2}
-                    shadowOpacity={0.8}
-                    listening={false}
+          {/* Objects Layer */}
+          <Layer>
+            {visibleObjects.map((obj) => {
+              let imageSrc;
+              if (obj.type === "bot") {
+                imageSrc = "/bot.png";
+              } else if (obj.type === "msu") {
+                imageSrc = "/msu.png";
+              } else {
+                imageSrc = "/pps.png";
+              }
+
+              return (
+                <Group key={obj.id}>
+                  <ObjectImage
+                    x={obj.x}
+                    y={obj.y}
+                    src={imageSrc}
+                    gridWidth={cols * cellSize}
+                    gridHeight={rows * cellSize}
+                    cellSize={cellSize}
+                    isSelected={selectedObject?.id === obj.id}
+                    onClick={() => onObjectClick(obj)}
+                    onDragStart={() => onObjectDragStart && onObjectDragStart(obj)}
+                    onDragEnd={(x, y) => onObjectDragEnd(obj.id, x, y)}
                   />
-                )}
-              </Group>
-            );
-          })}
-        </Layer>
+                  {/* Object ID Label - conditional rendering based on performance */}
+                  {renderingConfig.showObjectLabels && (
+                    <Text
+                      x={obj.x + 25}
+                      y={obj.y + 15}
+                      text={obj.properties?.id?.toString() || obj.id.toString()}
+                      fontSize={Math.max(8, Math.min(12, cellSize / 4))}
+                      fontFamily="Arial"
+                      fontStyle="bold"
+                      fill="white"
+                      stroke="black"
+                      strokeWidth={1}
+                      offsetX={6}
+                      offsetY={6}
+                      shadowColor="black"
+                      shadowBlur={2}
+                      shadowOpacity={0.8}
+                      listening={false}
+                    />
+                  )}
+                </Group>
+              );
+            })}
+          </Layer>
 
-        {/* Performance Info Layer */}
-        <Layer>
-          <Text
-            x={viewport.x + 10}
-            y={viewport.y + 10}
-            text={`Performance: ${performanceLevel} | Visible: ${visibleRange.endX - visibleRange.startX}x${visibleRange.endY - visibleRange.startY} | Objects: ${visibleObjects.length}/${objects.length} | Zoom: ${zoom.toFixed(2)}`}
-            fontSize={12}
-            fill="blue"
-            fontFamily="Arial"
-            listening={false}
-          />
-        </Layer>
-      </Stage>
+          {/* Performance Info Layer */}
+          <Layer>
+            <Text
+              x={10}
+              y={10}
+              text={`Performance: ${performanceLevel} | Visible: ${visibleRange.endX - visibleRange.startX}x${visibleRange.endY - visibleRange.startY} | Objects: ${visibleObjects.length}/${objects.length} | Zoom: ${zoom.toFixed(2)}`}
+              fontSize={12}
+              fill="blue"
+              fontFamily="Arial"
+              listening={false}
+            />
+          </Layer>
+        </Stage>
+      )}
     </div>
   );
 };

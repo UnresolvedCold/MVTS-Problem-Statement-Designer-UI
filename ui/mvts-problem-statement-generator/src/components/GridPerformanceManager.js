@@ -27,29 +27,30 @@ export const useGridPerformanceManager = (rows, cols, cellSize, zoom, viewport) 
       maxVisibleObjects: Infinity
     };
 
-    // Adjust rendering based on performance level
+    // More aggressive performance adjustments
     switch (performanceLevel) {
       case 'low':
+        config.showGrid = zoom > 0.5; // Only show grid when zoomed in more
+        config.showCoordinates = zoom > 1.0 && cellSize > 50; // Much stricter coordinate rendering
+        config.showObjectLabels = zoom > 0.8;
+        config.gridLineOpacity = Math.min(0.3, zoom * 0.6);
+        config.coordinateStep = Math.max(10, Math.floor(100 / cellSize)); // Show fewer coordinates
+        config.maxVisibleObjects = 500; // Reduce visible objects significantly
+        break;
+
+      case 'medium':
         config.showGrid = zoom > 0.3;
-        config.showCoordinates = zoom > 0.8 && cellSize > 40;
-        config.showObjectLabels = zoom > 0.6;
-        config.gridLineOpacity = Math.min(0.5, zoom);
+        config.showCoordinates = zoom > 0.7 && cellSize > 35;
+        config.showObjectLabels = zoom > 0.5;
+        config.gridLineOpacity = Math.min(0.4, zoom);
         config.coordinateStep = Math.max(5, Math.floor(50 / cellSize));
         config.maxVisibleObjects = 1000;
         break;
 
-      case 'medium':
-        config.showGrid = zoom > 0.2;
-        config.showCoordinates = zoom > 0.5 && cellSize > 25;
-        config.showObjectLabels = zoom > 0.4;
-        config.gridLineOpacity = Math.min(0.5, zoom * 1.5);
-        config.coordinateStep = Math.max(2, Math.floor(25 / cellSize));
-        config.maxVisibleObjects = 2000;
-        break;
-
       default: // high performance
-        config.showCoordinates = cellSize > 20;
-        config.coordinateStep = cellSize < 50 ? 3 : 1;
+        config.showCoordinates = cellSize > 25 && zoom > 0.3;
+        config.coordinateStep = cellSize < 40 ? 5 : 2;
+        config.maxVisibleObjects = 2000;
         break;
     }
 
@@ -129,10 +130,13 @@ export const useOptimizedGridLines = (visibleRange, cellSize, renderingConfig, r
     });
 
     // Render cell boundaries (soft grey lines for each cell)
-    // Only render if cell size is reasonable to avoid performance issues
-    if (cellSize >= 3) {
-      // Vertical cell lines - render every cell boundary
-      for (let i = startX; i <= Math.min(cols, endX); i++) {
+    // Only render if cell size is reasonable and performance allows
+    if (cellSize >= 5 && opacity > 0.2) {
+      // Calculate step size to reduce number of lines for performance
+      const lineStep = cellSize < 10 ? Math.max(5, Math.floor(50 / cellSize)) : 1;
+
+      // Vertical cell lines - render with step optimization
+      for (let i = startX; i <= Math.min(cols, endX); i += lineStep) {
         lines.push({
           type: 'cell-vertical',
           key: `cv${i}`,
@@ -140,13 +144,13 @@ export const useOptimizedGridLines = (visibleRange, cellSize, renderingConfig, r
           y: Math.max(0, startY * cellSize),
           width: 1,
           height: Math.min(rows * cellSize, (Math.min(rows, endY) - Math.max(0, startY)) * cellSize),
-          opacity: opacity * 0.4, // Softer opacity for cell boundaries
-          fill: '#d0d0d0' // Soft grey color
+          opacity: opacity * 0.4,
+          fill: '#d0d0d0'
         });
       }
 
-      // Horizontal cell lines - render every cell boundary
-      for (let j = startY; j <= Math.min(rows, endY); j++) {
+      // Horizontal cell lines - render with step optimization
+      for (let j = startY; j <= Math.min(rows, endY); j += lineStep) {
         lines.push({
           type: 'cell-horizontal',
           key: `ch${j}`,
@@ -154,8 +158,8 @@ export const useOptimizedGridLines = (visibleRange, cellSize, renderingConfig, r
           y: j * cellSize,
           width: Math.min(cols * cellSize, (Math.min(cols, endX) - Math.max(0, startX)) * cellSize),
           height: 1,
-          opacity: opacity * 0.4, // Softer opacity for cell boundaries
-          fill: '#d0d0d0' // Soft grey color
+          opacity: opacity * 0.4,
+          fill: '#d0d0d0'
         });
       }
     }

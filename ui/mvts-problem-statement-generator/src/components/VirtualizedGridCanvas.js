@@ -62,7 +62,7 @@ const VirtualizedGridCanvas = ({
   }, [viewport, cellSize, rows, cols, viewportBuffer]);
 
   // Optimized grid lines
-  const optimizedGridLines = useOptimizedGridLines(visibleRange, cellSize, renderingConfig);
+  const optimizedGridLines = useOptimizedGridLines(visibleRange, cellSize, renderingConfig, rows, cols);
 
   // Generate visible coordinate labels with performance considerations
   const visibleCoordinates = useMemo(() => {
@@ -124,7 +124,12 @@ const VirtualizedGridCanvas = ({
 
     const scaleBy = 1.1;
     const newScale = e.evt.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
-    const clampedScale = Math.max(0.1, Math.min(3, newScale)); // Limit zoom range
+
+    // Fixed zoom range: 10% to 150% of original scale
+    const minZoom = 0.5;  // 10% of original
+    const maxZoom = 1.5;  // 150% of original
+
+    const clampedScale = Math.max(minZoom, Math.min(maxZoom, newScale));
 
     if (clampedScale !== oldScale) {
       const mousePointTo = {
@@ -147,7 +152,7 @@ const VirtualizedGridCanvas = ({
         y: -newPos.y / clampedScale
       }));
     }
-  }, []);
+  }, [viewport, cols, rows, cellSize]);
 
   const handleDragMove = useCallback(() => {
     const stage = stageRef.current;
@@ -184,7 +189,7 @@ const VirtualizedGridCanvas = ({
           />
         </Layer>
 
-        {/* Grid Layer - Optimized rendering */}
+        {/* Grid Layer - Optimized rendering with boundaries */}
         <Layer>
           {optimizedGridLines.map(line => (
             <Rect
@@ -193,7 +198,7 @@ const VirtualizedGridCanvas = ({
               y={line.y}
               width={line.width}
               height={line.height}
-              fill="grey"
+              fill={line.fill || "grey"}
               opacity={line.opacity}
             />
           ))}

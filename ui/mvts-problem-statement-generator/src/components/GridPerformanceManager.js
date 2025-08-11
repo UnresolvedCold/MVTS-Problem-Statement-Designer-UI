@@ -73,9 +73,9 @@ export const useGridPerformanceManager = (rows, cols, cellSize, zoom, viewport) 
 };
 
 /**
- * Memoized grid line generator
+ * Memoized grid line generator with complete boundary rendering
  */
-export const useOptimizedGridLines = (visibleRange, cellSize, renderingConfig) => {
+export const useOptimizedGridLines = (visibleRange, cellSize, renderingConfig, rows, cols) => {
   return useMemo(() => {
     if (!renderingConfig.showGrid) return [];
 
@@ -83,36 +83,89 @@ export const useOptimizedGridLines = (visibleRange, cellSize, renderingConfig) =
     const lines = [];
     const opacity = renderingConfig.gridLineOpacity;
 
-    // Vertical lines with step optimization for performance
+    // Always render complete grid boundaries first
+    lines.push({
+      type: 'boundary-left',
+      key: 'boundary-left',
+      x: 0,
+      y: 0,
+      width: 2,
+      height: rows * cellSize,
+      opacity: Math.min(1, opacity * 2), // Make boundaries more visible
+      fill: '#333' // Darker color for boundaries
+    });
+
+    lines.push({
+      type: 'boundary-right',
+      key: 'boundary-right',
+      x: cols * cellSize - 2,
+      y: 0,
+      width: 2,
+      height: rows * cellSize,
+      opacity: Math.min(1, opacity * 2),
+      fill: '#333'
+    });
+
+    lines.push({
+      type: 'boundary-top',
+      key: 'boundary-top',
+      x: 0,
+      y: 0,
+      width: cols * cellSize,
+      height: 2,
+      opacity: Math.min(1, opacity * 2),
+      fill: '#333'
+    });
+
+    lines.push({
+      type: 'boundary-bottom',
+      key: 'boundary-bottom',
+      x: 0,
+      y: rows * cellSize - 2,
+      width: cols * cellSize,
+      height: 2,
+      opacity: Math.min(1, opacity * 2),
+      fill: '#333'
+    });
+
+    // Render internal grid lines with optimization
     const vStep = Math.max(1, Math.floor(100 / cellSize));
-    for (let i = startX; i <= endX; i += vStep) {
-      lines.push({
-        type: 'vertical',
-        key: `v${i}`,
-        x: i * cellSize,
-        y: startY * cellSize,
-        width: 1,
-        height: (endY - startY) * cellSize,
-        opacity
-      });
+    const hStep = Math.max(1, Math.floor(100 / cellSize));
+
+    // Vertical lines (skip if too dense)
+    if (cellSize > 5) {
+      for (let i = Math.max(1, startX); i < Math.min(cols, endX); i += vStep) {
+        lines.push({
+          type: 'vertical',
+          key: `v${i}`,
+          x: i * cellSize,
+          y: Math.max(0, startY * cellSize),
+          width: 1,
+          height: Math.min(rows * cellSize, (endY - Math.max(0, startY)) * cellSize),
+          opacity,
+          fill: 'grey'
+        });
+      }
     }
 
-    // Horizontal lines with step optimization
-    const hStep = Math.max(1, Math.floor(100 / cellSize));
-    for (let j = startY; j <= endY; j += hStep) {
-      lines.push({
-        type: 'horizontal',
-        key: `h${j}`,
-        x: startX * cellSize,
-        y: j * cellSize,
-        width: (endX - startX) * cellSize,
-        height: 1,
-        opacity
-      });
+    // Horizontal lines (skip if too dense)
+    if (cellSize > 5) {
+      for (let j = Math.max(1, startY); j < Math.min(rows, endY); j += hStep) {
+        lines.push({
+          type: 'horizontal',
+          key: `h${j}`,
+          x: Math.max(0, startX * cellSize),
+          y: j * cellSize,
+          width: Math.min(cols * cellSize, (endX - Math.max(0, startX)) * cellSize),
+          height: 1,
+          opacity,
+          fill: 'grey'
+        });
+      }
     }
 
     return lines;
-  }, [visibleRange, cellSize, renderingConfig]);
+  }, [visibleRange, cellSize, renderingConfig, rows, cols]);
 };
 
 /**

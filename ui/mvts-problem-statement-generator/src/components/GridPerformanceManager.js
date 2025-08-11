@@ -73,7 +73,7 @@ export const useGridPerformanceManager = (rows, cols, cellSize, zoom, viewport) 
 };
 
 /**
- * Memoized grid line generator with complete boundary rendering
+ * Memoized grid line generator with complete boundary rendering and cell boundaries
  */
 export const useOptimizedGridLines = (visibleRange, cellSize, renderingConfig, rows, cols) => {
   return useMemo(() => {
@@ -83,7 +83,7 @@ export const useOptimizedGridLines = (visibleRange, cellSize, renderingConfig, r
     const lines = [];
     const opacity = renderingConfig.gridLineOpacity;
 
-    // Always render complete grid boundaries first
+    // Always render complete grid boundaries first (darker outer border)
     lines.push({
       type: 'boundary-left',
       key: 'boundary-left',
@@ -91,8 +91,8 @@ export const useOptimizedGridLines = (visibleRange, cellSize, renderingConfig, r
       y: 0,
       width: 2,
       height: rows * cellSize,
-      opacity: Math.min(1, opacity * 2), // Make boundaries more visible
-      fill: '#333' // Darker color for boundaries
+      opacity: Math.min(1, opacity * 2),
+      fill: '#333'
     });
 
     lines.push({
@@ -128,38 +128,34 @@ export const useOptimizedGridLines = (visibleRange, cellSize, renderingConfig, r
       fill: '#333'
     });
 
-    // Render internal grid lines with optimization
-    const vStep = Math.max(1, Math.floor(100 / cellSize));
-    const hStep = Math.max(1, Math.floor(100 / cellSize));
-
-    // Vertical lines (skip if too dense)
-    if (cellSize > 5) {
-      for (let i = Math.max(1, startX); i < Math.min(cols, endX); i += vStep) {
+    // Render cell boundaries (soft grey lines for each cell)
+    // Only render if cell size is reasonable to avoid performance issues
+    if (cellSize >= 3) {
+      // Vertical cell lines - render every cell boundary
+      for (let i = startX; i <= Math.min(cols, endX); i++) {
         lines.push({
-          type: 'vertical',
-          key: `v${i}`,
+          type: 'cell-vertical',
+          key: `cv${i}`,
           x: i * cellSize,
           y: Math.max(0, startY * cellSize),
           width: 1,
-          height: Math.min(rows * cellSize, (endY - Math.max(0, startY)) * cellSize),
-          opacity,
-          fill: 'grey'
+          height: Math.min(rows * cellSize, (Math.min(rows, endY) - Math.max(0, startY)) * cellSize),
+          opacity: opacity * 0.4, // Softer opacity for cell boundaries
+          fill: '#d0d0d0' // Soft grey color
         });
       }
-    }
 
-    // Horizontal lines (skip if too dense)
-    if (cellSize > 5) {
-      for (let j = Math.max(1, startY); j < Math.min(rows, endY); j += hStep) {
+      // Horizontal cell lines - render every cell boundary
+      for (let j = startY; j <= Math.min(rows, endY); j++) {
         lines.push({
-          type: 'horizontal',
-          key: `h${j}`,
+          type: 'cell-horizontal',
+          key: `ch${j}`,
           x: Math.max(0, startX * cellSize),
           y: j * cellSize,
-          width: Math.min(cols * cellSize, (endX - Math.max(0, startX)) * cellSize),
+          width: Math.min(cols * cellSize, (Math.min(cols, endX) - Math.max(0, startX)) * cellSize),
           height: 1,
-          opacity,
-          fill: 'grey'
+          opacity: opacity * 0.4, // Softer opacity for cell boundaries
+          fill: '#d0d0d0' // Soft grey color
         });
       }
     }

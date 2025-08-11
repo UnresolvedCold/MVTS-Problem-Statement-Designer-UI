@@ -1,7 +1,7 @@
 // src/components/GridView.js
 import React from 'react';
 import Toolbar from './Toolbar';
-import GridCanvas from './GridCanvas';
+import VirtualizedGridCanvas from './VirtualizedGridCanvas';
 import RightSidebar from './RightSidebar';
 
 const GridView = ({
@@ -57,15 +57,15 @@ const GridView = ({
         availableBots={filteredObjects.availableBots}
       />
 
-      {/* Main Grid Canvas */}
-      <div style={{ 
+      {/* Main Grid Canvas - Now using optimized virtualized canvas */}
+      <div style={{
         flex: 1, 
-        overflow: "auto", 
+        overflow: "hidden",
         position: "relative",
         backgroundColor: "#fff",
         border: "1px solid #ccc"
       }}>
-        <GridCanvas
+        <VirtualizedGridCanvas
           rows={rows}
           cols={cols}
           cellSize={cellSize}

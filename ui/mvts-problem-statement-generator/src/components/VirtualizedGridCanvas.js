@@ -86,21 +86,28 @@ const VirtualizedGridCanvas = ({
   // Initialize view to show entire grid (only after viewport dimensions are set)
   useEffect(() => {
     if (containerRef.current && viewport.width > 0 && viewport.height > 0) {
-      const initialView = calculateInitialView();
-      setZoom(initialView.zoom);
+      // Start with zoom level 1 instead of calculating fit-to-screen
+      const initialZoom = 1;
+      setZoom(initialZoom);
 
       if (stageRef.current) {
-        stageRef.current.scale({ x: initialView.zoom, y: initialView.zoom });
-        stageRef.current.position({ x: initialView.x, y: initialView.y });
+        stageRef.current.scale({ x: initialZoom, y: initialZoom });
+        // Center the grid at zoom level 1
+        const gridWidth = cols * cellSize;
+        const gridHeight = rows * cellSize;
+        const centerX = (viewport.width - gridWidth) / 2;
+        const centerY = (viewport.height - gridHeight) / 2;
+
+        stageRef.current.position({ x: Math.max(0, centerX), y: Math.max(0, centerY) });
 
         setViewport(prev => ({
           ...prev,
-          x: -initialView.x / initialView.zoom,
-          y: -initialView.y / initialView.zoom
+          x: -Math.max(0, centerX) / initialZoom,
+          y: -Math.max(0, centerY) / initialZoom
         }));
       }
     }
-  }, [cols, rows, cellSize, calculateInitialView, viewport.width, viewport.height]);
+  }, [cols, rows, cellSize, viewport.width, viewport.height]);
 
   // Initialize spatial index for large object counts
   useEffect(() => {

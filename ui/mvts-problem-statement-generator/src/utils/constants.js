@@ -67,8 +67,8 @@ export const getGridCfg = () => {
     return getGridConfig();
   } catch (error) {
     return {
-      DEFAULT_ROWS: 10,
-      DEFAULT_COLS: 10,
+      DEFAULT_ROWS: 50,
+      DEFAULT_COLS: 50,
       DEFAULT_CELL_SIZE: 50,
       OBJECT_SIZE: 50,
       MIN_GRID_SIZE: 1,

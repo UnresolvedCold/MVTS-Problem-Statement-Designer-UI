@@ -1,10 +1,13 @@
 // src/hooks/useLocalObjectManager.js
 import { useState, useCallback, useRef } from 'react';
 
+// This is the main hook for managing pps, bot, msu, task and assignment objects in the local state
+// cellSize is used to convert grid coordinates to pixel positions
+// localStateManager is used to interact and save the local warehouse data
+// schemaManager is used to get the templates for each object type
 export const useLocalObjectManager = (cellSize, localStateManager, schemaManager) => {
   const [objects, setObjects] = useState([]);
   const [selectedObject, setSelectedObject] = useState(null);
-  const lastUpdateRef = useRef(null);
 
   const {
     localWarehouseData,
@@ -18,6 +21,7 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
 
   // Generate unique ID for objects and tasks
   const generateObjectId = useCallback((type) => {
+    // Get the list associated with the object type and return the next id
     const listKey = type === 'bot' ? 'ranger_list' : 
                    type === 'pps' ? 'pps_list' : 
                    type === 'msu' ? 'transport_entity_list' :
@@ -317,10 +321,8 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
       if (updatedObject) {
         // Use the correct identifier based on object type
         let identifier;
-        if (updatedObject.type === 'task') {
+        if (updatedObject.type === 'task' || updatedObject.type === 'assignment') {
           identifier = updatedObject.properties.task_key;
-        } else if (updatedObject.type === 'assignment') {
-          identifier = updatedObject.properties.id || updatedObject.properties.task_key;
         } else {
           identifier = updatedObject.properties.id;
         }

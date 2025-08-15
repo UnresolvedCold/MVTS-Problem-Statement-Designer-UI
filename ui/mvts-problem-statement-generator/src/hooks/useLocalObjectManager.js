@@ -315,9 +315,19 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
       // Update the object in local warehouse data
       const updatedObject = updatedObjects.find(obj => obj.id === objectId);
       if (updatedObject) {
+        // Use the correct identifier based on object type
+        let identifier;
+        if (updatedObject.type === 'task') {
+          identifier = updatedObject.properties.task_key;
+        } else if (updatedObject.type === 'assignment') {
+          identifier = updatedObject.properties.id || updatedObject.properties.task_key;
+        } else {
+          identifier = updatedObject.properties.id;
+        }
+
         updateObjectInLocal(
           updatedObject.type,
-          updatedObject.properties.id,
+          identifier,
           newProperties
         );
       }

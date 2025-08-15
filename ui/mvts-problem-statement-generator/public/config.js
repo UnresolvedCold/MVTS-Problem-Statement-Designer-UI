@@ -33,8 +33,8 @@ window.MVTS_CONFIG = {
 
   // Grid Configuration
   grid: {
-    defaultRows: 10,
-    defaultCols: 10,
+    defaultRows: 50,
+    defaultCols: 50,
     defaultCellSize: 50,
     objectSize: 50,
     minGridSize: 1,

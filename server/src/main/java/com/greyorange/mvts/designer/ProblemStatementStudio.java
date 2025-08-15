@@ -217,8 +217,8 @@ public class ProblemStatementStudio {
       res = getOutput(inputMessage);
 
     } catch (Exception e) {
-
       e.printStackTrace();
+      throw new RuntimeException("Failed to process input message", e);
     } finally {
       updateApplicationProperties((Map) originalProperties);
     }

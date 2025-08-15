@@ -15,6 +15,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class WebSocketLogAppender extends AppenderBase<ILoggingEvent> {
 
     private static final Set<Session> activeSessions = new CopyOnWriteArraySet<>();
+    private static final ThreadLocal<Session> currentSession = new ThreadLocal<>();
     private Encoder<ILoggingEvent> encoder;
 
     public static void addSession(Session session) {
@@ -23,6 +24,14 @@ public class WebSocketLogAppender extends AppenderBase<ILoggingEvent> {
 
     public static void removeSession(Session session) {
         activeSessions.remove(session);
+    }
+
+    public static void setCurrentSession(Session session) {
+        currentSession.set(session);
+    }
+
+    public static void clearCurrentSession() {
+        currentSession.remove();
     }
 
     public void setEncoder(Encoder<ILoggingEvent> encoder) {
@@ -48,18 +57,12 @@ public class WebSocketLogAppender extends AppenderBase<ILoggingEvent> {
                 event.getTimeStamp()
             );
 
-            // Send to all active WebSocket sessions
-            for (Session session : activeSessions) {
-                if (session.isOpen()) {
-                    try {
-                        session.getRemote().sendString(wsMessage);
-                    } catch (IOException e) {
-                        // Remove session if it's no longer valid
-                        activeSessions.remove(session);
-                        addError("Failed to send log message to WebSocket session", e);
-                    }
-                } else {
-                    activeSessions.remove(session);
+            Session session = currentSession.get();
+            if (session != null && session.isOpen()) {
+                try {
+                    session.getRemote().sendString(wsMessage);
+                } catch (IOException e) {
+                    addError("Failed to send log message to WebSocket session", e);
                 }
             }
         } catch (Exception e) {

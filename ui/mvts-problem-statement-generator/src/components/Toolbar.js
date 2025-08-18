@@ -59,87 +59,60 @@ const Toolbar = ({
   };
 
   return (
-    <div style={{ width: 200, padding: 10, borderRight: "1px solid #ccc", overflow: 'auto' }}>
+    <div className="w-50 p-2.5 border-r border-gray-300 overflow-auto">
       {/* Grid Settings */}
-      <div style={{ marginBottom: '20px' }}>
+      <div className="mb-5">
         <h3>Grid Settings</h3>
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        <div className="flex flex-col gap-3">
           <div>
-            <label style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>Rows: </label>
+            <label className="block mb-1 font-medium">Rows: </label>
             <input
               type="number"
               value={rows}
               onChange={(e) => onRowsChange(parseInt(e.target.value))}
-              style={{ width: "100%", padding: "4px", borderRadius: "4px", border: "1px solid #ccc" }}
+              className="w-full p-1 rounded border border-gray-300"
             />
           </div>
           <div>
-            <label style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>Cols: </label>
+            <label className="block mb-1 font-medium">Cols: </label>
             <input
               type="number"
               value={cols}
               onChange={(e) => onColsChange(parseInt(e.target.value))}
-              style={{ width: "100%", padding: "4px", borderRadius: "4px", border: "1px solid #ccc" }}
+              className="w-full p-1 rounded border border-gray-300"
             />
           </div>
           <div>
-            <label style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>Cell Size: </label>
+            <label className="block mb-1 font-medium">Cell Size: </label>
             <input
               type="number"
               value={cellSize}
               onChange={(e) => onCellSizeChange(parseInt(e.target.value))}
-              style={{ width: "100%", padding: "4px", borderRadius: "4px", border: "1px solid #ccc" }}
+              className="w-full p-1 rounded border border-gray-300"
             />
           </div>
         </div>
       </div>
 
       {/* Add Entities */}
-      <div style={{ marginBottom: '20px' }}>
+      <div className="mb-5">
         <h3>Add Entities</h3>
-        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-          <button 
+        <div className="flex flex-col gap-1.5">
+          <button
             onClick={() => onAddObject("bot")}
-            style={{
-              backgroundColor: "#007bff",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              padding: "6px 10px",
-              cursor: "pointer",
-              fontSize: "12px",
-              fontWeight: "500"
-            }}
+            className="bg-blue-500 text-white border-none rounded px-2.5 py-1.5 cursor-pointer text-xs font-medium hover:bg-blue-600 transition-colors"
           >
             🤖 Add Bot
           </button>
           <button 
             onClick={() => onAddObject("pps")}
-            style={{
-              backgroundColor: "#28a745",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              padding: "6px 10px",
-              cursor: "pointer",
-              fontSize: "12px",
-              fontWeight: "500"
-            }}
+            className="bg-green-500 text-white border-none rounded px-2.5 py-1.5 cursor-pointer text-xs font-medium hover:bg-green-600 transition-colors"
           >
             🏠 Add PPS
           </button>
           <button 
             onClick={() => onAddObject("msu")}
-            style={{
-              backgroundColor: "#ffc107",
-              color: "#212529",
-              border: "none",
-              borderRadius: "4px",
-              padding: "6px 10px",
-              cursor: "pointer",
-              fontSize: "12px",
-              fontWeight: "500"
-            }}
+            className="bg-yellow-400 text-gray-800 border-none rounded px-2.5 py-1.5 cursor-pointer text-xs font-medium hover:bg-yellow-500 transition-colors"
           >
             📦 Add MSU
           </button>
@@ -148,42 +121,22 @@ const Toolbar = ({
           {!showTaskForm ? (
             <button 
               onClick={() => setShowTaskForm(true)}
-              style={{
-                backgroundColor: "#17a2b8",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                padding: "6px 10px",
-                cursor: "pointer",
-                fontSize: "12px",
-                fontWeight: "500"
-              }}
+              className="bg-cyan-500 text-white border-none rounded px-2.5 py-1.5 cursor-pointer text-xs font-medium hover:bg-cyan-600 transition-colors"
             >
               📋 Add Task
             </button>
           ) : (
-            <div style={{
-              border: "2px solid #17a2b8",
-              borderRadius: "4px",
-              padding: "8px",
-              backgroundColor: "white"
-            }}>
-              <div style={{ fontSize: "12px", fontWeight: "bold", marginBottom: "8px" }}>
+            <div className="border-2 border-cyan-500 rounded p-2 bg-white">
+              <div className="text-xs font-bold mb-2">
                 Create New Task
               </div>
               
-              <div style={{ marginBottom: "6px" }}>
-                <label style={{ display: "block", fontSize: "11px", marginBottom: "2px" }}>PPS:</label>
+              <div className="mb-1.5">
+                <label className="block text-xs mb-0.5">PPS:</label>
                 <select
                   value={taskFormData.destination_id}
                   onChange={(e) => setTaskFormData({ ...taskFormData, destination_id: e.target.value })}
-                  style={{
-                    width: "100%",
-                    padding: "3px",
-                    fontSize: "11px",
-                    border: "1px solid #ccc",
-                    borderRadius: "3px"
-                  }}
+                  className="w-full p-0.5 text-xs border border-gray-300 rounded"
                 >
                   <option value="">Select PPS</option>
                   {availablePPS.map(pps => (
@@ -192,18 +145,12 @@ const Toolbar = ({
                 </select>
               </div>
               
-              <div style={{ marginBottom: "8px" }}>
-                <label style={{ display: "block", fontSize: "11px", marginBottom: "2px" }}>MSU:</label>
+              <div className="mb-2">
+                <label className="block text-xs mb-0.5">MSU:</label>
                 <select
                   value={taskFormData.transport_entity_id}
                   onChange={(e) => setTaskFormData({ ...taskFormData, transport_entity_id: e.target.value })}
-                  style={{
-                    width: "100%",
-                    padding: "3px",
-                    fontSize: "11px",
-                    border: "1px solid #ccc",
-                    borderRadius: "3px"
-                  }}
+                  className="w-full p-0.5 text-xs border border-gray-300 rounded"
                 >
                   <option value="">Select MSU</option>
                   {availableMSU.map(msu => (
@@ -212,19 +159,10 @@ const Toolbar = ({
                 </select>
               </div>
               
-              <div style={{ display: "flex", gap: "4px" }}>
+              <div className="flex gap-1">
                 <button
                   onClick={handleAddTask}
-                  style={{
-                    flex: 1,
-                    padding: "4px",
-                    backgroundColor: "#17a2b8",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "2px",
-                    fontSize: "10px",
-                    cursor: "pointer"
-                  }}
+                  className="flex-1 p-1 bg-cyan-500 text-white border-none rounded text-xs cursor-pointer hover:bg-cyan-600 transition-colors"
                 >
                   Create
                 </button>
@@ -233,16 +171,7 @@ const Toolbar = ({
                     setShowTaskForm(false);
                     setTaskFormData({ destination_id: '', transport_entity_id: '' });
                   }}
-                  style={{
-                    flex: 1,
-                    padding: "4px",
-                    backgroundColor: "#6c757d",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "2px",
-                    fontSize: "10px",
-                    cursor: "pointer"
-                  }}
+                  className="flex-1 p-1 bg-gray-500 text-white border-none rounded text-xs cursor-pointer hover:bg-gray-600 transition-colors"
                 >
                   Cancel
                 </button>
@@ -254,42 +183,22 @@ const Toolbar = ({
           {!showAssignmentForm ? (
             <button 
               onClick={() => setShowAssignmentForm(true)}
-              style={{
-                backgroundColor: "#6610f2",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                padding: "6px 10px",
-                cursor: "pointer",
-                fontSize: "12px",
-                fontWeight: "500"
-              }}
+              className="bg-purple-600 text-white border-none rounded px-2.5 py-1.5 cursor-pointer text-xs font-medium hover:bg-purple-700 transition-colors"
             >
               🎯 Add Assignment
             </button>
           ) : (
-            <div style={{
-              border: "2px solid #6610f2",
-              borderRadius: "4px",
-              padding: "8px",
-              backgroundColor: "white"
-            }}>
-              <div style={{ fontSize: "12px", fontWeight: "bold", marginBottom: "8px" }}>
+            <div className="border-2 border-purple-600 rounded p-2 bg-white">
+              <div className="text-xs font-bold mb-2">
                 Create New Assignment
               </div>
               
-              <div style={{ marginBottom: "6px" }}>
-                <label style={{ display: "block", fontSize: "11px", marginBottom: "2px" }}>PPS:</label>
+              <div className="mb-1.5">
+                <label className="block text-xs mb-0.5">PPS:</label>
                 <select
                   value={assignmentFormData.pps_id}
                   onChange={(e) => setAssignmentFormData({ ...assignmentFormData, pps_id: e.target.value })}
-                  style={{
-                    width: "100%",
-                    padding: "3px",
-                    fontSize: "11px",
-                    border: "1px solid #ccc",
-                    borderRadius: "3px"
-                  }}
+                  className="w-full p-0.5 text-xs border border-gray-300 rounded"
                 >
                   <option value="">Select PPS</option>
                   {availablePPS.map(pps => (
@@ -298,18 +207,12 @@ const Toolbar = ({
                 </select>
               </div>
               
-              <div style={{ marginBottom: "6px" }}>
-                <label style={{ display: "block", fontSize: "11px", marginBottom: "2px" }}>MSU:</label>
+              <div className="mb-1.5">
+                <label className="block text-xs mb-0.5">MSU:</label>
                 <select
                   value={assignmentFormData.msu_id}
                   onChange={(e) => setAssignmentFormData({ ...assignmentFormData, msu_id: e.target.value })}
-                  style={{
-                    width: "100%",
-                    padding: "3px",
-                    fontSize: "11px",
-                    border: "1px solid #ccc",
-                    borderRadius: "3px"
-                  }}
+                  className="w-full p-0.5 text-xs border border-gray-300 rounded"
                 >
                   <option value="">Select MSU</option>
                   {availableMSU.map(msu => (
@@ -318,18 +221,12 @@ const Toolbar = ({
                 </select>
               </div>
               
-              <div style={{ marginBottom: "8px" }}>
-                <label style={{ display: "block", fontSize: "11px", marginBottom: "2px" }}>Bot:</label>
+              <div className="mb-2">
+                <label className="block text-xs mb-0.5">Bot:</label>
                 <select
                   value={assignmentFormData.bot_id}
                   onChange={(e) => setAssignmentFormData({ ...assignmentFormData, bot_id: e.target.value })}
-                  style={{
-                    width: "100%",
-                    padding: "3px",
-                    fontSize: "11px",
-                    border: "1px solid #ccc",
-                    borderRadius: "3px"
-                  }}
+                  className="w-full p-0.5 text-xs border border-gray-300 rounded"
                 >
                   <option value="">Select Bot</option>
                   {availableBots.map(bot => (
@@ -338,19 +235,10 @@ const Toolbar = ({
                 </select>
               </div>
               
-              <div style={{ display: "flex", gap: "4px" }}>
+              <div className="flex gap-1">
                 <button
                   onClick={handleAddAssignment}
-                  style={{
-                    flex: 1,
-                    padding: "4px",
-                    backgroundColor: "#6610f2",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "2px",
-                    fontSize: "10px",
-                    cursor: "pointer"
-                  }}
+                  className="flex-1 p-1 bg-purple-600 text-white border-none rounded text-xs cursor-pointer hover:bg-purple-700 transition-colors"
                 >
                   Create
                 </button>
@@ -359,16 +247,7 @@ const Toolbar = ({
                     setShowAssignmentForm(false);
                     setAssignmentFormData({ pps_id: '', msu_id: '', bot_id: '' });
                   }}
-                  style={{
-                    flex: 1,
-                    padding: "4px",
-                    backgroundColor: "#6c757d",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "2px",
-                    fontSize: "10px",
-                    cursor: "pointer"
-                  }}
+                  className="flex-1 p-1 bg-gray-500 text-white border-none rounded text-xs cursor-pointer hover:bg-gray-600 transition-colors"
                 >
                   Cancel
                 </button>
@@ -379,28 +258,16 @@ const Toolbar = ({
       </div>
 
       {/* Server Actions */}
-      <div style={{ marginBottom: '20px' }}>
+      <div className="mb-5">
         <h3>Server Actions</h3>
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          <div style={{ 
-            fontSize: '12px', 
-            color: isConnected ? 'green' : 'orange',
-            marginBottom: '5px',
-            fontWeight: 'bold'
-          }}>
+        <div className="flex flex-col gap-2">
+          <div className={`text-xs mb-1.5 font-bold ${isConnected ? 'text-green-600' : 'text-orange-500'}`}>
             Status: {isConnected ? 'Connected' : 'Disconnected'}
           </div>
           
           <button
             onClick={onManageTemplates}
-            style={{
-              padding: "8px",
-              border: "1px solid #ccc",
-              borderRadius: "4px",
-              backgroundColor: "#f8f9fa",
-              cursor: "pointer",
-              fontSize: "12px"
-            }}
+            className="p-2 border border-gray-300 rounded bg-gray-50 cursor-pointer text-xs hover:bg-gray-100 transition-colors"
           >
             🔧 Manage Schemas
           </button>
@@ -408,15 +275,11 @@ const Toolbar = ({
           <button
             onClick={onSolveProblem}
             disabled={isLoading}
-            style={{
-              padding: "8px",
-              border: "1px solid #28a745",
-              borderRadius: "4px",
-              backgroundColor: isLoading ? "#6c757d" : "#28a745",
-              color: "white",
-              cursor: isLoading ? "not-allowed" : "pointer",
-              fontSize: "12px"
-            }}
+            className={`p-2 border rounded text-white text-xs transition-colors ${
+              isLoading 
+                ? 'border-gray-500 bg-gray-500 cursor-not-allowed' 
+                : 'border-green-500 bg-green-500 cursor-pointer hover:bg-green-600'
+            }`}
           >
             {isLoading ? "🔄 Solving..." : "🚀 Solve Problem"}
           </button>
@@ -424,20 +287,12 @@ const Toolbar = ({
       </div>
 
       {/* Data Management */}
-      <div style={{ marginBottom: '20px' }}>
+      <div className="mb-5">
         <h3>Data Management</h3>
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        <div className="flex flex-col gap-2">
           <button
             onClick={onClearData}
-            style={{
-              padding: "8px",
-              border: "1px solid #dc3545",
-              borderRadius: "4px",
-              backgroundColor: "#dc3545",
-              color: "white",
-              cursor: "pointer",
-              fontSize: "12px"
-            }}
+            className="p-2 border border-red-500 rounded bg-red-500 text-white cursor-pointer text-xs hover:bg-red-600 transition-colors"
           >
             🗑️ Clear All Data
           </button>
@@ -445,15 +300,9 @@ const Toolbar = ({
       </div>
 
       {/* Local Storage Info */}
-      <div style={{ 
-        padding: '10px', 
-        backgroundColor: '#e3f2fd', 
-        borderRadius: '4px',
-        fontSize: '11px',
-        color: '#1565c0'
-      }}>
+      <div className="p-2.5 bg-blue-50 rounded text-xs text-blue-700">
         <strong>💡 Local Mode</strong>
-        <div style={{ marginTop: '5px' }}>
+        <div className="mt-1.5">
           All changes are saved locally in your browser. Use templates to create new items and solve problems on the server.
         </div>
       </div>

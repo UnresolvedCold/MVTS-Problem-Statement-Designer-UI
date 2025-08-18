@@ -26,7 +26,7 @@ const GridEditor = () => {
   const schemaManager = useSchemaManager();
   const localStateManager = useLocalStateManager(schemaManager);
   const { localWarehouseData } = localStateManager;
-  const { 
+  const {
     initializationError: schemaError,
     isLoading: schemasLoading,
     loadingMessage: schemaLoadingMessage
@@ -95,7 +95,7 @@ const GridEditor = () => {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+    <div className="flex flex-col h-screen">
       {/* Loading Overlay */}
       <LoadingOverlay 
         isLoading={schemasLoading}

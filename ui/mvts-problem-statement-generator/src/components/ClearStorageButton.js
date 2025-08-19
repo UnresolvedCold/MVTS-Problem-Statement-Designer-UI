@@ -15,10 +15,10 @@ const ClearStorageButton = () => {
   return (
     <button
       onClick={handleClearStorage}
-      className="fixed bottom-5 right-5 py-2.5 px-4 bg-red-600 text-white border-none rounded cursor-pointer text-xs z-50 shadow-lg hover:bg-red-700 transition-colors"
+      className="py-2.5 px-4 bg-red-600 text-white border-none rounded cursor-pointer text-xs z-50 shadow-lg hover:bg-red-700 transition-colors"
       title="Clear localStorage and reset to defaults"
     >
-      🗑️ Clear Storage
+      🗑️ Reset
     </button>
   );
 };

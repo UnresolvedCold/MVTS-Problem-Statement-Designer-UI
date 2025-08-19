@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ClearStorageButton from "./ClearStorageButton";
 
 const Toolbar = ({ 
   rows, 
@@ -290,12 +291,7 @@ const Toolbar = ({
       <div className="mb-5">
         <h3 className="text-gray-900 dark:text-gray-100">Data Management</h3>
         <div className="flex flex-col gap-2">
-          <button
-            onClick={onClearData}
-            className="p-2 border border-red-500 dark:border-red-400 rounded bg-red-500 dark:bg-red-600 text-white cursor-pointer text-xs hover:bg-red-600 dark:hover:bg-red-700 transition-colors"
-          >
-            🗑️ Clear All Data
-          </button>
+          <ClearStorageButton />
         </div>
       </div>
 

@@ -50,7 +50,9 @@ export const usePropertyEditor = (selectedObject, selectedTask, selectedAssignme
       setJsonEditValue('');
       setHasUnsavedChanges(false);
     }
-  }, [currentItem, isTask, isAssignment]);
+
+    console.log("Selected item updated:", currentItem);
+  }, [currentItem, isTask, isAssignment, currentItem.x, currentItem.y, selectedObject.x, selectedObject.y]);
 
   // Update JSON text when form values change (for form to JSON sync)
   useEffect(() => {

@@ -451,6 +451,17 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
     });
   }, [selectedObject, cellSize, updateObjectInLocal]);
 
+  // Keep selectedObject in sync when its position or manual_change updates
+  // eyes: This is sort of hack, but in the future maybe we can do this more elegantly
+  useEffect(() => {
+    if (selectedObject) {
+      const updated = objects.find(o => o.id === selectedObject.id);
+      if (updated && (updated.x !== selectedObject.x || updated.y !== selectedObject.y || JSON.stringify(updated.manual_change) !== JSON.stringify(selectedObject.manual_change))) {
+        setSelectedObject(updated);
+      }
+    }
+  }, [objects, selectedObject, setSelectedObject]);
+
   return {
     objects,
     selectedObject,

@@ -14,7 +14,6 @@ import SolutionPage from "./components/SolutionPage";
 import TemplateManager from "./components/TemplateManager";
 import LoadingOverlay from "./components/LoadingOverlay";
 import TabNavigation from "./components/TabNavigation";
-import ClearStorageButton from "./components/ClearStorageButton";
 
 const GridEditor = () => {
   // UI state
@@ -174,9 +173,6 @@ const GridEditor = () => {
           onClose={() => setShowTemplateManager(false)}
         />
       )}
-
-      {/* Clear Storage Button - for development/debugging */}
-      <ClearStorageButton />
     </div>
   );
 };

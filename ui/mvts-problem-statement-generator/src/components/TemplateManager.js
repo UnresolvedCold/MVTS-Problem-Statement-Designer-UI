@@ -1,7 +1,9 @@
 // src/components/TemplateManager.js
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
 
 const TemplateManager = ({ schemaManager, localStateManager, onClose }) => {
+  const { isDark } = useTheme();
   const [schemas, setSchemas] = useState(schemaManager.schemas);
   const [isLoading, setIsLoading] = useState(false);
   const [editingSchema, setEditingSchema] = useState(null);
@@ -143,53 +145,32 @@ const TemplateManager = ({ schemaManager, localStateManager, onClose }) => {
   const renderSchemaEditor = (type, schema) => {
     const isEditing = editingType === type;
     
-    if (!schema) return <div>No schema available</div>;
-    
+    if (!schema) return <div className="text-gray-600 dark:text-gray-400">No schema available</div>;
+
     return (
-      <div style={{
-        padding: '15px',
-        border: isEditing ? '2px solid #007bff' : '1px solid #ddd',
-        borderRadius: '6px',
-        marginBottom: '15px',
-        backgroundColor: isEditing ? '#f8f9ff' : '#f9f9f9'
-      }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '10px'
-        }}>
-          <h4 style={{ margin: 0, textTransform: 'capitalize', color: isEditing ? '#007bff' : '#333' }}>
+      <div className={`p-4 border rounded mb-4 transition-colors ${
+        isEditing 
+          ? 'border-2 border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+          : 'border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800'
+      }`}>
+        <div className="flex justify-between items-center mb-2.5">
+          <h4 className={`m-0 capitalize ${
+            isEditing ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'
+          }`}>
             {type} Schema {isEditing && '(Editing)'}
           </h4>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div className="flex gap-2">
             {!isEditing ? (
               <>
                 <button
                   onClick={() => startEditing(type, schema)}
-                  style={{
-                    padding: '4px 8px',
-                    fontSize: '12px',
-                    backgroundColor: '#28a745',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '3px',
-                    cursor: 'pointer'
-                  }}
+                  className="py-1 px-2 text-xs bg-green-500 dark:bg-green-600 text-white border-none rounded cursor-pointer hover:bg-green-600 dark:hover:bg-green-700 transition-colors"
                 >
                   ✏️ Edit
                 </button>
                 <button
                   onClick={() => resetToDefault(type)}
-                  style={{
-                    padding: '4px 8px',
-                    fontSize: '12px',
-                    backgroundColor: '#6c757d',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '3px',
-                    cursor: 'pointer'
-                  }}
+                  className="py-1 px-2 text-xs bg-gray-500 dark:bg-gray-600 text-white border-none rounded cursor-pointer hover:bg-gray-600 dark:hover:bg-gray-700 transition-colors"
                 >
                   🔄 Reset
                 </button>
@@ -199,29 +180,17 @@ const TemplateManager = ({ schemaManager, localStateManager, onClose }) => {
                 <button
                   onClick={saveSchema}
                   disabled={!!jsonError}
-                  style={{
-                    padding: '4px 8px',
-                    fontSize: '12px',
-                    backgroundColor: jsonError ? '#6c757d' : '#28a745',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '3px',
-                    cursor: jsonError ? 'not-allowed' : 'pointer'
-                  }}
+                  className={`py-1 px-2 text-xs text-white border-none rounded cursor-pointer transition-colors ${
+                    jsonError 
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : 'bg-green-500 dark:bg-green-600 hover:bg-green-600 dark:hover:bg-green-700'
+                  }`}
                 >
                   💾 Save
                 </button>
                 <button
                   onClick={cancelEdit}
-                  style={{
-                    padding: '4px 8px',
-                    fontSize: '12px',
-                    backgroundColor: '#dc3545',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '3px',
-                    cursor: 'pointer'
-                  }}
+                  className="py-1 px-2 text-xs bg-red-500 dark:bg-red-600 text-white border-none rounded cursor-pointer hover:bg-red-600 dark:hover:bg-red-700 transition-colors"
                 >
                   ❌ Cancel
                 </button>
@@ -229,63 +198,25 @@ const TemplateManager = ({ schemaManager, localStateManager, onClose }) => {
             )}
           </div>
         </div>
-        
+
         {isEditing ? (
           <div>
             <textarea
               value={editingSchema}
               onChange={(e) => handleSchemaChange(e.target.value)}
-              style={{
-                width: '100%',
-                height: '300px',
-                fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
-                fontSize: '12px',
-                padding: '10px',
-                border: jsonError ? '2px solid #dc3545' : '1px solid #ccc',
-                borderRadius: '4px',
-                backgroundColor: '#fff',
-                resize: 'vertical'
-              }}
+              className={`w-full h-40 p-2 font-mono text-xs rounded border resize-y bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors ${
+                jsonError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+              }`}
               placeholder="Enter valid JSON schema..."
             />
             {jsonError && (
-              <div style={{
-                marginTop: '8px',
-                padding: '8px',
-                backgroundColor: '#f8d7da',
-                color: '#721c24',
-                border: '1px solid #f5c6cb',
-                borderRadius: '4px',
-                fontSize: '12px'
-              }}>
+              <div className="mt-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded text-red-600 dark:text-red-400 text-xs">
                 <strong>JSON Error:</strong> {jsonError}
-              </div>
-            )}
-            {hasUnsavedChanges && !jsonError && (
-              <div style={{
-                marginTop: '8px',
-                padding: '6px',
-                backgroundColor: '#fff3cd',
-                color: '#856404',
-                border: '1px solid #ffeaa7',
-                borderRadius: '4px',
-                fontSize: '12px'
-              }}>
-                ⚠️ You have unsaved changes
               </div>
             )}
           </div>
         ) : (
-          <pre style={{
-            fontSize: '12px',
-            maxHeight: '200px',
-            overflow: 'auto',
-            backgroundColor: '#fff',
-            padding: '10px',
-            borderRadius: '4px',
-            margin: 0,
-            border: '1px solid #e9ecef'
-          }}>
+          <pre className="max-h-48 overflow-auto font-mono text-xs bg-white dark:bg-gray-700 p-2 rounded border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
             {JSON.stringify(schema, null, 2)}
           </pre>
         )}
@@ -294,160 +225,71 @@ const TemplateManager = ({ schemaManager, localStateManager, onClose }) => {
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 1000
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        padding: '20px',
-        borderRadius: '8px',
-        maxWidth: '900px',
-        maxHeight: '90vh',
-        overflow: 'auto',
-        width: '95%'
-      }}>
+    <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-black dark:bg-opacity-70 flex justify-center items-center z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-4/5 max-w-4xl max-h-4/5 overflow-hidden flex flex-col">
         {/* Header */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '20px',
-          borderBottom: '1px solid #eee',
-          paddingBottom: '10px'
-        }}>
-          <h2 style={{ margin: 0 }}>Schema Manager</h2>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontSize: '24px',
-              cursor: 'pointer',
-              color: '#666'
-            }}
-          >
-            ×
-          </button>
-        </div>
-
-        {/* Warning for unsaved changes */}
-        {hasUnsavedChanges && (
-          <div style={{
-            marginBottom: '15px',
-            padding: '12px',
-            backgroundColor: '#fff3cd',
-            border: '1px solid #ffeaa7',
-            borderRadius: '5px',
-            color: '#856404'
-          }}>
-            <strong>⚠️ Warning:</strong> You have unsaved changes. Make sure to save them before loading new schemas from the server.
-          </div>
-        )}
-
-        {/* REST API Status and Controls */}
-        <div style={{
-          marginBottom: '20px',
-          padding: '15px',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '5px'
-        }}>
-          <div style={{ marginBottom: '10px' }}>
-            <strong>REST API Status: </strong>
-            <span style={{
-              color: 'green',
-              fontWeight: 'bold'
-            }}>
-              READY
-            </span>
-            <span style={{ marginLeft: '10px', fontSize: '12px', color: '#666' }}>
-              (No persistent connection required)
-            </span>
-          </div>
-          
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="p-5 border-b border-gray-200 dark:border-gray-600 flex justify-between items-center bg-gray-50 dark:bg-gray-700">
+          <h2 className="m-0 text-gray-900 dark:text-gray-100 text-xl">🔧 Schema Manager</h2>
+          <div className="flex gap-2.5 items-center">
+            {hasUnsavedChanges && (
+              <span className="text-orange-600 dark:text-orange-400 text-sm font-bold">
+                ⚠️ Unsaved Changes
+              </span>
+            )}
             <button
               onClick={handleLoadSchemas}
               disabled={isLoading}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: isLoading ? '#6c757d' : '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: isLoading ? 'not-allowed' : 'pointer'
-              }}
+              className={`py-2 px-4 text-white border-none rounded cursor-pointer transition-colors ${
+                isLoading 
+                  ? 'bg-gray-500 cursor-not-allowed' 
+                  : 'bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-700'
+              }`}
             >
-              {isLoading ? 'Loading...' : '📥 Load Schemas from Server'}
+              {isLoading ? '🔄 Loading...' : '↻ Refresh from Server'}
             </button>
-            
-            {hasUnsavedChanges && (
-              <span style={{
-                fontSize: '12px',
-                color: '#856404',
-                fontStyle: 'italic'
-              }}>
-                (This will override your changes)
-              </span>
-            )}
+            <button
+              onClick={onClose}
+              className="bg-none border-none text-xl cursor-pointer text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+            >
+              ×
+            </button>
           </div>
         </div>
 
-        {/* Schemas Display */}
-        <div>
-          <h3>Current Schemas</h3>
-          <p style={{ color: '#666', fontSize: '14px', marginBottom: '15px' }}>
-            Edit schemas directly below to customize how objects are created. 
-            Click "Edit" to modify a schema, or "Load from Server" to get the latest versions.
-          </p>
-          
-          <div style={{ display: 'grid', gap: '15px' }}>
-            {Object.entries(schemas).map(([type, schema]) => (
-              <div key={type}>
-                {renderSchemaEditor(type, schema)}
-              </div>
-            ))}
+        {/* Content */}
+        <div className="flex-1 overflow-auto p-5 bg-white dark:bg-gray-800">
+          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded text-sm text-blue-800 dark:text-blue-200">
+            <strong>📋 Schema Management:</strong> Edit entity schemas to define the structure of objects that can be created in the grid.
+            Changes are applied locally and used when creating new entities.
           </div>
-          
-          {Object.keys(schemas).length === 0 && (
-            <div style={{
-              padding: '20px',
-              textAlign: 'center',
-              color: '#666',
-              backgroundColor: '#f8f9fa',
-              borderRadius: '5px',
-              border: '1px dashed #ccc'
-            }}>
-              No schemas available. Click "Load Schemas from Server" to fetch them.
+
+          {isLoading ? (
+            <div className="text-center py-10 text-gray-600 dark:text-gray-400">
+              <div className="text-2xl mb-2">🔄</div>
+              <div>Loading schemas from server...</div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {Object.entries(schemas).map(([type, schema]) => (
+                <div key={type}>
+                  {renderSchemaEditor(type, schema)}
+                </div>
+              ))}
             </div>
           )}
-        </div>
 
-        {/* Info */}
-        <div style={{
-          marginTop: '20px',
-          padding: '15px',
-          backgroundColor: '#e3f2fd',
-          borderRadius: '5px',
-          fontSize: '14px'
-        }}>
-          <strong>ℹ️ How schema editing works:</strong>
-          <ul style={{ margin: '10px 0', paddingLeft: '20px' }}>
-            <li><strong>Edit:</strong> Click the edit button to modify any schema in JSON format</li>
-            <li><strong>Real-time validation:</strong> JSON syntax errors are highlighted as you type</li>
-            <li><strong>Save locally:</strong> Changes are saved to your browser's local storage</li>
-            <li><strong>Load from server:</strong> Fetches latest schemas from server (overrides local changes)</li>
-            <li><strong>Reset:</strong> Restores schema to default values</li>
-            <li><strong>Used for creation:</strong> Modified schemas affect new objects and tasks you create</li>
-          </ul>
+          {Object.keys(schemas).length === 0 && !isLoading && (
+            <div className="text-center py-10 text-gray-600 dark:text-gray-400">
+              <div className="text-2xl mb-2">📝</div>
+              <div>No schemas available</div>
+              <button
+                onClick={handleLoadSchemas}
+                className="mt-3 py-2 px-4 bg-blue-500 dark:bg-blue-600 text-white border-none rounded cursor-pointer hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors"
+              >
+                Load Schemas from Server
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

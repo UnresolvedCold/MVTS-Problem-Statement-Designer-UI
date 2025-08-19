@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Stage, Layer, Rect, Text, Group } from "react-konva";
 import ObjectImage from './ObjectImage';
 import { useGridPerformanceManager, useOptimizedGridLines, SpatialIndex } from './GridPerformanceManager';
+import { useTheme } from '../contexts/ThemeContext';
 
 const VirtualizedGridCanvas = ({
   rows,
@@ -13,6 +14,16 @@ const VirtualizedGridCanvas = ({
   onObjectDragStart,
   onObjectDragEnd
 }) => {
+  const { isDark } = useTheme();
+
+  // Define theme-aware colors
+  const themeColors = useMemo(() => ({
+    background: isDark ? '#111827' : '#ffffff',  // gray-900 : white
+    gridLines: isDark ? '#374151' : '#e5e7eb',   // gray-700 : gray-200
+    coordinates: isDark ? '#9ca3af' : '#6b7280', // gray-400 : gray-500
+    performanceText: isDark ? '#60a5fa' : '#2563eb' // blue-400 : blue-600
+  }), [isDark]);
+
   // Initialize viewport with container dimensions
   const [viewport, setViewport] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [zoom, setZoom] = useState(1);
@@ -154,7 +165,7 @@ const VirtualizedGridCanvas = ({
             y={j * cellSize + 5}
             text={`(${i},${j})`}
             fontSize={Math.min(cellSize / 4, 10)}
-            fill="lightgray"
+            fill={themeColors.coordinates}
             fontFamily="Arial"
             opacity={0.7}
           />
@@ -163,7 +174,7 @@ const VirtualizedGridCanvas = ({
     }
 
     return coordinates;
-  }, [visibleRange, cellSize, renderingConfig]);
+  }, [visibleRange, cellSize, renderingConfig, themeColors.coordinates]);
 
   // Filter visible objects using spatial index when available
   const visibleObjects = useMemo(() => {
@@ -252,18 +263,18 @@ const VirtualizedGridCanvas = ({
           scaleX={zoom}
           scaleY={zoom}
         >
-          {/* Background Layer - Always fill the entire visible area */}
+          {/* Background Layer - Now theme-aware */}
           <Layer>
             <Rect
               x={0}
               y={0}
               width={cols * cellSize}
               height={rows * cellSize}
-              fill="white"
+              fill={themeColors.background}
             />
           </Layer>
 
-          {/* Grid Layer - Optimized rendering with boundaries */}
+          {/* Grid Layer - Optimized rendering with theme-aware colors */}
           <Layer>
             {optimizedGridLines.map(line => (
               <Rect
@@ -272,7 +283,7 @@ const VirtualizedGridCanvas = ({
                 y={line.y}
                 width={line.width}
                 height={line.height}
-                fill={line.fill || "grey"}
+                fill={line.fill || themeColors.gridLines}
                 opacity={line.opacity}
               />
             ))}
@@ -288,7 +299,8 @@ const VirtualizedGridCanvas = ({
               } else if (obj.type === "msu") {
                 imageSrc = "/msu.png";
               } else {
-                imageSrc = "/pps.png";
+                // Use dark mode image for PPS when in dark theme
+                imageSrc = isDark ? "/pps_dark.png" : "/pps.png";
               }
 
               return (
@@ -315,11 +327,11 @@ const VirtualizedGridCanvas = ({
                       fontFamily="Arial"
                       fontStyle="bold"
                       fill="white"
-                      stroke="black"
+                      stroke={isDark ? "white" : "black"}
                       strokeWidth={1}
                       offsetX={6}
                       offsetY={6}
-                      shadowColor="black"
+                      shadowColor={isDark ? "white" : "black"}
                       shadowBlur={2}
                       shadowOpacity={0.8}
                       listening={false}
@@ -337,7 +349,7 @@ const VirtualizedGridCanvas = ({
               y={10}
               text={`Performance: ${performanceLevel} | Visible: ${visibleRange.endX - visibleRange.startX}x${visibleRange.endY - visibleRange.startY} | Objects: ${visibleObjects.length}/${objects.length} | Zoom: ${zoom.toFixed(2)}`}
               fontSize={12}
-              fill="blue"
+              fill={themeColors.performanceText}
               fontFamily="Arial"
               listening={false}
             />

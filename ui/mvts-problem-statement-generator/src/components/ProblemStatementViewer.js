@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
 
 const ProblemStatementViewer = ({ warehouseData, onClose, onSave }) => {
+  const { isDark } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
   const [jsonError, setJsonError] = useState(null);
@@ -33,7 +35,6 @@ const ProblemStatementViewer = ({ warehouseData, onClose, onSave }) => {
   // Copy to clipboard
   const handleCopyToClipboard = () => {
     navigator.clipboard.writeText(problemStatementJson).then(() => {
-      // You could add a toast notification here
       console.log('JSON copied to clipboard');
     }).catch(err => {
       console.error('Failed to copy: ', err);
@@ -52,48 +53,20 @@ const ProblemStatementViewer = ({ warehouseData, onClose, onSave }) => {
   };
 
   return (
-    <div style={{ 
-      width: '100%', 
-      height: '100vh',
-      padding: 20, 
-      backgroundColor: "#f8f9fa",
-      overflow: 'hidden',
-      display: 'flex',
-      flexDirection: 'column'
-    }}>
+    <div className="w-full h-screen p-5 bg-gray-50 dark:bg-gray-900 overflow-hidden flex flex-col">
       {/* Header */}
-      <div style={{ 
-        display: "flex", 
-        justifyContent: "space-between", 
-        alignItems: "center",
-        marginBottom: 15,
-        flexShrink: 0
-      }}>
-        <h3 style={{ margin: 0 }}>Problem Statement JSON</h3>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+      <div className="flex justify-between items-center mb-4 flex-shrink-0">
+        <h3 className="m-0 text-gray-900 dark:text-gray-100">Problem Statement JSON</h3>
+        <div className="flex gap-2.5 items-center">
           <button
             onClick={handleCopyToClipboard}
-            style={{
-              padding: "6px 12px",
-              border: "1px solid #ccc",
-              borderRadius: "3px",
-              backgroundColor: "#fff",
-              cursor: "pointer",
-              fontSize: "12px"
-            }}
+            className="py-1.5 px-3 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 cursor-pointer text-xs text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
             📋 Copy
           </button>
           <button
             onClick={handleDownload}
-            style={{
-              padding: "6px 12px",
-              border: "1px solid #ccc",
-              borderRadius: "3px",
-              backgroundColor: "#fff",
-              cursor: "pointer",
-              fontSize: "12px"
-            }}
+            className="py-1.5 px-3 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 cursor-pointer text-xs text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
             💾 Download
           </button>
@@ -103,7 +76,6 @@ const ProblemStatementViewer = ({ warehouseData, onClose, onSave }) => {
                 if (!jsonError) {
                   try {
                     const parsedJson = JSON.parse(editValue);
-                    // Call the onSave callback to update the warehouse data
                     if (onSave) {
                       onSave(parsedJson);
                     }
@@ -114,46 +86,28 @@ const ProblemStatementViewer = ({ warehouseData, onClose, onSave }) => {
                 }
               }}
               disabled={!!jsonError}
-              style={{
-                padding: "8px 16px",
-                border: "none",
-                borderRadius: "5px",
-                backgroundColor: jsonError ? "#6c757d" : "#28a745",
-                color: "#fff",
-                cursor: jsonError ? "not-allowed" : "pointer",
-                fontSize: "14px",
-                fontWeight: "bold",
-                minWidth: "120px"
-              }}
+              className={`py-2 px-4 border-none rounded text-white cursor-pointer text-sm font-bold min-w-30 transition-colors ${
+                jsonError 
+                  ? 'bg-gray-500 cursor-not-allowed' 
+                  : 'bg-green-500 dark:bg-green-600 hover:bg-green-600 dark:hover:bg-green-700'
+              }`}
             >
               💾 Save Changes
             </button>
           )}
           <button
             onClick={handleEditToggle}
-            style={{
-              padding: "8px 16px",
-              border: isEditing ? "2px solid #dc3545" : "2px solid #28a745",
-              borderRadius: "5px",
-              backgroundColor: isEditing ? "#dc3545" : "#28a745",
-              color: "#fff",
-              cursor: "pointer",
-              fontSize: "14px",
-              fontWeight: "bold",
-              minWidth: "120px"
-            }}
+            className={`py-2 px-4 border-2 rounded text-white cursor-pointer text-sm font-bold min-w-30 transition-colors ${
+              isEditing 
+                ? 'border-red-500 bg-red-500 hover:bg-red-600' 
+                : 'border-green-500 bg-green-500 dark:bg-green-600 hover:bg-green-600 dark:hover:bg-green-700'
+            }`}
           >
             {isEditing ? "❌ Cancel Edit" : "✏️ Edit JSON"}
           </button>
           <button 
             onClick={onClose}
-            style={{
-              background: "none",
-              border: "none",
-              fontSize: "18px",
-              cursor: "pointer",
-              color: "#666"
-            }}
+            className="bg-none border-none text-lg cursor-pointer text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
           >
             ×
           </button>
@@ -161,26 +115,17 @@ const ProblemStatementViewer = ({ warehouseData, onClose, onSave }) => {
       </div>
 
       {/* Info */}
-      <div style={{ 
-        marginBottom: 10, 
-        fontSize: "14px", 
-        color: "#666",
-        flexShrink: 0
-      }}>
+      <div className="mb-2.5 text-sm text-gray-600 dark:text-gray-400 flex-shrink-0">
         {warehouseData ? (
           <div>
-            <div style={{ marginBottom: "5px" }}>
-              <strong>Warehouse:</strong> {warehouseData.warehouse.width}×{warehouseData.warehouse.height} | 
+            <div className="mb-1.5">
+              <strong>Warehouse:</strong> {warehouseData.warehouse.width}×{warehouseData.warehouse.height} |
               <strong> Bots:</strong> {warehouseData.warehouse.problem_statement?.ranger_list?.length || 0} | 
               <strong> PPS:</strong> {warehouseData.warehouse.problem_statement?.pps_list?.length || 0} | 
               <strong> MSU:</strong> {warehouseData.warehouse.problem_statement?.transport_entity_list?.length || 0}
             </div>
             {!isEditing && (
-              <div style={{ 
-                fontSize: "12px", 
-                color: "#007bff",
-                fontStyle: "italic"
-              }}>
+              <div className="text-xs text-blue-600 dark:text-blue-400 italic">
                 💡 Click "✏️ Edit JSON" button above to modify the problem statement
               </div>
             )}
@@ -191,58 +136,27 @@ const ProblemStatementViewer = ({ warehouseData, onClose, onSave }) => {
       </div>
 
       {/* JSON Content */}
-      <div style={{ 
-        flex: 1,
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column'
-      }}>
+      <div className="flex-1 overflow-hidden flex flex-col">
         {isEditing ? (
           <>
             <textarea
               value={editValue}
               onChange={(e) => handleJsonChange(e.target.value)}
-              style={{
-                width: "100%",
-                flex: 1,
-                fontFamily: "monospace",
-                fontSize: "12px",
-                border: jsonError ? "2px solid red" : "1px solid #ccc",
-                borderRadius: "4px",
-                padding: "12px",
-                resize: "none",
-                outline: "none"
-              }}
+              className={`w-full flex-1 font-mono text-xs rounded p-3 resize-none outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors ${
+                jsonError 
+                  ? 'border-2 border-red-500' 
+                  : 'border border-gray-300 dark:border-gray-600'
+              }`}
               placeholder="Enter valid JSON..."
             />
             {jsonError && (
-              <div style={{ 
-                color: "red", 
-                fontSize: "12px", 
-                marginTop: "5px",
-                padding: "8px",
-                backgroundColor: "#ffe6e6",
-                border: "1px solid red",
-                borderRadius: "3px"
-              }}>
+              <div className="text-red-600 dark:text-red-400 text-xs mt-1.5 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded">
                 <strong>JSON Error:</strong> {jsonError}
               </div>
             )}
           </>
         ) : (
-          <pre style={{
-            flex: 1,
-            overflow: "auto",
-            fontFamily: "monospace",
-            fontSize: "12px",
-            border: "1px solid #ccc",
-            borderRadius: "4px",
-            padding: "12px",
-            backgroundColor: "#fff",
-            margin: 0,
-            whiteSpace: "pre-wrap",
-            wordBreak: "break-word"
-          }}>
+          <pre className="flex-1 overflow-auto font-mono text-xs border border-gray-300 dark:border-gray-600 rounded p-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 m-0 whitespace-pre-wrap break-words">
             {problemStatementJson}
           </pre>
         )}

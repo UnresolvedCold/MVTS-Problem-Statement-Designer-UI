@@ -36,7 +36,7 @@ const GridView = ({
   const { updateObjectPosition } = objectManager;
   
   return (
-    <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+    <div className="flex flex-1 overflow-hidden">
       {/* Left Toolbar */}
       <Toolbar
         rows={rows}
@@ -58,13 +58,7 @@ const GridView = ({
       />
 
       {/* Main Grid Canvas - Now using optimized virtualized canvas */}
-      <div style={{
-        flex: 1, 
-        overflow: "hidden",
-        position: "relative",
-        backgroundColor: "#fff",
-        border: "1px solid #ccc"
-      }}>
+      <div className="flex-1 overflow-hidden relative bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600">
         <VirtualizedGridCanvas
           rows={rows}
           cols={cols}

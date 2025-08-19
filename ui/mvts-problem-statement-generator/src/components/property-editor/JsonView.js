@@ -11,34 +11,21 @@ import React from 'react';
 const JsonView = ({ jsonEditValue, jsonError, onJsonChange }) => {
   return (
     <div>
-      <div style={{ marginBottom: "10px" }}>
-        <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
+      <div className="mb-2.5">
+        <label className="block mb-1.5 font-bold text-gray-900 dark:text-gray-100">
           Properties (JSON):
         </label>
         <textarea
           value={jsonEditValue}
           onChange={(e) => onJsonChange(e.target.value)}
-          style={{
-            width: "100%",
-            height: "300px",
-            fontFamily: "monospace",
-            fontSize: "12px",
-            border: jsonError ? "2px solid red" : "1px solid #ccc",
-            borderRadius: "4px",
-            padding: "8px",
-            resize: "vertical"
-          }}
+          className={`w-full h-75 font-mono text-xs rounded p-2 resize-y bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors ${
+            jsonError 
+              ? 'border-2 border-red-500' 
+              : 'border border-gray-300 dark:border-gray-600'
+          }`}
         />
         {jsonError && (
-          <div style={{ 
-            color: "red", 
-            fontSize: "12px", 
-            marginTop: "5px",
-            padding: "5px",
-            backgroundColor: "#ffe6e6",
-            border: "1px solid red",
-            borderRadius: "3px"
-          }}>
+          <div className="text-red-600 dark:text-red-400 text-xs mt-1.5 p-1.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded">
             JSON Error: {jsonError}
           </div>
         )}

@@ -163,48 +163,28 @@ const ConfigPanel = ({ configManager }) => {
     
     if (isEditing) {
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div className="flex flex-col gap-2.5">
           <textarea
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
-            style={{
-              width: '100%',
-              minHeight: '80px',
-              padding: '8px',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              fontFamily: 'monospace',
-              fontSize: '12px'
-            }}
+            className="w-full min-h-20 p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-mono text-xs"
           />
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div className="flex gap-2.5">
             <button
               onClick={handleSaveConfig}
               disabled={isLoading}
-              style={{
-                padding: '6px 12px',
-                backgroundColor: '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                fontSize: '12px'
-              }}
+              className={`py-1.5 px-3 text-white border-none rounded cursor-pointer text-xs ${
+                isLoading ? 'bg-gray-500 cursor-not-allowed' : 'bg-green-500 dark:bg-green-600 hover:bg-green-600 dark:hover:bg-green-700'
+              } transition-colors`}
             >
               {isLoading ? 'Updating...' : 'Update'}
             </button>
             <button
               onClick={handleCancelEdit}
               disabled={isLoading}
-              style={{
-                padding: '6px 12px',
-                backgroundColor: '#6c757d',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                fontSize: '12px'
-              }}
+              className={`py-1.5 px-3 text-white border-none rounded cursor-pointer text-xs ${
+                isLoading ? 'bg-gray-500 cursor-not-allowed' : 'bg-gray-500 dark:bg-gray-600 hover:bg-gray-600 dark:hover:bg-gray-700'
+              } transition-colors`}
             >
               Cancel
             </button>
@@ -214,32 +194,15 @@ const ConfigPanel = ({ configManager }) => {
     }
 
     return (
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
-        <div style={{ flex: 1, wordBreak: 'break-word' }}>
-          <div style={{ 
-            margin: 0, 
-            fontFamily: 'monospace', 
-            fontSize: '12px',
-            backgroundColor: hasChanged ? '#fff3cd' : '#f8f9fa', // Yellow background if changed
-            padding: '8px',
-            borderRadius: '4px',
-            border: hasChanged ? '1px solid #ffeaa7' : '1px solid #e9ecef',
-            wordBreak: 'break-all',
-            position: 'relative'
-          }}>
+      <div className="flex justify-between items-start gap-2.5">
+        <div className="flex-1 break-words">
+          <div className={`m-0 font-mono text-xs p-2 rounded border break-all relative ${
+            hasChanged 
+              ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700' 
+              : 'bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600'
+          } text-gray-900 dark:text-gray-100`}>
             {hasChanged && (
-              <div style={{
-                position: 'absolute',
-                top: '-8px',
-                right: '-8px',
-                backgroundColor: '#ffc107',
-                color: '#212529',
-                fontSize: '10px',
-                padding: '2px 6px',
-                borderRadius: '10px',
-                fontWeight: 'bold',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
-              }}>
+              <div className="absolute -top-2 -right-2 bg-yellow-400 dark:bg-yellow-500 text-gray-900 dark:text-gray-100 text-xs py-0.5 px-1.5 rounded-full font-bold shadow">
                 CHANGED
               </div>
             )}
@@ -249,16 +212,11 @@ const ConfigPanel = ({ configManager }) => {
         <button
           onClick={() => handleEdit(key, value)}
           disabled={isLoading || editingConfig !== null}
-          style={{
-            padding: '4px 8px',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '3px',
-            cursor: (isLoading || editingConfig !== null) ? 'not-allowed' : 'pointer',
-            fontSize: '11px',
-            flexShrink: 0
-          }}
+          className={`py-1 px-2 text-white border-none rounded text-xs flex-shrink-0 transition-colors ${
+            (isLoading || editingConfig !== null) 
+              ? 'bg-gray-500 cursor-not-allowed' 
+              : 'bg-blue-500 dark:bg-blue-600 cursor-pointer hover:bg-blue-600 dark:hover:bg-blue-700'
+          }`}
         >
           Edit
         </button>
@@ -269,79 +227,41 @@ const ConfigPanel = ({ configManager }) => {
   const flattenedConfig = flattenObject(config);
 
   return (
-    <div style={{ 
-      padding: '20px', 
-      height: '100vh', 
-      overflow: 'auto',
-      backgroundColor: '#f8f9fa'
-    }}>
+    <div className="p-5 h-screen overflow-auto bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div style={{
-        backgroundColor: 'white',
-        padding: '20px',
-        borderRadius: '8px',
-        marginBottom: '20px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px' }}>
+      <div className="bg-white dark:bg-gray-800 p-5 rounded-lg mb-5 shadow">
+        <div className="flex justify-between items-start mb-4">
           <div>
-            <h2 style={{ margin: 0, color: '#495057', fontSize: '24px' }}>⚙️ MVTS Configuration</h2>
-            <p style={{ margin: '5px 0 0 0', color: '#6c757d', fontSize: '14px' }}>
+            <h2 className="m-0 text-gray-700 dark:text-gray-200 text-2xl">⚙️ MVTS Configuration</h2>
+            <p className="mt-1 mb-0 text-gray-500 dark:text-gray-400 text-sm">
               Edit configuration parameters locally. Changes will be sent with problem statement.
             </p>
           </div>
           <button
             onClick={handleRefresh}
             disabled={isLoading}
-            style={{
-              padding: '10px 16px',
-              backgroundColor: isLoading ? '#6c757d' : '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              fontSize: '14px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
+            className={`py-2.5 px-4 text-white border-none rounded cursor-pointer text-sm flex items-center gap-2 transition-colors ${
+              isLoading 
+                ? 'bg-gray-500 cursor-not-allowed' 
+                : 'bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-700'
+            }`}
           >
             {isLoading ? '🔄' : '↻'} {isLoading ? 'Loading...' : 'Refresh from Server'}
           </button>
         </div>
 
         {/* Status and Control Buttons */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
+        <div className="flex flex-wrap gap-2.5 items-center">
           {/* Local Changes Status */}
           {hasLocalChanges && (
-            <div style={{
-              backgroundColor: '#fff3cd',
-              color: '#856404',
-              padding: '8px 12px',
-              borderRadius: '4px',
-              fontSize: '12px',
-              border: '1px solid #ffeaa7',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '5px'
-            }}>
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 py-2 px-3 rounded text-xs border border-yellow-200 dark:border-yellow-700 flex items-center gap-1.5">
               <span>⚠️</span>
               <span>Local changes detected</span>
             </div>
           )}
 
           {!hasLocalChanges && Object.keys(config).length > 0 && (
-            <div style={{
-              backgroundColor: '#d1ecf1',
-              color: '#0c5460',
-              padding: '8px 12px',
-              borderRadius: '4px',
-              fontSize: '12px',
-              border: '1px solid #bee5eb',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '5px'
-            }}>
+            <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 py-2 px-3 rounded text-xs border border-blue-200 dark:border-blue-700 flex items-center gap-1.5">
               <span>✅</span>
               <span>In sync with server</span>
             </div>
@@ -352,15 +272,11 @@ const ConfigPanel = ({ configManager }) => {
             <button
               onClick={handleResetToServer}
               disabled={isLoading || !hasLocalChanges}
-              style={{
-                padding: '6px 12px',
-                backgroundColor: hasLocalChanges ? '#ffc107' : '#6c757d',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: (isLoading || !hasLocalChanges) ? 'not-allowed' : 'pointer',
-                fontSize: '12px'
-              }}
+              className={`py-1.5 px-3 text-white border-none rounded cursor-pointer text-xs transition-colors ${
+                hasLocalChanges && !isLoading
+                  ? 'bg-yellow-500 dark:bg-yellow-600 hover:bg-yellow-600 dark:hover:bg-yellow-700' 
+                  : 'bg-gray-500 cursor-not-allowed'
+              }`}
             >
               🔄 Reset to Server
             </button>
@@ -369,15 +285,11 @@ const ConfigPanel = ({ configManager }) => {
           <button
             onClick={handleClearLocal}
             disabled={isLoading || Object.keys(config).length === 0}
-            style={{
-              padding: '6px 12px',
-              backgroundColor: Object.keys(config).length > 0 ? '#dc3545' : '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: (isLoading || Object.keys(config).length === 0) ? 'not-allowed' : 'pointer',
-              fontSize: '12px'
-            }}
+            className={`py-1.5 px-3 text-white border-none rounded cursor-pointer text-xs transition-colors ${
+              Object.keys(config).length > 0 && !isLoading
+                ? 'bg-red-500 dark:bg-red-600 hover:bg-red-600 dark:hover:bg-red-700' 
+                : 'bg-gray-500 cursor-not-allowed'
+            }`}
           >
             🗑️ Clear Local
           </button>
@@ -385,15 +297,11 @@ const ConfigPanel = ({ configManager }) => {
           <button
             onClick={handleAddConfig}
             disabled={isLoading || editingConfig !== null}
-            style={{
-              padding: '6px 12px',
-              backgroundColor: '#28a745',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: (isLoading || editingConfig !== null) ? 'not-allowed' : 'pointer',
-              fontSize: '12px'
-            }}
+            className={`py-1.5 px-3 text-white border-none rounded cursor-pointer text-xs transition-colors ${
+              !isLoading && editingConfig === null
+                ? 'bg-green-500 dark:bg-green-600 hover:bg-green-600 dark:hover:bg-green-700' 
+                : 'bg-gray-500 cursor-not-allowed'
+            }`}
           >
             ➕ Add New Config
           </button>
@@ -402,17 +310,10 @@ const ConfigPanel = ({ configManager }) => {
 
       {/* Status */}
       {lastRefreshTime && (
-        <div style={{
-          backgroundColor: '#e3f2fd',
-          padding: '10px 15px',
-          borderRadius: '6px',
-          marginBottom: '15px',
-          fontSize: '12px',
-          color: '#1565c0'
-        }}>
+        <div className="bg-blue-50 dark:bg-blue-900/20 p-2.5 px-4 rounded mb-4 text-xs text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700">
           <strong>📅 Last Server Sync:</strong> {lastRefreshTime}
           {hasLocalChanges && (
-            <span style={{ marginLeft: '15px', color: '#f57c00' }}>
+            <span className="ml-4 text-orange-600 dark:text-orange-400">
               <strong>⚠️ Local changes will be sent with problem statement</strong>
             </span>
           )}
@@ -421,74 +322,27 @@ const ConfigPanel = ({ configManager }) => {
 
       {/* Error State */}
       {error && (
-        <div style={{
-          backgroundColor: '#f8d7da',
-          color: '#721c24',
-          padding: '15px',
-          borderRadius: '8px',
-          marginBottom: '20px',
-          border: '1px solid #f5c6cb'
-        }}>
+        <div className="bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200 p-4 rounded-lg mb-5 border border-red-200 dark:border-red-700">
           <strong>❌ Error:</strong> {error}
         </div>
       )}
 
       {/* Loading State */}
       {isLoading && !editingConfig && (
-        <div style={{
-          backgroundColor: 'white',
-          padding: '40px',
-          borderRadius: '8px',
-          textAlign: 'center',
-          color: '#495057',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-        }}>
-          <div style={{ fontSize: '18px', marginBottom: '10px' }}>🔄</div>
+        <div className="bg-white dark:bg-gray-800 p-10 rounded-lg text-center text-gray-700 dark:text-gray-300 shadow">
+          <div className="text-lg mb-2.5">🔄</div>
           <div>Loading configuration...</div>
         </div>
       )}
 
       {/* Config Values */}
-      {!isLoading && !error && Object.keys(config).length > 0 && (
-        <div style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          overflow: 'hidden',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-        }}>
-          <div style={{
-            padding: '15px 20px',
-            borderBottom: '1px solid #e9ecef',
-            backgroundColor: '#f8f9fa'
-          }}>
-            <h3 style={{ margin: 0, color: '#495057', fontSize: '16px' }}>
-              📋 Configuration Parameters ({Object.keys(flattenedConfig).length})
-            </h3>
-            <p style={{ margin: '5px 0 0 0', color: '#6c757d', fontSize: '12px' }}>
-              {hasLocalChanges 
-                ? '🟡 Showing local configuration (modified)' 
-                : Object.keys(config).length > 0 
-                  ? '🟢 Showing configuration (in sync with server)'
-                  : '⚪ No configuration loaded'
-              }
-            </p>
-          </div>
-          <div style={{ padding: '20px' }}>
-            {Object.entries(flattenedConfig).map(([key, value], index) => (
-              <div key={key} style={{
-                marginBottom: '20px',
-                paddingBottom: index === Object.entries(flattenedConfig).length - 1 ? 0 : '20px',
-                borderBottom: index === Object.entries(flattenedConfig).length - 1 ? 'none' : '1px solid #e9ecef'
-              }}>
-                <div style={{
-                  fontWeight: 'bold',
-                  marginBottom: '8px',
-                  color: '#495057',
-                  fontSize: '14px',
-                  fontFamily: 'monospace'
-                }}>
-                  {key}
-                </div>
+      {!isLoading && Object.keys(flattenedConfig).length > 0 && (
+        <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow">
+          <h3 className="mt-0 mb-4 text-gray-700 dark:text-gray-200">Configuration Values</h3>
+          <div className="space-y-4">
+            {Object.entries(flattenedConfig).map(([key, value]) => (
+              <div key={key} className="border-b border-gray-200 dark:border-gray-600 pb-4 last:border-b-0">
+                <div className="font-medium text-sm mb-2 text-gray-900 dark:text-gray-100">{key}</div>
                 {renderConfigValue(key, value)}
               </div>
             ))}
@@ -497,123 +351,51 @@ const ConfigPanel = ({ configManager }) => {
       )}
 
       {/* Empty State */}
-      {!isLoading && !error && Object.keys(config).length === 0 && (
-        <div style={{
-          backgroundColor: 'white',
-          padding: '40px',
-          borderRadius: '8px',
-          textAlign: 'center',
-          color: '#6c757d',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-        }}>
-          <div style={{ fontSize: '18px', marginBottom: '10px' }}>📋</div>
-          <div>No configuration found</div>
-          <div style={{ fontSize: '14px', marginTop: '5px' }}>
-            Click "Refresh" to load configuration from MVTS API
-          </div>
+      {!isLoading && Object.keys(flattenedConfig).length === 0 && (
+        <div className="bg-white dark:bg-gray-800 p-10 rounded-lg text-center text-gray-500 dark:text-gray-400 shadow">
+          <div className="text-lg mb-2.5">📝</div>
+          <div>No configuration values found</div>
+          <p className="text-xs mt-2">Add new configuration values or refresh from server</p>
         </div>
       )}
 
       {/* Add Config Modal */}
       {showAddModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            padding: '20px',
-            width: '500px',
-            maxWidth: '90vw',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-          }}>
-            <h3 style={{ margin: '0 0 20px 0', color: '#333' }}>➕ Add New Configuration</h3>
-            
-            <div style={{ marginBottom: '15px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#555' }}>
-                Config Name:
-              </label>
+        <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-black dark:bg-opacity-70 flex justify-center items-center z-50">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
+            <h3 className="mt-0 mb-4 text-gray-900 dark:text-gray-100">Add New Configuration</h3>
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Config Name:</label>
               <input
                 type="text"
                 value={newConfigName}
                 onChange={(e) => setNewConfigName(e.target.value)}
-                placeholder="e.g., server.timeout or new.setting"
-                style={{
-                  width: '100%',
-                  padding: '8px',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  fontFamily: 'monospace',
-                  fontSize: '12px'
-                }}
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                placeholder="e.g., timeout.value"
               />
-              <small style={{ color: '#666', fontSize: '11px' }}>
-                Use dot notation for nested configs (e.g., server.timeout)
-              </small>
             </div>
-
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#555' }}>
-                Config Value:
-              </label>
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Config Value:</label>
               <textarea
                 value={newConfigValue}
                 onChange={(e) => setNewConfigValue(e.target.value)}
-                placeholder='e.g., 30, true, "hello", {"key": "value"}, [1,2,3]'
-                style={{
-                  width: '100%',
-                  minHeight: '80px',
-                  padding: '8px',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  fontFamily: 'monospace',
-                  fontSize: '12px',
-                  resize: 'vertical'
-                }}
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-mono text-sm"
+                rows="4"
+                placeholder="Enter value (string, number, boolean, or JSON)"
               />
-              <small style={{ color: '#666', fontSize: '11px' }}>
-                Numbers, booleans, JSON objects/arrays will be parsed automatically
-              </small>
             </div>
-
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-              <button
-                onClick={handleCloseAddModal}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '12px'
-                }}
-              >
-                Cancel
-              </button>
+            <div className="flex gap-2.5">
               <button
                 onClick={handleSaveNewConfig}
-                disabled={!newConfigName.trim()}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: newConfigName.trim() ? '#28a745' : '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: newConfigName.trim() ? 'pointer' : 'not-allowed',
-                  fontSize: '12px'
-                }}
+                className="py-2 px-4 bg-green-500 dark:bg-green-600 text-white border-none rounded cursor-pointer hover:bg-green-600 dark:hover:bg-green-700 transition-colors"
               >
-                💾 Add Config
+                Save
+              </button>
+              <button
+                onClick={handleCloseAddModal}
+                className="py-2 px-4 bg-gray-500 dark:bg-gray-600 text-white border-none rounded cursor-pointer hover:bg-gray-600 dark:hover:bg-gray-700 transition-colors"
+              >
+                Cancel
               </button>
             </div>
           </div>

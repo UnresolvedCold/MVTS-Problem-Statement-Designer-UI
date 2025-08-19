@@ -1,6 +1,7 @@
 import React from 'react';
 import { Stage, Layer, Rect, Text } from "react-konva";
 import ObjectImage from './ObjectImage';
+import { useTheme } from '../contexts/ThemeContext';
 
 const GridCanvas = ({ 
   rows, 
@@ -12,6 +13,8 @@ const GridCanvas = ({
   onObjectDragStart,
   onObjectDragEnd 
 }) => {
+  const { isDark } = useTheme();
+
   return (
     <Stage
       width={cols * cellSize}
@@ -26,7 +29,7 @@ const GridCanvas = ({
             y={0}
             width={1}
             height={rows * cellSize}
-            fill="grey"
+            fill={isDark ? "#374151" : "grey"}
           />
         ))}
         {[...Array(rows)].map((_, j) => (
@@ -36,7 +39,7 @@ const GridCanvas = ({
             y={j * cellSize}
             width={cols * cellSize}
             height={1}
-            fill="grey"
+            fill={isDark ? "#374151" : "grey"}
           />
         ))}
         
@@ -49,7 +52,7 @@ const GridCanvas = ({
               y={j * cellSize + 5}
               text={`(${i},${j})`}
               fontSize={Math.min(cellSize / 4, 10)}
-              fill="lightgray"
+              fill={isDark ? "#9ca3af" : "lightgray"}
               fontFamily="Arial"
             />
           ))
@@ -65,11 +68,11 @@ const GridCanvas = ({
           if (obj.type === "bot") {
             imageSrc = "/bot.png";
           } else if (obj.type === "msu") {
-            imageSrc = "/msu.png"; // Using React logo for MSU objects
+            imageSrc = "/msu.png";
           } else {
-            imageSrc = "/pps.png"; // PPS
+            imageSrc = (isDark ? "/pps_dark.png" : "/pps.png");
           }
-          
+
           return (
             <React.Fragment key={obj.id}>
               <ObjectImage
@@ -93,11 +96,11 @@ const GridCanvas = ({
                 fontFamily="Arial"
                 fontStyle="bold"
                 fill="white"
-                stroke="black"
+                stroke={isDark ? "white" : "black"}
                 strokeWidth={1}
                 offsetX={6} // Offset to center the text (approximate half of text width)
                 offsetY={6} // Offset to center the text vertically
-                shadowColor="black"
+                shadowColor={isDark ? "white" : "black"}
                 shadowBlur={2}
                 shadowOpacity={0.8}
                 listening={false} // Make text non-interactive

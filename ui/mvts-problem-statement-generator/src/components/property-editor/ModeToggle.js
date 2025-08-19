@@ -1,5 +1,6 @@
 // src/components/property-editor/ModeToggle.js
 import React from 'react';
+import { useTheme } from '../../contexts/ThemeContext';
 
 /**
  * Toggle buttons for switching between form and JSON edit modes
@@ -8,34 +9,27 @@ import React from 'react';
  * @returns {JSX.Element}
  */
 const ModeToggle = ({ editMode, onModeChange }) => {
-  const buttonStyle = {
-    padding: "6px 12px",
-    border: "1px solid #ccc",
-    borderRadius: "3px",
-    cursor: "pointer",
-    fontSize: "12px"
-  };
+  const { isDark } = useTheme();
 
   return (
-    <div style={{ marginBottom: "15px" }}>
+    <div className="mb-4">
       <button
         onClick={() => onModeChange('form')}
-        style={{
-          ...buttonStyle,
-          marginRight: "5px",
-          backgroundColor: editMode === 'form' ? "#007bff" : "#fff",
-          color: editMode === 'form' ? "#fff" : "#000"
-        }}
+        className={`py-1.5 px-3 border border-gray-300 dark:border-gray-600 rounded cursor-pointer text-xs mr-1.5 transition-colors ${
+          editMode === 'form' 
+            ? 'bg-blue-500 dark:bg-blue-600 text-white' 
+            : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-600'
+        }`}
       >
         Form View
       </button>
       <button
         onClick={() => onModeChange('json')}
-        style={{
-          ...buttonStyle,
-          backgroundColor: editMode === 'json' ? "#007bff" : "#fff",
-          color: editMode === 'json' ? "#fff" : "#000"
-        }}
+        className={`py-1.5 px-3 border border-gray-300 dark:border-gray-600 rounded cursor-pointer text-xs transition-colors ${
+          editMode === 'json' 
+            ? 'bg-blue-500 dark:bg-blue-600 text-white' 
+            : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-600'
+        }`}
       >
         JSON View
       </button>

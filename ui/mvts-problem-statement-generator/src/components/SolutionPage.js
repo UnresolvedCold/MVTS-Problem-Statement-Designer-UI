@@ -1,8 +1,10 @@
 // src/components/SolutionPage.js
 import React, { useState, useMemo, useEffect } from 'react';
 import LogViewer from './LogViewer';
+import { useTheme } from '../contexts/ThemeContext';
 
 const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear, onAssignToProblem }) => {
+  const { isDark } = useTheme();
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'gantt'
   const [sectionsCollapsed, setSectionsCollapsed] = useState({
     assignments: false,
@@ -39,6 +41,11 @@ const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear, o
     }));
   }, [solutionData]);
 
+  // Extract assignments for use in components
+  const assignments = useMemo(() => {
+    return solutionData?.schedule?.assignments || solutionData?.assignments || [];
+  }, [solutionData]);
+
   // Toggle section collapse
   const toggleSection = (section) => {
     setSectionsCollapsed(prev => ({
@@ -69,41 +76,52 @@ const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear, o
   // Show empty state if no data and not streaming
   if (!solutionData && (!logs || logs.length === 0) && !isStreaming) {
     return (
-      <div style={{
-        padding: '40px',
-        textAlign: 'center',
-        color: '#666',
-        height: 'calc(100vh - 60px)',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#f8f9fa'
-      }}>
-        <div style={{ fontSize: '48px', marginBottom: '20px' }}>🎯</div>
-        <h2 style={{ margin: '0 0 10px 0', color: '#333' }}>No Solution Available</h2>
-        <p style={{ margin: '0 0 20px 0', maxWidth: '400px' }}>
+      <div className="p-10 text-center text-gray-600 dark:text-gray-400 h-screen flex flex-col justify-center items-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-6xl mb-5">🎯</div>
+        <h2 className="m-0 mb-2 text-gray-900 dark:text-gray-100 text-3xl">No Solution Available</h2>
+        <p className="m-0 mb-5 max-w-md">
           Run a problem statement to see the solution and processing logs here.
         </p>
-        <div style={{
-          padding: '15px',
-          backgroundColor: '#e3f2fd',
-          borderRadius: '5px',
-          fontSize: '14px',
-          maxWidth: '500px',
-          border: '1px solid #bbdefb'
-        }}>
+        <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm max-w-lg border border-blue-200 dark:border-blue-700">
           <strong>💡 Tip:</strong> Go to the Grid Editor tab, set up your warehouse with bots, PPS, MSUs, and tasks, then click "🚀 Run" to solve the problem.
         </div>
       </div>
     );
   }
 
+  // Render assignments list
+  const renderAssignmentsList = () => {
+    if (assignments.length === 0) {
+      return (
+        <div className="text-center py-10 text-gray-600 dark:text-gray-400">
+          No assignments available
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-2">
+        {assignments.map((assignment, index) => (
+          <div key={`${assignment.task_key}-${index}`} className="p-3 bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600">
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div><strong>Task:</strong> {assignment.task_key}</div>
+              <div><strong>Bot:</strong> {assignment.assigned_ranger_id}</div>
+              <div><strong>PPS:</strong> {assignment.dock_pps_id}</div>
+              <div><strong>MSU:</strong> {assignment.transport_entity_id}</div>
+              <div><strong>Start:</strong> {assignment.startTime || assignment.operator_start_time || 0}ms</div>
+              <div><strong>End:</strong> {assignment.endTime || assignment.operator_end_time || 0}ms</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   // Render Gantt Chart
   const renderGanttChart = () => {
     if (ganttData.length === 0) {
       return (
-        <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+        <div className="text-center py-10 text-gray-600 dark:text-gray-400">
           No assignment data available for Gantt chart
         </div>
       );
@@ -137,112 +155,44 @@ const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear, o
     }
 
     return (
-      <div style={{ width: '100%', overflowX: 'auto' }}>
-        <div style={{ minWidth: '600px' }}>
+      <div className="w-full overflow-x-auto">
+        <div className="min-w-150">
           {/* Time axis header */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            padding: '10px 0',
-            borderBottom: '2px solid #ddd',
-            backgroundColor: '#f8f9fa',
-            position: 'sticky',
-            top: 0,
-            zIndex: 2
-          }}>
-            <div style={{ width: '120px', fontWeight: 'bold', paddingLeft: '10px' }}>
+          <div className="flex items-center py-2.5 border-b-2 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 sticky top-0 z-10">
+            <div className="w-30 px-2.5 font-bold text-gray-900 dark:text-gray-100 border-r border-gray-300 dark:border-gray-600">
               Bot ID
             </div>
-            <div style={{ flex: 1, position: 'relative', height: '30px' }}>
-              <div style={{
-                position: 'absolute',
-                left: 0,
-                right: 0,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                display: 'flex',
-                justifyContent: 'space-between',
-                fontSize: '11px',
-                color: '#666'
-              }}>
-                {timeMarkers.map((time, index) => (
-                  <span key={index} style={{ 
-                    textAlign: 'center',
-                    minWidth: '60px',
-                    fontSize: '10px'
-                  }}>
-                    {time}ms
-                  </span>
-                ))}
-              </div>
-              {/* Add tick marks */}
-              <div style={{
-                position: 'absolute',
-                left: 0,
-                right: 0,
-                bottom: 0,
-                height: '10px',
-                display: 'flex',
-                justifyContent: 'space-between'
-              }}>
-                {timeMarkers.map((_, index) => (
-                  <div key={index} style={{
-                    width: '1px',
-                    height: '10px',
-                    backgroundColor: '#ccc'
-                  }}></div>
-                ))}
-              </div>
+            <div className="flex-1 relative h-8">
+              {timeMarkers.map((time, index) => (
+                <div
+                  key={index}
+                  className="absolute text-xs text-gray-600 dark:text-gray-400 transform -translate-x-1/2"
+                  style={{ left: `${(time - minTime) / (maxTime - minTime) * 100}%` }}
+                >
+                  {time}ms
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Gantt rows */}
+          {/* Bot rows */}
           {Object.entries(tasksByBot).map(([botId, tasks]) => (
-            <div key={botId} style={{
-              display: 'flex',
-              alignItems: 'center',
-              minHeight: '50px',
-              borderBottom: '1px solid #eee',
-              backgroundColor: 'white'
-            }}>
-              <div style={{
-                width: '120px',
-                padding: '10px',
-                fontWeight: 'bold',
-                color: '#333',
-                borderRight: '1px solid #eee'
-              }}>
+            <div key={botId} className="flex items-center min-h-12 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+              <div className="w-30 px-2.5 font-bold text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-700">
                 Bot {botId}
               </div>
-              <div style={{ flex: 1, position: 'relative', height: '40px', margin: '5px 0' }}>
+              <div className="flex-1 relative h-10 my-1.5">
                 {tasks.map((task, index) => (
                   <div
                     key={`${task.taskKey}-${index}`}
+                    className="absolute h-7 bg-green-500 dark:bg-green-600 rounded flex items-center justify-center text-white text-xs font-bold cursor-pointer border border-green-700 dark:border-green-500 shadow hover:bg-green-600 dark:hover:bg-green-700 transition-colors"
                     style={{
-                      position: 'absolute',
                       left: `${task.startPercent}%`,
-                      width: `${Math.max(task.durationPercent, 2)}%`, // Minimum 2% width for visibility
-                      height: '30px',
-                      backgroundColor: '#28a745',
-                      borderRadius: '3px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'white',
-                      fontSize: '11px',
-                      fontWeight: 'bold',
-                      cursor: 'pointer',
-                      border: '1px solid #1e7e34',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                      width: `${Math.max(task.durationPercent, 2)}%` // Minimum 2% width for visibility
                     }}
                     title={`Task: ${task.taskKey}\nBot: ${task.botId}\nStart: ${task.startTime}ms\nEnd: ${task.endTime}ms\nDuration: ${task.duration}ms\nPPS: ${task.ppsId}\nMSU: ${task.msuId}`}
                   >
-                    <div style={{ 
-                      overflow: 'hidden', 
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      padding: '0 4px'
-                    }}>
+                    <div className="overflow-hidden text-ellipsis whitespace-nowrap px-1">
                       {task.taskKey}
                     </div>
                   </div>
@@ -251,459 +201,156 @@ const SolutionPage = ({ solutionData, logs, isStreaming, onClearLogs, onClear, o
             </div>
           ))}
         </div>
-
-        {/* Gantt Legend */}
-        <div style={{
-          marginTop: '15px',
-          padding: '10px',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '5px',
-          fontSize: '12px'
-        }}>
-          <strong>📊 Gantt Chart Legend:</strong>
-          <div style={{ display: 'flex', gap: '20px', marginTop: '5px', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <div style={{ 
-                width: '20px', 
-                height: '15px', 
-                backgroundColor: '#28a745', 
-                borderRadius: '2px',
-                border: '1px solid #1e7e34'
-              }}></div>
-              <span>Task Assignment</span>
-            </div>
-            <div>• Hover over bars for detailed information</div>
-            <div>• Time scale shows {minTime}ms to {maxTime}ms (includes 5s buffer)</div>
-            <div>• Tick marks show time intervals</div>
-          </div>
-        </div>
       </div>
     );
   };
 
   return (
-    <div style={{
-      padding: '20px',
-      maxWidth: '100%',
-      height: 'calc(100vh - 60px)', // Account for tab navigation
-      overflow: 'auto',
-      backgroundColor: '#f8f9fa'
-    }}>
+    <div className="p-5 h-screen overflow-auto bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div style={{
-        marginBottom: '20px',
-        paddingBottom: '10px',
-        borderBottom: '2px solid #28a745',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-      }}>
-        <h1 style={{ 
-          margin: 0, 
-          color: solutionData ? '#28a745' : isStreaming ? '#17a2b8' : '#ffc107',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px'
-        }}>
-          {solutionData ? '🎉 Problem Solved!' : isStreaming ? '⚡ Solving Problem...' : '📊 Processing Logs'}
-          {isStreaming && (
-            <div style={{
-              fontSize: '14px',
-              color: '#17a2b8',
-              fontWeight: 'normal',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '5px'
-            }}>
-              <span style={{ 
-                width: '8px', 
-                height: '8px', 
-                backgroundColor: '#17a2b8', 
-                borderRadius: '50%',
-                animation: 'pulse 1s ease-in-out infinite'
-              }}></span>
-              Processing...
+      <div className="bg-white dark:bg-gray-800 p-5 rounded-lg mb-5 shadow">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="m-0 text-gray-900 dark:text-gray-100 text-2xl">🎉 Solution Results</h2>
+          <div className="flex gap-2.5">
+            {solutionData && (
+              <button
+                onClick={onAssignToProblem}
+                className="py-2 px-4 bg-blue-500 dark:bg-blue-600 text-white border-none rounded cursor-pointer hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors"
+              >
+                📋 Assign to Problem
+              </button>
+            )}
+            <button
+              onClick={onClear}
+              className="py-2 px-4 bg-red-500 dark:bg-red-600 text-white border-none rounded cursor-pointer hover:bg-red-600 dark:hover:bg-red-700 transition-colors"
+            >
+              🗑️ Clear
+            </button>
+          </div>
+        </div>
+
+        {/* Status */}
+        {solutionData ? (
+          <div className="bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200 py-2 px-3 rounded border border-green-200 dark:border-green-700">
+            ✅ Solution received successfully
+          </div>
+        ) : (
+          <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 py-2 px-3 rounded border border-blue-200 dark:border-blue-700">
+            🔄 Waiting for solution...
+          </div>
+        )}
+      </div>
+
+      {/* Assignments Section */}
+      {solutionData && (
+        <div className="bg-white dark:bg-gray-800 p-5 rounded-lg mb-5 shadow">
+          <div
+            className="flex justify-between items-center mb-4 cursor-pointer"
+            onClick={() => toggleSection('assignments')}
+          >
+            <h3 className="m-0 text-gray-900 dark:text-gray-100">
+              📋 Assignments ({assignments?.length || 0})
+            </h3>
+            <div className="flex items-center gap-2.5">
+              {/* View Mode Toggle */}
+              <div className="flex border border-gray-300 dark:border-gray-600 rounded overflow-hidden">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setViewMode('list');
+                  }}
+                  className={`px-3 py-1 text-xs border-none cursor-pointer transition-colors ${
+                    viewMode === 'list'
+                      ? 'bg-blue-500 dark:bg-blue-600 text-white'
+                      : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  📋 List
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setViewMode('gantt');
+                  }}
+                  className={`px-3 py-1 text-xs border-none cursor-pointer transition-colors ${
+                    viewMode === 'gantt'
+                      ? 'bg-blue-500 dark:bg-blue-600 text-white'
+                      : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  📊 Gantt
+                </button>
+              </div>
+              <span className="text-gray-500 dark:text-gray-400 text-sm">
+                {sectionsCollapsed.assignments ? '▶' : '▼'}
+              </span>
+            </div>
+          </div>
+
+          {!sectionsCollapsed.assignments && (
+            <div className="max-h-96 overflow-auto border border-gray-200 dark:border-gray-600 rounded">
+              {viewMode === 'list' ? renderAssignmentsList() : renderGanttChart()}
             </div>
           )}
-        </h1>
-        {onClear && (solutionData || logs.length > 0) && (
-          <button
-            onClick={onClear}
-            style={{
-              padding: '8px 16px',
-              border: '1px solid #dc3545',
-              borderRadius: '4px',
-              backgroundColor: '#dc3545',
-              color: 'white',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
+        </div>
+      )}
+
+      {/* Solution JSON Section */}
+      {solutionData && (
+        <div className="bg-white dark:bg-gray-800 p-5 rounded-lg mb-5 shadow">
+          <div
+            className="flex justify-between items-center mb-4 cursor-pointer"
+            onClick={() => toggleSection('solution')}
           >
-            🗑️ Clear Results
-          </button>
+            <h3 className="m-0 text-gray-900 dark:text-gray-100">📄 Raw Solution JSON</h3>
+            <span className="text-gray-500 dark:text-gray-400 text-sm">
+              {sectionsCollapsed.solution ? '▶' : '▼'}
+            </span>
+          </div>
+
+          {!sectionsCollapsed.solution && (
+            <pre className="max-h-96 overflow-auto font-mono text-xs bg-gray-50 dark:bg-gray-900 p-3 rounded border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
+              {JSON.stringify(solutionData, null, 2)}
+            </pre>
+          )}
+        </div>
+      )}
+
+      {/* Logs Section */}
+      <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow">
+        <div
+          className="flex justify-between items-center mb-4 cursor-pointer"
+          onClick={() => toggleSection('logs')}
+        >
+          <h3 className="m-0 text-gray-900 dark:text-gray-100">
+            📋 Server Logs ({logs.length})
+            {isStreaming && (
+              <span className="ml-2 text-blue-600 dark:text-blue-400 text-sm">🔄 Streaming...</span>
+            )}
+          </h3>
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onClearLogs();
+              }}
+              className="py-1 px-2 bg-red-500 dark:bg-red-600 text-white border-none rounded cursor-pointer text-xs hover:bg-red-600 dark:hover:bg-red-700 transition-colors"
+            >
+              🗑️ Clear
+            </button>
+            <span className="text-gray-500 dark:text-gray-400 text-sm">
+              {sectionsCollapsed.logs ? '▶' : '▼'}
+            </span>
+          </div>
+        </div>
+
+        {!sectionsCollapsed.logs && (
+          <LogViewer
+            logs={logs}
+            isStreaming={isStreaming}
+          />
         )}
       </div>
-
-      {/* Single Column Content */}
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '20px'
-      }}>
-        
-        {/* Processing Logs Section - Show first while streaming */}
-        {(logs.length > 0 || isStreaming) && (
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            border: '1px solid #ddd',
-            overflow: 'hidden'
-          }}>
-            <div 
-              style={{
-                padding: '15px 20px',
-                backgroundColor: isStreaming ? '#e8f5e8' : '#f8f9fa',
-                borderBottom: sectionsCollapsed.logs ? 'none' : '1px solid #ddd',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                cursor: 'pointer'
-              }}
-              onClick={() => toggleSection('logs')}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '16px' }}>
-                  {sectionsCollapsed.logs ? '▶️' : '▼️'}
-                </span>
-                <h3 style={{ 
-                  margin: 0, 
-                  color: '#333',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
-                  📊 Processing Logs
-                  {isStreaming && (
-                    <span style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      fontSize: '12px',
-                      color: '#28a745',
-                      fontWeight: 'normal'
-                    }}>
-                      <span style={{ 
-                        width: '8px', 
-                        height: '8px', 
-                        backgroundColor: '#28a745', 
-                        borderRadius: '50%',
-                        animation: 'pulse 1s ease-in-out infinite'
-                      }}></span>
-                      Streaming...
-                    </span>
-                  )}
-                </h3>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '12px', color: '#666' }}>
-                  {logs.length} log{logs.length !== 1 ? 's' : ''}
-                </span>
-                {logs.length > 0 && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onClearLogs();
-                    }}
-                    style={{
-                      padding: '4px 8px',
-                      fontSize: '11px',
-                      border: '1px solid #dc3545',
-                      borderRadius: '3px',
-                      backgroundColor: '#fff',
-                      color: '#dc3545',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
-            </div>
-            {!sectionsCollapsed.logs && (
-              <div style={{ padding: '0' }}>
-                <LogViewer
-                  logs={logs || []}
-                  isStreaming={isStreaming || false}
-                  onClearLogs={onClearLogs || (() => {})}
-                  embedded={true}
-                />
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Assignments Section - Show after solution is ready */}
-        {solutionData && (solutionData.schedule?.assignments || solutionData.assignments) && (
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            border: '1px solid #ddd',
-            overflow: 'hidden'
-          }}>
-            <div 
-              style={{
-                padding: '15px 20px',
-                backgroundColor: '#e8f5e8',
-                borderBottom: sectionsCollapsed.assignments ? 'none' : '1px solid #ddd',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                cursor: 'pointer'
-              }}
-              onClick={() => toggleSection('assignments')}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '16px' }}>
-                  {sectionsCollapsed.assignments ? '▶️' : '▼️'}
-                </span>
-                <h3 style={{ margin: 0, color: '#333' }}>🎯 Solution Assignments</h3>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                {/* View Mode Toggle */}
-                <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-                  <span style={{ fontSize: '14px', color: '#666' }}>View:</span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setViewMode('list');
-                    }}
-                    style={{
-                      padding: '6px 12px',
-                      border: '1px solid #6c757d',
-                      borderRadius: '4px',
-                      backgroundColor: viewMode === 'list' ? '#6c757d' : 'white',
-                      color: viewMode === 'list' ? 'white' : '#6c757d',
-                      cursor: 'pointer',
-                      fontSize: '12px'
-                    }}
-                  >
-                    📋 List
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setViewMode('gantt');
-                    }}
-                    style={{
-                      padding: '6px 12px',
-                      border: '1px solid #6c757d',
-                      borderRadius: '4px',
-                      backgroundColor: viewMode === 'gantt' ? '#6c757d' : 'white',
-                      color: viewMode === 'gantt' ? 'white' : '#6c757d',
-                      cursor: 'pointer',
-                      fontSize: '12px'
-                    }}
-                  >
-                    📊 Gantt
-                  </button>
-                </div>
-              </div>
-            </div>
-            {!sectionsCollapsed.assignments && (
-              <div style={{ padding: '20px' }}>
-                {/* Solution Summary */}
-                <div style={{
-                  marginBottom: '20px',
-                  padding: '15px',
-                  backgroundColor: '#e8f5e8',
-                  borderRadius: '5px',
-                  border: '1px solid #c3e6c3'
-                }}>
-                  <h4 style={{ margin: '0 0 10px 0' }}>📊 Solution Summary</h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
-                    <div>
-                      <strong>Total Assignments:</strong> {(solutionData.schedule?.assignments || solutionData.assignments)?.length || 0}
-                    </div>
-                    <div>
-                      <strong>Request ID:</strong> {solutionData.request_id || 'N/A'}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Assignment Details */}
-                {viewMode === 'list' ? (
-                  <div style={{ display: 'grid', gap: '10px' }}>
-                    {(solutionData.schedule?.assignments || solutionData.assignments).map((assignment, index) => (
-                      <div key={index} style={{
-                        padding: '12px',
-                        backgroundColor: '#f8f9fa',
-                        border: '1px solid #dee2e6',
-                        borderRadius: '6px',
-                        borderLeft: '4px solid #28a745',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'flex-start'
-                      }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px', fontSize: '14px', flex: 1 }}>
-                          <div><strong>Task:</strong> {assignment.task_key}</div>
-                          <div><strong>Bot:</strong> {assignment.assigned_ranger_id}</div>
-                          <div><strong>Start:</strong> {assignment.startTime || assignment.operator_start_time}ms</div>
-                          <div><strong>End:</strong> {assignment.endTime || assignment.operator_end_time}ms</div>
-                          <div><strong>PPS:</strong> {assignment.dock_pps_id}</div>
-                          <div><strong>MSU:</strong> {assignment.transport_entity_id}</div>
-                        </div>
-                        {onAssignToProblem && (
-                          <button
-                            onClick={() => onAssignToProblem(assignment)}
-                            style={{
-                              padding: '8px 16px',
-                              backgroundColor: '#007bff',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '4px',
-                              cursor: 'pointer',
-                              fontSize: '12px',
-                              marginLeft: '12px',
-                              flexShrink: 0,
-                              height: 'fit-content'
-                            }}
-                            onMouseOver={(e) => e.target.style.backgroundColor = '#0056b3'}
-                            onMouseOut={(e) => e.target.style.backgroundColor = '#007bff'}
-                          >
-                            Assign
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  renderGanttChart()
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Complete Solution JSON Section */}
-        {solutionData && (
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            border: '1px solid #ddd',
-            overflow: 'hidden'
-          }}>
-            <div 
-              style={{
-                padding: '15px 20px',
-                backgroundColor: '#f8f9fa',
-                borderBottom: sectionsCollapsed.solution ? 'none' : '1px solid #ddd',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                cursor: 'pointer'
-              }}
-              onClick={() => toggleSection('solution')}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '16px' }}>
-                  {sectionsCollapsed.solution ? '▶️' : '▼️'}
-                </span>
-                <h3 style={{ margin: 0, color: '#333' }}>📄 Complete Solution JSON</h3>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigator.clipboard.writeText(JSON.stringify(solutionData, null, 2)).then(() => {
-                      console.log('Solution copied to clipboard');
-                    });
-                  }}
-                  style={{
-                    padding: '6px 12px',
-                    border: '1px solid #007bff',
-                    borderRadius: '4px',
-                    backgroundColor: '#007bff',
-                    color: 'white',
-                    cursor: 'pointer',
-                    fontSize: '12px'
-                  }}
-                >
-                  📋 Copy
-                </button>
-                
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(solutionData, null, 2));
-                    const downloadAnchorNode = document.createElement('a');
-                    downloadAnchorNode.setAttribute("href", dataStr);
-                    downloadAnchorNode.setAttribute("download", "solution.json");
-                    document.body.appendChild(downloadAnchorNode);
-                    downloadAnchorNode.click();
-                    downloadAnchorNode.remove();
-                  }}
-                  style={{
-                    padding: '6px 12px',
-                    border: '1px solid #28a745',
-                    borderRadius: '4px',
-                    backgroundColor: '#28a745',
-                    color: 'white',
-                    cursor: 'pointer',
-                    fontSize: '12px'
-                  }}
-                >
-                  💾 Download
-                </button>
-              </div>
-            </div>
-            {!sectionsCollapsed.solution && (
-              <div style={{ padding: '20px' }}>
-                <pre style={{
-                  backgroundColor: '#f8f9fa',
-                  padding: '15px',
-                  borderRadius: '4px',
-                  border: '1px solid #ddd',
-                  overflow: 'auto',
-                  maxHeight: '400px',
-                  fontSize: '12px',
-                  fontFamily: 'monospace',
-                  margin: 0
-                }}>
-                  {JSON.stringify(solutionData, null, 2)}
-                </pre>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Next Steps */}
-        {solutionData && (
-          <div style={{
-            padding: '15px',
-            backgroundColor: '#e3f2fd',
-            borderRadius: '5px',
-            fontSize: '14px',
-            border: '1px solid #bbdefb'
-          }}>
-            <strong>ℹ️ Next Steps:</strong>
-            <ul style={{ margin: '10px 0', paddingLeft: '20px' }}>
-              <li>Review the solution assignments above</li>
-              <li>Copy or download the complete solution for further analysis</li>
-              <li>Modify your problem statement and solve again if needed</li>
-              <li>Use the assignment data to visualize the solution in external tools</li>
-            </ul>
-          </div>
-        )}
-      </div>
-
-      {/* CSS for animation */}
-      <style>{`
-        @keyframes pulse {
-          0% { opacity: 1; }
-          50% { opacity: 0.5; }
-          100% { opacity: 1; }
-        }
-      `}</style>
     </div>
   );
 };

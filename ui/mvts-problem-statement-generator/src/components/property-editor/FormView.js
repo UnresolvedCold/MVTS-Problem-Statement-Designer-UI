@@ -1,5 +1,6 @@
 // src/components/property-editor/FormView.js
 import React, { useState } from 'react';
+import { useTheme } from '../../contexts/ThemeContext';
 import FormField from './FormField';
 
 /**
@@ -10,6 +11,7 @@ import FormField from './FormField';
  * @returns {JSX.Element}
  */
 const FormView = ({ formValues, onFieldChange, onNestedChange }) => {
+  const { isDark } = useTheme();
   const [showAddField, setShowAddField] = useState(false);
   const [newFieldName, setNewFieldName] = useState('');
   const [newFieldValue, setNewFieldValue] = useState('');
@@ -44,93 +46,39 @@ const FormView = ({ formValues, onFieldChange, onNestedChange }) => {
       ))}
       
       {/* Add new field section */}
-      <div style={{ 
-        marginTop: '20px', 
-        paddingTop: '15px', 
-        borderTop: '1px solid #e9ecef' 
-      }}>
+      <div className="mt-5 pt-4 border-t border-gray-200 dark:border-gray-600">
         {!showAddField ? (
           <button
             onClick={() => setShowAddField(true)}
-            style={{
-              padding: '6px 12px',
-              backgroundColor: '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '12px',
-              width: '100%'
-            }}
+            className="w-full py-2 px-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded text-blue-600 dark:text-blue-400 cursor-pointer text-xs hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
           >
-            + Add Field
+            ➕ Add New Field
           </button>
         ) : (
-          <div style={{ 
-            backgroundColor: '#f8f9fa',
-            padding: '10px',
-            borderRadius: '4px',
-            border: '1px solid #dee2e6'
-          }}>
-            <div style={{ marginBottom: '8px' }}>
-              <label style={{ 
-                display: 'block', 
-                fontSize: '12px', 
-                fontWeight: 'bold',
-                marginBottom: '4px' 
-              }}>
-                Field Name:
-              </label>
-              <input
-                type="text"
-                value={newFieldName}
-                onChange={(e) => setNewFieldName(e.target.value)}
-                placeholder="Enter field name"
-                style={{
-                  width: '100%',
-                  padding: '4px',
-                  border: '1px solid #ccc',
-                  borderRadius: '3px',
-                  fontSize: '12px'
-                }}
-              />
-            </div>
-            <div style={{ marginBottom: '8px' }}>
-              <label style={{ 
-                display: 'block', 
-                fontSize: '12px', 
-                fontWeight: 'bold',
-                marginBottom: '4px' 
-              }}>
-                Field Value:
-              </label>
-              <input
-                type="text"
-                value={newFieldValue}
-                onChange={(e) => setNewFieldValue(e.target.value)}
-                placeholder="Enter value (JSON format for complex types)"
-                style={{
-                  width: '100%',
-                  padding: '4px',
-                  border: '1px solid #ccc',
-                  borderRadius: '3px',
-                  fontSize: '12px'
-                }}
-              />
-            </div>
-            <div style={{ display: 'flex', gap: '6px' }}>
+          <div className="space-y-2">
+            <input
+              type="text"
+              placeholder="Field name"
+              value={newFieldName}
+              onChange={(e) => setNewFieldName(e.target.value)}
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-xs"
+            />
+            <input
+              type="text"
+              placeholder="Field value (can be JSON)"
+              value={newFieldValue}
+              onChange={(e) => setNewFieldValue(e.target.value)}
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-xs"
+            />
+            <div className="flex gap-2">
               <button
                 onClick={handleAddField}
                 disabled={!newFieldName.trim()}
-                style={{
-                  padding: '4px 8px',
-                  backgroundColor: newFieldName.trim() ? '#28a745' : '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '3px',
-                  cursor: newFieldName.trim() ? 'pointer' : 'not-allowed',
-                  fontSize: '11px'
-                }}
+                className={`py-1 px-3 border rounded text-xs transition-colors ${
+                  newFieldName.trim()
+                    ? 'bg-green-500 dark:bg-green-600 text-white border-green-500 dark:border-green-600 hover:bg-green-600 dark:hover:bg-green-700'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-600 cursor-not-allowed'
+                }`}
               >
                 Add
               </button>
@@ -140,15 +88,7 @@ const FormView = ({ formValues, onFieldChange, onNestedChange }) => {
                   setNewFieldName('');
                   setNewFieldValue('');
                 }}
-                style={{
-                  padding: '4px 8px',
-                  backgroundColor: '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '3px',
-                  cursor: 'pointer',
-                  fontSize: '11px'
-                }}
+                className="py-1 px-3 bg-gray-500 dark:bg-gray-600 text-white border border-gray-500 dark:border-gray-600 rounded text-xs hover:bg-gray-600 dark:hover:bg-gray-700 transition-colors"
               >
                 Cancel
               </button>

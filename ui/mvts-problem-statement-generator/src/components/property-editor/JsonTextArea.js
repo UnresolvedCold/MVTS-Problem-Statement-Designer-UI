@@ -1,5 +1,6 @@
 // src/components/property-editor/JsonTextArea.js
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../../contexts/ThemeContext';
 
 /**
  * Component for editing JSON objects in textarea with real-time validation
@@ -7,7 +8,8 @@ import React, { useState, useEffect } from 'react';
  * @param {function} onChange - Callback when value changes
  * @returns {JSX.Element}
  */
-const JsonTextArea = ({ value, onChange }) => {
+const JsonTextArea = ({ value, onChange, placeholder }) => {
+  const { isDark } = useTheme();
   const [textValue, setTextValue] = useState(JSON.stringify(value, null, 2));
   const [hasError, setHasError] = useState(false);
 
@@ -35,17 +37,12 @@ const JsonTextArea = ({ value, onChange }) => {
     <textarea
       value={textValue}
       onChange={handleChange}
-      style={{
-        width: "100%",
-        height: "60px",
-        fontFamily: "monospace",
-        fontSize: "11px",
-        padding: "4px",
-        border: hasError ? "1px solid #dc3545" : "1px solid #ccc",
-        borderRadius: "3px",
-        resize: "vertical",
-        backgroundColor: hasError ? "#fff5f5" : "white"
-      }}
+      placeholder={placeholder}
+      className={`w-full h-15 font-mono text-xs p-1 rounded resize-y transition-colors ${
+        hasError 
+          ? 'border border-red-500 bg-red-50 dark:bg-red-900/20' 
+          : 'border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700'
+      } text-gray-900 dark:text-gray-100`}
     />
   );
 };

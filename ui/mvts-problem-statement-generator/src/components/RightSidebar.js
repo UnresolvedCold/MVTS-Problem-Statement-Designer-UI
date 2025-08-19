@@ -16,9 +16,9 @@ const RightSidebar = ({
   cellSize
 }) => {
   return (
-    <div className="w-150 border-l border-gray-300 flex flex-row overflow-hidden">
+    <div className="w-150 border-l border-gray-300 dark:border-gray-600 flex flex-row overflow-hidden bg-white dark:bg-gray-900">
       {/* Unified Entities List */}
-      <div className="w-75 overflow-auto border-r border-gray-300">
+      <div className="w-75 overflow-auto border-r border-gray-300 dark:border-gray-600">
         <EntitiesList
           objects={visualObjects}
           tasks={tasks}
@@ -65,7 +65,7 @@ const RightSidebar = ({
             onClose={() => {}} // Add close functionality if needed
           />
         ) : (
-          <div className="p-5 text-center text-gray-600 text-xs">
+          <div className="p-5 text-center text-gray-600 dark:text-gray-400 text-xs">
             Select an entity to edit properties
           </div>
         )}

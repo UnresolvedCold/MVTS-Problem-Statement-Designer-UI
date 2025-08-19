@@ -61,40 +61,6 @@ const VirtualizedGridCanvas = ({
     };
   }, []);
 
-  // Calculate initial zoom and position to show entire grid
-  const calculateInitialView = useCallback(() => {
-    if (!containerRef.current || viewport.width === 0 || viewport.height === 0) {
-      return { zoom: 1, x: 0, y: 0 };
-    }
-
-    const gridWidth = cols * cellSize;
-    const gridHeight = rows * cellSize;
-
-    // Calculate zoom to fit entire grid with some padding
-    const padding = 20; // Reduced padding for better space utilization
-    const availableWidth = viewport.width - padding * 2;
-    const availableHeight = viewport.height - padding * 2;
-
-    const scaleX = availableWidth / gridWidth;
-    const scaleY = availableHeight / gridHeight;
-    const fitZoom = Math.min(scaleX, scaleY, 1.5);
-
-    // Ensure minimum zoom is respected
-    const clampedZoom = Math.max(0.1, fitZoom);
-
-    // Calculate position to center the grid
-    const scaledGridWidth = gridWidth * clampedZoom;
-    const scaledGridHeight = gridHeight * clampedZoom;
-    const centerX = (viewport.width - scaledGridWidth) / 2;
-    const centerY = (viewport.height - scaledGridHeight) / 2;
-
-    return {
-      zoom: clampedZoom,
-      x: Math.max(0, centerX),
-      y: Math.max(0, centerY)
-    };
-  }, [cols, rows, cellSize, viewport.width, viewport.height]);
-
   // Initialize view to show entire grid (only after viewport dimensions are set)
   useEffect(() => {
     if (containerRef.current && viewport.width > 0 && viewport.height > 0) {
@@ -253,7 +219,7 @@ const VirtualizedGridCanvas = ({
         y: -newPos.y / clampedScale
       }));
     }
-  }, [viewport, cols, rows, cellSize]);
+  }, []);
 
   const handleDragMove = useCallback(() => {
     const stage = stageRef.current;

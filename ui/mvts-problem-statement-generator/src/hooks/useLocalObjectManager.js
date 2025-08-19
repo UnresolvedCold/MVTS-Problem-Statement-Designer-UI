@@ -64,7 +64,7 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
       warehouseData.warehouse.problem_statement.ranger_list.forEach((ranger, index) => {
         if (ranger.coordinate?.x !== undefined && ranger.coordinate?.y !== undefined) {
           loadedObjects.push({
-            id: `bot-${ranger.id || index}-${Date.now()}`,
+            id: `bot-${ranger.id || index}`,
             type: 'bot',
             x: ranger.coordinate.x * cellSize,
             y: ranger.coordinate.y * cellSize,
@@ -79,7 +79,7 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
       warehouseData.warehouse.problem_statement.pps_list.forEach((pps, index) => {
         if (pps.coordinate?.x !== undefined && pps.coordinate?.y !== undefined) {
           loadedObjects.push({
-            id: `pps-${pps.id || index}-${Date.now()}`,
+            id: `pps-${pps.id || index}`,
             type: 'pps',
             x: pps.coordinate.x * cellSize,
             y: pps.coordinate.y * cellSize,
@@ -94,7 +94,7 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
       warehouseData.warehouse.problem_statement.transport_entity_list.forEach((msu, index) => {
         if (msu.coordinate?.x !== undefined && msu.coordinate?.y !== undefined) {
           loadedObjects.push({
-            id: `msu-${msu.id || index}-${Date.now()}`,
+            id: `msu-${msu.id || index}`,
             type: 'msu',
             x: msu.coordinate.x * cellSize,
             y: msu.coordinate.y * cellSize,
@@ -108,7 +108,7 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
     if (warehouseData.warehouse.problem_statement?.task_list) {
       warehouseData.warehouse.problem_statement.task_list.forEach((task, index) => {
         loadedObjects.push({
-          id: `t-${task.task_key || index}-${Date.now()}`,
+          id: `t-${task.task_key || index}`,
           type: 'task',
           x: null, // No visual position
           y: null, // No visual position
@@ -121,7 +121,7 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
     if (warehouseData.warehouse.problem_statement?.assignment_list) {
       warehouseData.warehouse.problem_statement.assignment_list.forEach((assignment, index) => {
         loadedObjects.push({
-          id: `a-${assignment.id || index}-${Date.now()}`,
+          id: `a-${assignment.id || index}`,
           type: 'assignment',
           x: null, // No visual position
           y: null, // No visual position
@@ -163,7 +163,7 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
         
         // Create visual object without position
         visualObject = {
-          id: `t-${newId}-${Date.now()}`,
+          id: `t-${newId}`,
           type,
           x: null,
           y: null,
@@ -179,7 +179,7 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
         
         // Create visual object without position
         visualObject = {
-          id: `a-${newId}-${Date.now()}`,
+          id: `a-${newId}`,
           type,
           x: null,
           y: null,
@@ -199,7 +199,7 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
         
         // Create visual object
         visualObject = {
-          id: `${type}-${newId}-${Date.now()}`,
+          id: `${type}-${newId}`,
           type,
           x,
           y,

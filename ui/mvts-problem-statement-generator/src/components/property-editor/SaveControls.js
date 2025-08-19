@@ -1,5 +1,6 @@
 // src/components/property-editor/SaveControls.js
 import React from 'react';
+import { useTheme } from '../../contexts/ThemeContext';
 
 /**
  * Save and Reset controls for property editor
@@ -10,35 +11,10 @@ import React from 'react';
  * @returns {JSX.Element}
  */
 const SaveControls = ({ hasUnsavedChanges, onSave, onReset, jsonError }) => {
-  const buttonStyle = {
-    padding: "8px 16px",
-    border: "1px solid #ccc",
-    borderRadius: "4px",
-    cursor: "pointer",
-    fontSize: "12px",
-    fontWeight: "600",
-    marginRight: "8px",
-    transition: "all 0.2s ease"
-  };
+  const { isDark } = useTheme();
 
   // Save button is enabled when there are changes and no JSON errors
   const canSave = hasUnsavedChanges && !jsonError;
-  
-  const saveButtonStyle = {
-    ...buttonStyle,
-    backgroundColor: canSave ? "#28a745" : "#e9ecef",
-    color: canSave ? "#fff" : "#6c757d",
-    cursor: canSave ? "pointer" : "not-allowed",
-    border: canSave ? "1px solid #28a745" : "1px solid #ced4da"
-  };
-
-  const resetButtonStyle = {
-    ...buttonStyle,
-    backgroundColor: hasUnsavedChanges ? "#dc3545" : "#e9ecef",
-    color: hasUnsavedChanges ? "#fff" : "#6c757d",
-    cursor: hasUnsavedChanges ? "pointer" : "not-allowed",
-    border: hasUnsavedChanges ? "1px solid #dc3545" : "1px solid #ced4da"
-  };
 
   // Always show the controls if there are unsaved changes or JSON errors
   if (!hasUnsavedChanges && !jsonError) {
@@ -46,69 +22,36 @@ const SaveControls = ({ hasUnsavedChanges, onSave, onReset, jsonError }) => {
   }
 
   return (
-    <div style={{ 
-      marginBottom: "15px",
-      padding: "10px",
-      backgroundColor: "#f8f9fa",
-      border: "1px solid #e9ecef",
-      borderRadius: "4px",
-      display: "flex",
-      alignItems: "center",
-      gap: "8px"
-    }}>
-      {/* Always show save and reset buttons when there are changes, enable based on JSON validity */}
-      {hasUnsavedChanges && (
-        <>
-          <button
-            onClick={onSave}
-            disabled={!canSave}
-            style={saveButtonStyle}
-            title={
-              jsonError 
-                ? "Fix JSON errors before saving" 
-                : canSave
-                ? "Save changes"
-                : "No changes to save"
-            }
-          >
-            💾 Save
-          </button>
-          
-          <button
-            onClick={onReset}
-            style={resetButtonStyle}
-            title="Reset to original values"
-          >
-            ↺ Reset
-          </button>
+    <div className="mb-4 p-2.5 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded">
+      <div className="text-xs text-yellow-800 dark:text-yellow-200 mb-2">
+        {jsonError ? '❌ JSON Error - Fix errors before saving' : '⚠️ Unsaved Changes'}
+      </div>
 
-          <div style={{
-            fontSize: "11px",
-            color: "#856404",
-            backgroundColor: "#fff3cd",
-            border: "1px solid #ffeaa7",
-            borderRadius: "3px",
-            padding: "4px 8px",
-            marginLeft: "auto"
-          }}>
-            ● Unsaved changes
-          </div>
-        </>
-      )}
+      <div className="flex gap-2">
+        <button
+          onClick={onSave}
+          disabled={!canSave}
+          className={`py-2 px-4 border rounded cursor-pointer text-xs font-semibold transition-all ${
+            canSave 
+              ? 'bg-green-500 dark:bg-green-600 text-white border-green-500 dark:border-green-600 hover:bg-green-600 dark:hover:bg-green-700' 
+              : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-600 cursor-not-allowed'
+          }`}
+        >
+          💾 Save
+        </button>
 
-      {jsonError && (
-        <div style={{
-          fontSize: "11px",
-          color: "#721c24",
-          backgroundColor: "#f8d7da",
-          border: "1px solid #f5c6cb",
-          borderRadius: "3px",
-          padding: "4px 8px",
-          marginLeft: hasUnsavedChanges ? "0" : "auto"
-        }}>
-          ⚠ JSON Error
-        </div>
-      )}
+        <button
+          onClick={onReset}
+          disabled={!hasUnsavedChanges}
+          className={`py-2 px-4 border rounded cursor-pointer text-xs font-semibold transition-all ${
+            hasUnsavedChanges 
+              ? 'bg-red-500 dark:bg-red-600 text-white border-red-500 dark:border-red-600 hover:bg-red-600 dark:hover:bg-red-700' 
+              : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-600 cursor-not-allowed'
+          }`}
+        >
+          🔄 Reset
+        </button>
+      </div>
     </div>
   );
 };

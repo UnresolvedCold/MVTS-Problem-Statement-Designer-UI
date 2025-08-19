@@ -142,7 +142,7 @@ public class ProblemStatementStudio {
     servicedOrder.setOrderAllocationTime(new DateTime(0));
     servicedOrder.setOrderID(task.getTaskID());
     servicedOrder.setPickBeforeTime(new DateTime(0));
-    servicedOrder.setPriority(Priority.medium);
+    servicedOrder.setOrderPriority(Priority.medium);
     servicedOrder.setOperatorTime(0);
     task.setServicedOrders(new ServicedOrder[]{servicedOrder});
 
@@ -189,7 +189,7 @@ public class ProblemStatementStudio {
     servicedOrder.setOrderAllocationTime(new DateTime(0));
     servicedOrder.setOrderID(assignment.getTaskID());
     servicedOrder.setPickBeforeTime(new DateTime(0));
-    servicedOrder.setPriority(Priority.medium);
+    servicedOrder.setOrderPriority(Priority.medium);
     servicedOrder.setOperatorTime(0);
     assignment.setServicedOrders(List.of(servicedOrder));
     assignment.setTaskType(TaskType.PICK);
@@ -217,8 +217,8 @@ public class ProblemStatementStudio {
       res = getOutput(inputMessage);
 
     } catch (Exception e) {
-
       e.printStackTrace();
+      throw new RuntimeException("Failed to process input message", e);
     } finally {
       updateApplicationProperties((Map) originalProperties);
     }

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ClearStorageButton from "./ClearStorageButton";
 
 const Toolbar = ({ 
   rows, 
@@ -59,87 +60,60 @@ const Toolbar = ({
   };
 
   return (
-    <div style={{ width: 200, padding: 10, borderRight: "1px solid #ccc", overflow: 'auto' }}>
+    <div className="w-50 p-2.5 border-r border-gray-300 dark:border-gray-600 overflow-auto bg-white dark:bg-gray-900">
       {/* Grid Settings */}
-      <div style={{ marginBottom: '20px' }}>
-        <h3>Grid Settings</h3>
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+      <div className="mb-5">
+        <h3 className="text-gray-900 dark:text-gray-100">Grid Settings</h3>
+        <div className="flex flex-col gap-3">
           <div>
-            <label style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>Rows: </label>
+            <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">Rows: </label>
             <input
               type="number"
               value={rows}
               onChange={(e) => onRowsChange(parseInt(e.target.value))}
-              style={{ width: "100%", padding: "4px", borderRadius: "4px", border: "1px solid #ccc" }}
+              className="w-full p-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             />
           </div>
           <div>
-            <label style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>Cols: </label>
+            <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">Cols: </label>
             <input
               type="number"
               value={cols}
               onChange={(e) => onColsChange(parseInt(e.target.value))}
-              style={{ width: "100%", padding: "4px", borderRadius: "4px", border: "1px solid #ccc" }}
+              className="w-full p-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             />
           </div>
           <div>
-            <label style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>Cell Size: </label>
+            <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">Cell Size: </label>
             <input
               type="number"
               value={cellSize}
               onChange={(e) => onCellSizeChange(parseInt(e.target.value))}
-              style={{ width: "100%", padding: "4px", borderRadius: "4px", border: "1px solid #ccc" }}
+              className="w-full p-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             />
           </div>
         </div>
       </div>
 
       {/* Add Entities */}
-      <div style={{ marginBottom: '20px' }}>
-        <h3>Add Entities</h3>
-        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-          <button 
+      <div className="mb-5">
+        <h3 className="text-gray-900 dark:text-gray-100">Add Entities</h3>
+        <div className="flex flex-col gap-1.5">
+          <button
             onClick={() => onAddObject("bot")}
-            style={{
-              backgroundColor: "#007bff",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              padding: "6px 10px",
-              cursor: "pointer",
-              fontSize: "12px",
-              fontWeight: "500"
-            }}
+            className="bg-blue-500 dark:bg-blue-600 text-white border-none rounded px-2.5 py-1.5 cursor-pointer text-xs font-medium hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors"
           >
             🤖 Add Bot
           </button>
           <button 
             onClick={() => onAddObject("pps")}
-            style={{
-              backgroundColor: "#28a745",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              padding: "6px 10px",
-              cursor: "pointer",
-              fontSize: "12px",
-              fontWeight: "500"
-            }}
+            className="bg-green-500 dark:bg-green-600 text-white border-none rounded px-2.5 py-1.5 cursor-pointer text-xs font-medium hover:bg-green-600 dark:hover:bg-green-700 transition-colors"
           >
             🏠 Add PPS
           </button>
           <button 
             onClick={() => onAddObject("msu")}
-            style={{
-              backgroundColor: "#ffc107",
-              color: "#212529",
-              border: "none",
-              borderRadius: "4px",
-              padding: "6px 10px",
-              cursor: "pointer",
-              fontSize: "12px",
-              fontWeight: "500"
-            }}
+            className="bg-yellow-400 dark:bg-yellow-500 text-gray-800 dark:text-gray-900 border-none rounded px-2.5 py-1.5 cursor-pointer text-xs font-medium hover:bg-yellow-500 dark:hover:bg-yellow-600 transition-colors"
           >
             📦 Add MSU
           </button>
@@ -148,42 +122,22 @@ const Toolbar = ({
           {!showTaskForm ? (
             <button 
               onClick={() => setShowTaskForm(true)}
-              style={{
-                backgroundColor: "#17a2b8",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                padding: "6px 10px",
-                cursor: "pointer",
-                fontSize: "12px",
-                fontWeight: "500"
-              }}
+              className="bg-cyan-500 dark:bg-cyan-600 text-white border-none rounded px-2.5 py-1.5 cursor-pointer text-xs font-medium hover:bg-cyan-600 dark:hover:bg-cyan-700 transition-colors"
             >
               📋 Add Task
             </button>
           ) : (
-            <div style={{
-              border: "2px solid #17a2b8",
-              borderRadius: "4px",
-              padding: "8px",
-              backgroundColor: "white"
-            }}>
-              <div style={{ fontSize: "12px", fontWeight: "bold", marginBottom: "8px" }}>
+            <div className="border-2 border-cyan-500 dark:border-cyan-400 rounded p-2 bg-white dark:bg-gray-800">
+              <div className="text-xs font-bold mb-2 text-gray-900 dark:text-gray-100">
                 Create New Task
               </div>
               
-              <div style={{ marginBottom: "6px" }}>
-                <label style={{ display: "block", fontSize: "11px", marginBottom: "2px" }}>PPS:</label>
+              <div className="mb-1.5">
+                <label className="block text-xs mb-0.5 text-gray-700 dark:text-gray-300">PPS:</label>
                 <select
                   value={taskFormData.destination_id}
                   onChange={(e) => setTaskFormData({ ...taskFormData, destination_id: e.target.value })}
-                  style={{
-                    width: "100%",
-                    padding: "3px",
-                    fontSize: "11px",
-                    border: "1px solid #ccc",
-                    borderRadius: "3px"
-                  }}
+                  className="w-full p-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 >
                   <option value="">Select PPS</option>
                   {availablePPS.map(pps => (
@@ -192,18 +146,12 @@ const Toolbar = ({
                 </select>
               </div>
               
-              <div style={{ marginBottom: "8px" }}>
-                <label style={{ display: "block", fontSize: "11px", marginBottom: "2px" }}>MSU:</label>
+              <div className="mb-2">
+                <label className="block text-xs mb-0.5 text-gray-700 dark:text-gray-300">MSU:</label>
                 <select
                   value={taskFormData.transport_entity_id}
                   onChange={(e) => setTaskFormData({ ...taskFormData, transport_entity_id: e.target.value })}
-                  style={{
-                    width: "100%",
-                    padding: "3px",
-                    fontSize: "11px",
-                    border: "1px solid #ccc",
-                    borderRadius: "3px"
-                  }}
+                  className="w-full p-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 >
                   <option value="">Select MSU</option>
                   {availableMSU.map(msu => (
@@ -212,19 +160,10 @@ const Toolbar = ({
                 </select>
               </div>
               
-              <div style={{ display: "flex", gap: "4px" }}>
+              <div className="flex gap-1">
                 <button
                   onClick={handleAddTask}
-                  style={{
-                    flex: 1,
-                    padding: "4px",
-                    backgroundColor: "#17a2b8",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "2px",
-                    fontSize: "10px",
-                    cursor: "pointer"
-                  }}
+                  className="flex-1 p-1 bg-cyan-500 dark:bg-cyan-600 text-white border-none rounded text-xs cursor-pointer hover:bg-cyan-600 dark:hover:bg-cyan-700 transition-colors"
                 >
                   Create
                 </button>
@@ -233,16 +172,7 @@ const Toolbar = ({
                     setShowTaskForm(false);
                     setTaskFormData({ destination_id: '', transport_entity_id: '' });
                   }}
-                  style={{
-                    flex: 1,
-                    padding: "4px",
-                    backgroundColor: "#6c757d",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "2px",
-                    fontSize: "10px",
-                    cursor: "pointer"
-                  }}
+                  className="flex-1 p-1 bg-gray-500 dark:bg-gray-600 text-white border-none rounded text-xs cursor-pointer hover:bg-gray-600 dark:hover:bg-gray-700 transition-colors"
                 >
                   Cancel
                 </button>
@@ -254,42 +184,22 @@ const Toolbar = ({
           {!showAssignmentForm ? (
             <button 
               onClick={() => setShowAssignmentForm(true)}
-              style={{
-                backgroundColor: "#6610f2",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                padding: "6px 10px",
-                cursor: "pointer",
-                fontSize: "12px",
-                fontWeight: "500"
-              }}
+              className="bg-purple-600 dark:bg-purple-700 text-white border-none rounded px-2.5 py-1.5 cursor-pointer text-xs font-medium hover:bg-purple-700 dark:hover:bg-purple-800 transition-colors"
             >
               🎯 Add Assignment
             </button>
           ) : (
-            <div style={{
-              border: "2px solid #6610f2",
-              borderRadius: "4px",
-              padding: "8px",
-              backgroundColor: "white"
-            }}>
-              <div style={{ fontSize: "12px", fontWeight: "bold", marginBottom: "8px" }}>
+            <div className="border-2 border-purple-600 dark:border-purple-500 rounded p-2 bg-white dark:bg-gray-800">
+              <div className="text-xs font-bold mb-2 text-gray-900 dark:text-gray-100">
                 Create New Assignment
               </div>
               
-              <div style={{ marginBottom: "6px" }}>
-                <label style={{ display: "block", fontSize: "11px", marginBottom: "2px" }}>PPS:</label>
+              <div className="mb-1.5">
+                <label className="block text-xs mb-0.5 text-gray-700 dark:text-gray-300">PPS:</label>
                 <select
                   value={assignmentFormData.pps_id}
                   onChange={(e) => setAssignmentFormData({ ...assignmentFormData, pps_id: e.target.value })}
-                  style={{
-                    width: "100%",
-                    padding: "3px",
-                    fontSize: "11px",
-                    border: "1px solid #ccc",
-                    borderRadius: "3px"
-                  }}
+                  className="w-full p-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 >
                   <option value="">Select PPS</option>
                   {availablePPS.map(pps => (
@@ -298,18 +208,12 @@ const Toolbar = ({
                 </select>
               </div>
               
-              <div style={{ marginBottom: "6px" }}>
-                <label style={{ display: "block", fontSize: "11px", marginBottom: "2px" }}>MSU:</label>
+              <div className="mb-1.5">
+                <label className="block text-xs mb-0.5 text-gray-700 dark:text-gray-300">MSU:</label>
                 <select
                   value={assignmentFormData.msu_id}
                   onChange={(e) => setAssignmentFormData({ ...assignmentFormData, msu_id: e.target.value })}
-                  style={{
-                    width: "100%",
-                    padding: "3px",
-                    fontSize: "11px",
-                    border: "1px solid #ccc",
-                    borderRadius: "3px"
-                  }}
+                  className="w-full p-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 >
                   <option value="">Select MSU</option>
                   {availableMSU.map(msu => (
@@ -318,18 +222,12 @@ const Toolbar = ({
                 </select>
               </div>
               
-              <div style={{ marginBottom: "8px" }}>
-                <label style={{ display: "block", fontSize: "11px", marginBottom: "2px" }}>Bot:</label>
+              <div className="mb-2">
+                <label className="block text-xs mb-0.5 text-gray-700 dark:text-gray-300">Bot:</label>
                 <select
                   value={assignmentFormData.bot_id}
                   onChange={(e) => setAssignmentFormData({ ...assignmentFormData, bot_id: e.target.value })}
-                  style={{
-                    width: "100%",
-                    padding: "3px",
-                    fontSize: "11px",
-                    border: "1px solid #ccc",
-                    borderRadius: "3px"
-                  }}
+                  className="w-full p-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 >
                   <option value="">Select Bot</option>
                   {availableBots.map(bot => (
@@ -338,19 +236,10 @@ const Toolbar = ({
                 </select>
               </div>
               
-              <div style={{ display: "flex", gap: "4px" }}>
+              <div className="flex gap-1">
                 <button
                   onClick={handleAddAssignment}
-                  style={{
-                    flex: 1,
-                    padding: "4px",
-                    backgroundColor: "#6610f2",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "2px",
-                    fontSize: "10px",
-                    cursor: "pointer"
-                  }}
+                  className="flex-1 p-1 bg-purple-600 dark:bg-purple-700 text-white border-none rounded text-xs cursor-pointer hover:bg-purple-700 dark:hover:bg-purple-800 transition-colors"
                 >
                   Create
                 </button>
@@ -359,16 +248,7 @@ const Toolbar = ({
                     setShowAssignmentForm(false);
                     setAssignmentFormData({ pps_id: '', msu_id: '', bot_id: '' });
                   }}
-                  style={{
-                    flex: 1,
-                    padding: "4px",
-                    backgroundColor: "#6c757d",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "2px",
-                    fontSize: "10px",
-                    cursor: "pointer"
-                  }}
+                  className="flex-1 p-1 bg-gray-500 dark:bg-gray-600 text-white border-none rounded text-xs cursor-pointer hover:bg-gray-600 dark:hover:bg-gray-700 transition-colors"
                 >
                   Cancel
                 </button>
@@ -379,28 +259,16 @@ const Toolbar = ({
       </div>
 
       {/* Server Actions */}
-      <div style={{ marginBottom: '20px' }}>
-        <h3>Server Actions</h3>
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          <div style={{ 
-            fontSize: '12px', 
-            color: isConnected ? 'green' : 'orange',
-            marginBottom: '5px',
-            fontWeight: 'bold'
-          }}>
+      <div className="mb-5">
+        <h3 className="text-gray-900 dark:text-gray-100">Server Actions</h3>
+        <div className="flex flex-col gap-2">
+          <div className={`text-xs mb-1.5 font-bold ${isConnected ? 'text-green-600 dark:text-green-400' : 'text-orange-500 dark:text-orange-400'}`}>
             Status: {isConnected ? 'Connected' : 'Disconnected'}
           </div>
           
           <button
             onClick={onManageTemplates}
-            style={{
-              padding: "8px",
-              border: "1px solid #ccc",
-              borderRadius: "4px",
-              backgroundColor: "#f8f9fa",
-              cursor: "pointer",
-              fontSize: "12px"
-            }}
+            className="p-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-800 cursor-pointer text-xs hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-gray-100"
           >
             🔧 Manage Schemas
           </button>
@@ -408,15 +276,11 @@ const Toolbar = ({
           <button
             onClick={onSolveProblem}
             disabled={isLoading}
-            style={{
-              padding: "8px",
-              border: "1px solid #28a745",
-              borderRadius: "4px",
-              backgroundColor: isLoading ? "#6c757d" : "#28a745",
-              color: "white",
-              cursor: isLoading ? "not-allowed" : "pointer",
-              fontSize: "12px"
-            }}
+            className={`p-2 border rounded text-white text-xs transition-colors ${
+              isLoading 
+                ? 'border-gray-500 dark:border-gray-600 bg-gray-500 dark:bg-gray-600 cursor-not-allowed' 
+                : 'border-green-500 dark:border-green-400 bg-green-500 dark:bg-green-600 cursor-pointer hover:bg-green-600 dark:hover:bg-green-700'
+            }`}
           >
             {isLoading ? "🔄 Solving..." : "🚀 Solve Problem"}
           </button>
@@ -424,36 +288,17 @@ const Toolbar = ({
       </div>
 
       {/* Data Management */}
-      <div style={{ marginBottom: '20px' }}>
-        <h3>Data Management</h3>
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          <button
-            onClick={onClearData}
-            style={{
-              padding: "8px",
-              border: "1px solid #dc3545",
-              borderRadius: "4px",
-              backgroundColor: "#dc3545",
-              color: "white",
-              cursor: "pointer",
-              fontSize: "12px"
-            }}
-          >
-            🗑️ Clear All Data
-          </button>
+      <div className="mb-5">
+        <h3 className="text-gray-900 dark:text-gray-100">Data Management</h3>
+        <div className="flex flex-col gap-2">
+          <ClearStorageButton />
         </div>
       </div>
 
       {/* Local Storage Info */}
-      <div style={{ 
-        padding: '10px', 
-        backgroundColor: '#e3f2fd', 
-        borderRadius: '4px',
-        fontSize: '11px',
-        color: '#1565c0'
-      }}>
+      <div className="p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded text-xs text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
         <strong>💡 Local Mode</strong>
-        <div style={{ marginTop: '5px' }}>
+        <div className="mt-1.5">
           All changes are saved locally in your browser. Use templates to create new items and solve problems on the server.
         </div>
       </div>

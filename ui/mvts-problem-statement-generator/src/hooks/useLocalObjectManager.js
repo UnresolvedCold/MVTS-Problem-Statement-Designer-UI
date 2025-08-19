@@ -1,10 +1,13 @@
 // src/hooks/useLocalObjectManager.js
-import { useState, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
+// This is the main hook for managing pps, bot, msu, task and assignment objects in the local state
+// cellSize is used to convert grid coordinates to pixel positions
+// localStateManager is used to interact and save the local warehouse data
+// schemaManager is used to get the templates for each object type
 export const useLocalObjectManager = (cellSize, localStateManager, schemaManager) => {
   const [objects, setObjects] = useState([]);
   const [selectedObject, setSelectedObject] = useState(null);
-  const lastUpdateRef = useRef(null);
 
   const {
     localWarehouseData,
@@ -18,6 +21,7 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
 
   // Generate unique ID for objects and tasks
   const generateObjectId = useCallback((type) => {
+    // Get the list associated with the object type and return the next id
     const listKey = type === 'bot' ? 'ranger_list' : 
                    type === 'pps' ? 'pps_list' : 
                    type === 'msu' ? 'transport_entity_list' :
@@ -60,7 +64,7 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
       warehouseData.warehouse.problem_statement.ranger_list.forEach((ranger, index) => {
         if (ranger.coordinate?.x !== undefined && ranger.coordinate?.y !== undefined) {
           loadedObjects.push({
-            id: `bot-${ranger.id || index}-${Date.now()}`,
+            id: `bot-${ranger.id || index}`,
             type: 'bot',
             x: ranger.coordinate.x * cellSize,
             y: ranger.coordinate.y * cellSize,
@@ -75,7 +79,7 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
       warehouseData.warehouse.problem_statement.pps_list.forEach((pps, index) => {
         if (pps.coordinate?.x !== undefined && pps.coordinate?.y !== undefined) {
           loadedObjects.push({
-            id: `pps-${pps.id || index}-${Date.now()}`,
+            id: `pps-${pps.id || index}`,
             type: 'pps',
             x: pps.coordinate.x * cellSize,
             y: pps.coordinate.y * cellSize,
@@ -90,7 +94,7 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
       warehouseData.warehouse.problem_statement.transport_entity_list.forEach((msu, index) => {
         if (msu.coordinate?.x !== undefined && msu.coordinate?.y !== undefined) {
           loadedObjects.push({
-            id: `msu-${msu.id || index}-${Date.now()}`,
+            id: `msu-${msu.id || index}`,
             type: 'msu',
             x: msu.coordinate.x * cellSize,
             y: msu.coordinate.y * cellSize,
@@ -104,7 +108,7 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
     if (warehouseData.warehouse.problem_statement?.task_list) {
       warehouseData.warehouse.problem_statement.task_list.forEach((task, index) => {
         loadedObjects.push({
-          id: `t-${task.task_key || index}-${Date.now()}`,
+          id: `t-${task.task_key || index}`,
           type: 'task',
           x: null, // No visual position
           y: null, // No visual position
@@ -117,7 +121,7 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
     if (warehouseData.warehouse.problem_statement?.assignment_list) {
       warehouseData.warehouse.problem_statement.assignment_list.forEach((assignment, index) => {
         loadedObjects.push({
-          id: `a-${assignment.id || index}-${Date.now()}`,
+          id: `a-${assignment.id || index}`,
           type: 'assignment',
           x: null, // No visual position
           y: null, // No visual position
@@ -159,11 +163,14 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
         
         // Create visual object without position
         visualObject = {
-          id: `t-${newId}-${Date.now()}`,
+          id: `t-${newId}`,
           type,
           x: null,
           y: null,
-          properties: objectData
+          properties: {
+            ...objectData,
+            __meta_data: {}
+          }
         };
       } else if (type === 'assignment') {
         // Assignments don't have coordinates, use id
@@ -175,31 +182,65 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
         
         // Create visual object without position
         visualObject = {
-          id: `a-${newId}-${Date.now()}`,
+          id: `a-${newId}`,
           type,
           x: null,
           y: null,
-          properties: objectData
+          properties: {
+            ...objectData,
+            __meta_data: {}
+          }
         };
-      } else {
+      } else if (type === 'bot' || type === 'msu') {
         // Regular objects with grid coordinates
         objectData = {
           ...template,
           id: newId,
           coordinate: {
-            x: Math.floor(x / cellSize),
-            y: Math.floor(y / cellSize)
+            x: Math.floor(x/cellSize),
+            y: Math.floor(y/cellSize)
+          },
+          available_at_coordinate: {
+            x: Math.floor(x/cellSize),
+            y: Math.floor(y/cellSize)
           },
           ...customData
         };
         
         // Create visual object
         visualObject = {
-          id: `${type}-${newId}-${Date.now()}`,
+          id: `${type}-${newId}`,
           type,
           x,
           y,
-          properties: objectData
+          properties: {
+            ...objectData,
+            __meta_data: {}
+          }
+        };
+      }else {
+        // Regular objects with grid coordinates
+        objectData = {
+          ...template,
+          id: newId,
+          coordinate: {
+            x: Math.floor(x/cellSize),
+            y: Math.floor(y/cellSize)
+          },
+          ...customData
+        };
+
+        // Create visual object
+        visualObject = {
+          id: `${type}-${newId}`,
+          type,
+          x,
+          y,
+          manual_change: {},
+          properties: {
+            ...objectData,
+            __meta_data: {}
+          }
         };
       }
 
@@ -250,38 +291,60 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
   // Update object position
   const updateObjectPosition = useCallback((objectId, x, y) => {
     console.log('updateObjectPosition called for object:', objectId, 'position:', x, y);
-    
+
     setObjects(currentObjects => {
-      const updatedObjects = currentObjects.map((obj) =>
-        obj.id === objectId 
-          ? { 
-              ...obj, 
-              x, 
-              y,
-              properties: {
-                ...obj.properties,
-                coordinate: {
-                  x: Math.floor(x / cellSize),
-                  y: Math.floor(y / cellSize)
+      const updatedObjects = currentObjects.map((obj) => {
+
+        // eyes: logs for debug
+        if (obj.id === objectId) {
+          console.log("should change available at coordinate",
+            obj,
+            ((obj.type === "bot" || obj.type === "msu") && !obj.properties.__meta_data?.manual_change?.available_at_coordinate));
+        }
+
+          return (
+          obj.id === objectId
+            ? (obj.type === "bot" || obj.type === "msu") && !obj.properties.__meta_data?.manual_change?.available_at_coordinate ? {
+                ...obj,
+                x,
+                y,
+                properties: {
+                  ...obj.properties,
+                  coordinate: {
+                    x: Math.floor(x / cellSize),
+                    y: Math.floor(y / cellSize)
+                  },
+                  available_at_coordinate: {
+                    x: Math.floor(x / cellSize),
+                    y: Math.floor(y / cellSize)
+                  }
                 }
               }
-            } 
-          : obj
+              :
+              {
+                ...obj,
+                x,
+                y,
+                properties: {
+                  ...obj.properties,
+                  coordinate: {
+                    x: Math.floor(x / cellSize),
+                    y: Math.floor(y / cellSize)
+                  }
+                }
+              }
+            : obj)
+        }
       );
 
       // Update the object in local warehouse data
       const updatedObject = updatedObjects.find(obj => obj.id === objectId);
       if (updatedObject) {
+        // Persist full properties including available_at_coordinate so manual_change remains effective
         updateObjectInLocal(
           updatedObject.type,
           updatedObject.properties.id,
-          {
-            ...updatedObject.properties,
-            coordinate: {
-              x: Math.floor(x / cellSize),
-              y: Math.floor(y / cellSize)
-            }
-          }
+          updatedObject.properties
         );
       }
       
@@ -292,17 +355,71 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
   // Update object properties
   const updateObjectProperties = useCallback((objectId, newProperties, shouldSyncPosition = true) => {
     setObjects(currentObjects => {
-      const updatedObjects = currentObjects.map((obj) =>
-        obj.id === objectId 
-          ? { 
-              ...obj, 
+      const updatedObjects = currentObjects.map((obj) => {
+          if (obj.id === objectId) {
+
+            console.log("Property update:", objectId, newProperties, obj);
+
+
+            if (obj.type === 'bot' || obj.type === 'msu') {
+
+              // Replace manual update logic for available_at_coordinate
+              const prevAvail = obj.properties.available_at_coordinate || {};
+              const prevCoord = obj.properties.coordinate || {};
+              const newAvail = newProperties.available_at_coordinate || {};
+              const newCoord = newProperties.coordinate || {};
+
+              const isAvailChanged = prevAvail.x !== newAvail.x || prevAvail.y !== newAvail.y;
+              const isCoordChanged = prevCoord.x !== newCoord.x || prevCoord.y !== newCoord.y;
+              const isAvailSameAsCoord = newAvail.x === newCoord.x && newAvail.y === newCoord.y;
+
+              const manualChange = isAvailChanged && !isAvailSameAsCoord
+                ? { available_at_coordinate: true }
+                : obj.properties.__meta_data?.manual_change || {};
+
+              const updatedAvailable = !manualChange.available_at_coordinate && isCoordChanged
+                ? { ...newCoord }
+                : { ...newAvail };
+
+              const updatedProps = {
+                ...newProperties,
+                available_at_coordinate: updatedAvailable
+              };
+
+              const res = {
+                ...obj,
+                properties: {
+                  ...updatedProps,
+                  __meta_data: {
+                    ...obj.properties.__meta_data,
+                    manual_change: {
+                      ...obj.properties.__meta_data?.manual_change,
+                      ...manualChange
+                    }
+                  }
+                },
+                x: updatedProps.coordinate?.x !== undefined ? updatedProps.coordinate.x * cellSize : obj.x,
+                y: updatedProps.coordinate?.y !== undefined ? updatedProps.coordinate.y * cellSize : obj.y
+              };
+              console.log("Final object properties", res);
+              return res;
+            }
+
+            let res = {
+              ...obj,
               properties: newProperties,
               // Update visual position if coordinates changed
               x: newProperties.coordinate?.x !== undefined ? newProperties.coordinate.x * cellSize : obj.x,
               y: newProperties.coordinate?.y !== undefined ? newProperties.coordinate.y * cellSize : obj.y
-            } 
-          : obj
-      );
+            }
+            console.log("Final object properties", res);
+
+            return res;
+
+          } else {
+            return obj;
+          }
+        });
       
       // Update selected object if it's the one being edited
       if (selectedObject?.id === objectId) {
@@ -315,16 +432,35 @@ export const useLocalObjectManager = (cellSize, localStateManager, schemaManager
       // Update the object in local warehouse data
       const updatedObject = updatedObjects.find(obj => obj.id === objectId);
       if (updatedObject) {
+        // Use the correct identifier based on object type
+        let identifier;
+        if (updatedObject.type === 'task' || updatedObject.type === 'assignment') {
+          identifier = updatedObject.properties.task_key;
+        } else {
+          identifier = updatedObject.properties.id;
+        }
+
         updateObjectInLocal(
           updatedObject.type,
-          updatedObject.properties.id,
-          newProperties
+          identifier,
+          updatedObject.properties
         );
       }
       
       return updatedObjects;
     });
   }, [selectedObject, cellSize, updateObjectInLocal]);
+
+  // Keep selectedObject in sync when its position or manual_change updates
+  // eyes: This is sort of hack, but in the future maybe we can do this more elegantly
+  useEffect(() => {
+    if (selectedObject) {
+      const updated = objects.find(o => o.id === selectedObject.id);
+      if (updated && (updated.x !== selectedObject.x || updated.y !== selectedObject.y || JSON.stringify(updated.manual_change) !== JSON.stringify(selectedObject.manual_change))) {
+        setSelectedObject(updated);
+      }
+    }
+  }, [objects, selectedObject, setSelectedObject]);
 
   return {
     objects,

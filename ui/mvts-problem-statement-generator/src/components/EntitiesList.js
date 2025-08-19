@@ -15,27 +15,19 @@ const EntitiesList = ({
   onRemoveTask,
   onRemoveAssignment,
   warehouseData 
-}) => {
+  ,onEntityDoubleClick
+ }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [filter, setFilter] = useState('all'); // 'all', 'bots', 'pps', 'msu', 'tasks', 'assignments'
-
-  console.log('EntitiesList - Component rendered with props:', {
-    objects: objects,
-    objectsLength: objects?.length,
-    objectsStructure: objects?.map(o => ({ id: o.id, type: o.type, properties: o.properties })),
-    tasks: tasks,
-    tasksLength: tasks?.length,
-    filter: filter
-  });
+  const [filter, setFilter] = useState('all');
 
   // Get entity color and icon based on type
   const getEntityStyle = (type) => {
     const styles = {
-      bot: { color: '#007bff', bgColor: '#e3f2fd', icon: '🤖', label: 'Bot' },
-      pps: { color: '#28a745', bgColor: '#e8f5e9', icon: '🏠', label: 'PPS' },
-      msu: { color: '#ffc107', bgColor: '#fff8e1', icon: '📦', label: 'MSU' },
-      task: { color: '#17a2b8', bgColor: '#e0f7fa', icon: '📋', label: 'Task' },
-      assignment: { color: '#6610f2', bgColor: '#f3e5f5', icon: '🎯', label: 'Assignment' }
+      bot: { colorClass: 'text-blue-600 dark:text-blue-400', bgClass: 'bg-blue-50 dark:bg-blue-900/20', borderClass: 'border-l-blue-600 dark:border-l-blue-400', icon: '🤖', label: 'Bot' },
+      pps: { colorClass: 'text-green-600 dark:text-green-400', bgClass: 'bg-green-50 dark:bg-green-900/20', borderClass: 'border-l-green-600 dark:border-l-green-400', icon: '🏠', label: 'PPS' },
+      msu: { colorClass: 'text-yellow-600 dark:text-yellow-400', bgClass: 'bg-yellow-50 dark:bg-yellow-900/20', borderClass: 'border-l-yellow-600 dark:border-l-yellow-400', icon: '📦', label: 'MSU' },
+      task: { colorClass: 'text-cyan-600 dark:text-cyan-400', bgClass: 'bg-cyan-50 dark:bg-cyan-900/20', borderClass: 'border-l-cyan-600 dark:border-l-cyan-400', icon: '📋', label: 'Task' },
+      assignment: { colorClass: 'text-purple-600 dark:text-purple-400', bgClass: 'bg-purple-50 dark:bg-purple-900/20', borderClass: 'border-l-purple-600 dark:border-l-purple-400', icon: '🎯', label: 'Assignment' }
     };
     return styles[type] || styles.bot;
   };
@@ -43,13 +35,6 @@ const EntitiesList = ({
   // Combine and filter entities
   const getAllEntities = () => {
     const entities = [];
-    
-    console.log('EntitiesList - getAllEntities called with:', {
-      objects: objects,
-      objectsLength: objects?.length,
-      filter: filter,
-      objectTypes: objects?.map(o => o.type)
-    });
     
     // Add objects (bots, pps, msu)
     objects.forEach(obj => {
@@ -64,16 +49,6 @@ const EntitiesList = ({
       } else if (filter === 'msu' && obj.type === 'msu') {
         shouldInclude = true;
       }
-      
-      console.log('EntitiesList - Processing object:', {
-        objType: obj.type,
-        objId: obj.id,
-        objProperties: obj.properties,
-        filter: filter,
-        shouldInclude: shouldInclude,
-        oldLogic: filter === 'all' || filter === `${obj.type}s`,
-        newLogic: shouldInclude
-      });
       
       if (shouldInclude) {
         // Create a more robust display name
@@ -113,7 +88,6 @@ const EntitiesList = ({
           isSelected: selectedObject?.id === obj.id
         };
         
-        console.log('EntitiesList - Adding entity to list:', entityItem);
         entities.push(entityItem);
       }
     });
@@ -157,13 +131,10 @@ const EntitiesList = ({
       }
     }
 
-    console.log('EntitiesList - Final entities array:', entities);
-    console.log('EntitiesList - Entities length:', entities.length);
     return entities;
   };
 
   const entities = getAllEntities();
-  console.log('EntitiesList - Rendered entities:', entities);
   const totalCounts = {
     bots: objects.filter(o => o.type === 'bot').length,
     pps: objects.filter(o => o.type === 'pps').length,
@@ -183,27 +154,14 @@ const EntitiesList = ({
   ];
 
   return (
-    <div style={{ 
-      width: 250, 
-      padding: 10, 
-      borderLeft: "1px solid #ccc", 
-      backgroundColor: "#f8f9fa",
-      height: "100%",
-      overflowY: "auto"
-    }}>
+    <div className="w-62 p-2.5 border-l border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 h-full overflow-y-auto">
       {/* Header with collapse toggle */}
       <div 
-        style={{
-          display: "flex", 
-          justifyContent: "space-between", 
-          alignItems: "center", 
-          marginBottom: 10,
-          cursor: "pointer"
-        }}
+        className="flex justify-between items-center mb-2.5 cursor-pointer"
         onClick={() => setIsCollapsed(!isCollapsed)}
       >
-        <h3 style={{ margin: 0 }}>Entities ({entities.length})</h3>
-        <span style={{ fontSize: '12px', color: '#6c757d' }}>
+        <h3 className="m-0 text-gray-900 dark:text-gray-100">Entities ({entities.length})</h3>
+        <span className="text-xs text-gray-500 dark:text-gray-400">
           {isCollapsed ? '▶' : '▼'}
         </span>
       </div>
@@ -211,26 +169,16 @@ const EntitiesList = ({
       {!isCollapsed && (
         <>
           {/* Filter buttons */}
-          <div style={{ 
-            display: "flex", 
-            flexWrap: "wrap", 
-            gap: "4px", 
-            marginBottom: "15px" 
-          }}>
+          <div className="flex flex-wrap gap-1 mb-4">
             {filterButtons.map(btn => (
               <button
                 key={btn.key}
                 onClick={() => setFilter(btn.key)}
-                style={{
-                  padding: "4px 8px",
-                  border: "1px solid #ddd",
-                  borderRadius: "3px",
-                  backgroundColor: filter === btn.key ? "#007bff" : "white",
-                  color: filter === btn.key ? "white" : "#333",
-                  cursor: "pointer",
-                  fontSize: "10px",
-                  fontWeight: "500"
-                }}
+                className={`py-1 px-2 border border-gray-300 dark:border-gray-600 rounded text-xs font-medium cursor-pointer transition-colors ${
+                  filter === btn.key 
+                    ? 'bg-blue-500 dark:bg-blue-600 text-white border-blue-500 dark:border-blue-600' 
+                    : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
+                }`}
               >
                 {btn.label} ({btn.count})
               </button>
@@ -238,91 +186,34 @@ const EntitiesList = ({
           </div>
 
           {/* Entities list */}
-          <div style={{ 
-            maxHeight: '400px', 
-            overflowY: 'auto'
-          }}>
-            {console.log('EntitiesList - Rendering entities list with:', {
-              entitiesLength: entities.length,
-              entities: entities.map(e => ({ id: e.id, type: e.type, displayName: e.displayName })),
-              filter: filter
-            })}
+          <div className="max-h-96 overflow-y-auto">
             {entities.length === 0 ? (
-              <div style={{
-                textAlign: 'center',
-                color: '#666',
-                fontSize: '12px',
-                padding: '20px'
-              }}>
+              <div className="text-center text-gray-500 dark:text-gray-400 text-xs p-5">
                 No {filter === 'all' ? 'entities' : filter} found
-                {console.log('EntitiesList - Showing no entities message for filter:', filter)}
               </div>
             ) : (
               entities.map((entity) => {
-                console.log('EntitiesList - Rendering entity:', {
-                  id: entity.id,
-                  type: entity.type,
-                  displayName: entity.displayName,
-                  details: entity.details
-                });
                 const style = getEntityStyle(entity.type);
                 return (
                   <div
                     key={`${entity.type}-${entity.id}`}
                     onClick={entity.onSelect}
-                    style={{
-                      padding: "8px",
-                      marginBottom: "4px",
-                      border: entity.isSelected ? `2px solid ${style.color}` : "1px solid #ddd",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      backgroundColor: entity.isSelected ? style.bgColor : "white",
-                      fontSize: "12px",
-                      borderLeft: `4px solid ${style.color}`
-                    }}
+                    onDoubleClick={() => onEntityDoubleClick && onEntityDoubleClick(entity.data)}
+                    className={`p-2 mb-1 border rounded cursor-pointer text-xs border-l-4 transition-colors ${
+                      entity.isSelected 
+                        ? `${style.bgClass} ${style.colorClass} ${style.borderClass}`
+                        : `bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 border-gray-200 dark:border-gray-600`
+                    }`}
                   >
-                    <div style={{ 
-                      display: 'flex', 
-                      justifyContent: 'space-between', 
-                      alignItems: 'center',
-                      marginBottom: '4px'
-                    }}>
-                      <div style={{ 
-                        fontWeight: "bold", 
-                        color: style.color,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px'
-                      }}>
-                        <span>{style.icon}</span>
-                        {entity.displayName}
+                    <div className="flex justify-between">
+                      <div>
+                        <span className="font-semibold">{style.icon}</span>
+                        <span className="ml-1">{entity.displayName}</span>
                       </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          entity.onRemove();
-                        }}
-                        style={{
-                          padding: "2px 4px",
-                          backgroundColor: "#dc3545",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "2px",
-                          cursor: "pointer",
-                          fontSize: "9px"
-                        }}
-                        title="Remove"
-                      >
-                        ×
-                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); entity.onRemove(); }} className="text-red-500 hover:text-red-700">×</button>
                     </div>
-                    
                     {entity.details && (
-                      <div style={{ 
-                        fontSize: "10px", 
-                        color: "#666",
-                        marginTop: "2px"
-                      }}>
+                      <div className="text-gray-500 dark:text-gray-400 text-xs mt-1">
                         {entity.details}
                       </div>
                     )}

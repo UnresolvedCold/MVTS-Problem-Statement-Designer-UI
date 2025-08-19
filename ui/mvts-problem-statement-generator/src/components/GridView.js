@@ -1,7 +1,7 @@
 // src/components/GridView.js
 import React from 'react';
 import Toolbar from './Toolbar';
-import GridCanvas from './GridCanvas';
+import VirtualizedGridCanvas from './VirtualizedGridCanvas';
 import RightSidebar from './RightSidebar';
 
 const GridView = ({
@@ -12,7 +12,9 @@ const GridView = ({
   onRowsChange,
   onColsChange,
   onCellSizeChange,
-  
+  // center view on entity list double-click
+  centerTrigger,
+
   // Objects and handlers
   visualObjects,
   tasks,
@@ -36,7 +38,7 @@ const GridView = ({
   const { updateObjectPosition } = objectManager;
   
   return (
-    <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+    <div className="flex flex-1 overflow-hidden">
       {/* Left Toolbar */}
       <Toolbar
         rows={rows}
@@ -57,15 +59,9 @@ const GridView = ({
         availableBots={filteredObjects.availableBots}
       />
 
-      {/* Main Grid Canvas */}
-      <div style={{ 
-        flex: 1, 
-        overflow: "auto", 
-        position: "relative",
-        backgroundColor: "#fff",
-        border: "1px solid #ccc"
-      }}>
-        <GridCanvas
+      {/* Main Grid Canvas - Now using optimized virtualized canvas */}
+      <div className="flex-1 overflow-hidden relative bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600">
+        <VirtualizedGridCanvas
           rows={rows}
           cols={cols}
           cellSize={cellSize}
@@ -76,6 +72,8 @@ const GridView = ({
             console.log('Drag start for object:', obj.id);
           }}
           onObjectDragEnd={updateObjectPosition}
+          // re-center trigger
+          centerTrigger={centerTrigger}
         />
       </div>
 
@@ -92,6 +90,7 @@ const GridView = ({
         localWarehouseData={localWarehouseData}
         localStateManager={localStateManager}
         cellSize={cellSize}
+        onEntityDoubleClick={handlers.handleEntityDoubleClick}
       />
     </div>
   );

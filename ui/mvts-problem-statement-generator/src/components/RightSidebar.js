@@ -13,18 +13,13 @@ const RightSidebar = ({
   filteredObjects,
   localWarehouseData,
   localStateManager,
-  cellSize
+  cellSize,
+  onEntityDoubleClick
 }) => {
   return (
-    <div style={{
-      width: 600, // Increased width to accommodate both panels side by side
-      borderLeft: "1px solid #ccc",
-      display: "flex",
-      flexDirection: "row", // Changed to horizontal layout
-      overflow: "hidden"
-    }}>
+    <div className="w-150 border-l border-gray-300 dark:border-gray-600 flex flex-row overflow-hidden bg-white dark:bg-gray-900">
       {/* Unified Entities List */}
-      <div style={{ width: 300, overflow: "auto", borderRight: "1px solid #ccc" }}>
+      <div className="w-75 overflow-auto border-r border-gray-300 dark:border-gray-600">
         <EntitiesList
           objects={visualObjects}
           tasks={tasks}
@@ -39,11 +34,12 @@ const RightSidebar = ({
           onRemoveTask={objectManager.removeObject}
           onRemoveAssignment={handlers.handleRemoveAssignment}
           warehouseData={localWarehouseData}
+          onEntityDoubleClick={onEntityDoubleClick}
         />
       </div>
 
       {/* Property Editor */}
-      <div style={{ width: 300, overflow: "auto" }}>
+      <div className="w-75 overflow-auto">
         {(selectedObject || selectedTask || selectedAssignment) ? (
           <PropertyEditor
             selectedObject={selectedObject}
@@ -71,7 +67,7 @@ const RightSidebar = ({
             onClose={() => {}} // Add close functionality if needed
           />
         ) : (
-          <div style={{ padding: 20, textAlign: "center", color: "#666", fontSize: "12px" }}>
+          <div className="p-5 text-center text-gray-600 dark:text-gray-400 text-xs">
             Select an entity to edit properties
           </div>
         )}

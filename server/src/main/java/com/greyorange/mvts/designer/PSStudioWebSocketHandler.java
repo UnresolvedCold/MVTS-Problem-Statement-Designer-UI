@@ -65,6 +65,8 @@ public class PSStudioWebSocketHandler {
   @OnWebSocketConnect
   public void onConnect(Session session) {
     try {
+      // Remove message size restriction
+      session.setMaxTextMessageSize(Integer.MAX_VALUE);
       sessions.add(session);
       // Register session for log streaming
       WebSocketLogAppender.addSession(session);
@@ -132,11 +134,11 @@ public class PSStudioWebSocketHandler {
     }
 
     // Get current queue position
-    int queuePosition = problemSolvingQueue.size() + 1;
+    int queuePosition = problemSolvingQueue.size() + (isProcessingQueue.get() ? 1 : 0);
 
     // Notify client about queue position
     try {
-      if (queuePosition == 1) {
+      if (!isProcessingQueue.get() && queuePosition == 1) {
         session.getRemote().sendString("{\"type\":\"SOLVING_PROBLEM_STATEMENT\", \"data\":{\"log\":\"Starting problem solving immediately...\", \"timestamp\":" + System.currentTimeMillis() + "}}");
       } else {
         session.getRemote().sendString("{\"type\":\"SOLVING_PROBLEM_STATEMENT\", \"data\":{\"log\":\"Request queued at position " + queuePosition + ". Waiting for previous requests to complete...\", \"timestamp\":" + System.currentTimeMillis() + "}}");
@@ -147,7 +149,10 @@ public class PSStudioWebSocketHandler {
 
     // Add task to queue for sequential processing
     problemSolvingQueue.offer(() -> {
+      isProcessingQueue.set(true);
       try {
+        // Set current session for log streaming
+        WebSocketLogAppender.setCurrentSession(session);
         // Notify when processing starts
         session.getRemote().sendString("{\"type\":\"SOLVING_PROBLEM_STATEMENT\", \"data\":{\"log\":\"Processing started for this request...\", \"timestamp\":" + System.currentTimeMillis() + "}}");
 
@@ -162,6 +167,10 @@ public class PSStudioWebSocketHandler {
         } catch (IOException ioException) {
           System.err.println("Error sending error message: " + ioException.getMessage());
         }
+      } finally {
+        // Clear current session after processing
+        WebSocketLogAppender.clearCurrentSession();
+        isProcessingQueue.set(false);
       }
     });
   }

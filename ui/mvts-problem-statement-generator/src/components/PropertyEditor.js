@@ -1,5 +1,6 @@
 import React from 'react';
 import { usePropertyEditor } from '../hooks/usePropertyEditor';
+import { useTheme } from '../contexts/ThemeContext';
 import PropertyEditorHeader from './property-editor/PropertyEditorHeader';
 import ModeToggle from './property-editor/ModeToggle';
 import SaveControls from './property-editor/SaveControls';
@@ -16,6 +17,7 @@ const PropertyEditor = ({
   availablePPS = [],
   availableMSU = []
 }) => {
+  const { isDark } = useTheme();
   const {
     editMode,
     setEditMode,
@@ -38,15 +40,8 @@ const PropertyEditor = ({
   }
 
   return (
-    <div style={{ 
-      width: 300, 
-      padding: 10, 
-      borderLeft: "1px solid #ccc", 
-      backgroundColor: "#f8f9fa",
-      height: "100vh",
-      overflowY: "auto"
-    }}>
-      <PropertyEditorHeader 
+    <div className="w-75 p-2.5 border-l border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 h-screen overflow-y-auto">
+      <PropertyEditorHeader
         onClose={onClose}
         isTask={isTask}
         isAssignment={isAssignment}

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import GridEditor from "./GridEditor";
 import { initRuntimeConfig } from './utils/runtimeConfig';
+import { ThemeProvider } from './contexts/ThemeContext';
+import ThemeToggle from './components/ThemeToggle';
 
 function App() {
   const [configLoaded, setConfigLoaded] = useState(false);
@@ -24,28 +26,26 @@ function App() {
 
   if (!configLoaded) {
     return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        flexDirection: 'column',
-        gap: '10px'
-      }}>
-        <div>Loading configuration...</div>
-        {configError && (
-          <div style={{ color: 'orange', fontSize: '0.9em' }}>
-            Warning: {configError}
-          </div>
-        )}
-      </div>
+      <ThemeProvider>
+        <div className="flex justify-center items-center h-screen flex-col gap-2.5 bg-white dark:bg-gray-900">
+          <div className="text-gray-900 dark:text-gray-100">Loading configuration...</div>
+          {configError && (
+            <div className="text-orange-500 text-sm">
+              Warning: {configError}
+            </div>
+          )}
+        </div>
+      </ThemeProvider>
     );
   }
 
   return (
-    <div>
-      <GridEditor />
-    </div>
+    <ThemeProvider>
+      <div className="bg-white dark:bg-gray-900 min-h-screen">
+        <ThemeToggle />
+        <GridEditor />
+      </div>
+    </ThemeProvider>
   );
 }
 

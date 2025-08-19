@@ -20,12 +20,13 @@ const GridEditor = () => {
   const [showTemplateManager, setShowTemplateManager] = useState(false);
   const [solutionData, setSolutionData] = useState(null);
   const [activeTab, setActiveTab] = useState('grid'); // 'grid', 'json', 'config'
+  const [centerTrigger, setCenterTrigger] = useState(0);
 
   // Initialize managers
   const schemaManager = useSchemaManager();
   const localStateManager = useLocalStateManager(schemaManager);
-  const { localWarehouseData } = localStateManager;
-  const { 
+  const { getFilteredWarehouseData, localWarehouseData } = localStateManager;
+  const {
     initializationError: schemaError,
     isLoading: schemasLoading,
     loadingMessage: schemaLoadingMessage
@@ -93,8 +94,14 @@ const GridEditor = () => {
     }
   };
 
+  // Trigger to re-center grid on entity double-click
+  const handleEntityDoubleClick = (obj) => {
+    setSelectedObject(obj);
+    setCenterTrigger(prev => prev + 1);
+  };
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+    <div className="flex flex-col h-screen">
       {/* Loading Overlay */}
       <LoadingOverlay 
         isLoading={schemasLoading}
@@ -125,7 +132,10 @@ const GridEditor = () => {
           onRowsChange={handleRowsChange}
           onColsChange={handleColsChange}
           onCellSizeChange={setCellSize}
-          
+          // Double-click from list
+          onEntityDoubleClick={handleEntityDoubleClick}
+          centerTrigger={centerTrigger}
+
           // Objects and handlers
           visualObjects={visualObjects}
           tasks={tasks}
@@ -143,12 +153,12 @@ const GridEditor = () => {
           
           // UI actions
           onManageTemplates={() => setShowTemplateManager(true)}
-          onSolveProblem={() => handlers.handleSolveProblem(localWarehouseData)}
+          onSolveProblem={() => handlers.handleSolveProblem(getFilteredWarehouseData)}
           onClearData={handlers.handleClearData}
         />
       ) : activeTab === 'json' ? (
         <ProblemStatementViewer
-          warehouseData={localWarehouseData}
+          warehouseData={getFilteredWarehouseData}
           onClose={() => setActiveTab('grid')}
           onSave={handlers.handleJsonSave}
         />

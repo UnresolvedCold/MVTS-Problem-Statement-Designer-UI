@@ -9,29 +9,21 @@ const TabNavigation = ({ activeTab, onTabChange, tabs = ['grid', 'json'] }) => {
   };
 
   return (
-    <div style={{
-      display: "flex",
-      borderBottom: "1px solid #ccc",
-      backgroundColor: "#f8f9fa",
-      padding: "0 10px"
-    }}>
+    <div className="flex border-b border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 px-2.5">
       {tabs.map(tab => (
         <button
           key={tab}
           onClick={() => onTabChange(tab)}
-          style={{
-            padding: "10px 20px",
-            border: "none",
-            borderBottom: activeTab === tab ? "3px solid #007bff" : "3px solid transparent",
-            backgroundColor: "transparent",
-            cursor: "pointer",
-            fontWeight: activeTab === tab ? "bold" : "normal"
-          }}
+          className={`py-2.5 px-5 border-none cursor-pointer bg-transparent transition-colors text-gray-700 dark:text-gray-300 ${
+            activeTab === tab 
+              ? 'border-b-4 border-blue-500 font-bold' 
+              : 'border-b-4 border-transparent font-normal hover:bg-gray-100 dark:hover:bg-gray-700'
+          }`}
         >
           {tabConfig[tab]?.label || tab}
         </button>
       ))}
-      <div style={{ flex: 1 }}></div>
+      <div className="flex-1"></div>
     </div>
   );
 };

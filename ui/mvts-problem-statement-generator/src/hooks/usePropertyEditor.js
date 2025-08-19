@@ -27,20 +27,19 @@ export const usePropertyEditor = (selectedObject, selectedTask, selectedAssignme
   // Update values when selectedObject or selectedTask changes
   useEffect(() => {
     if (currentItem) {
-      let itemData;
-      if (isTask) {
-        itemData = currentItem.properties ? { ...currentItem.properties } : { ...currentItem };
-      } else if (isAssignment) {
-        // For assignments, use the properties or the full assignment object
-        itemData = currentItem.properties ? { ...currentItem.properties } : { ...currentItem };
-      } else {
-        itemData = currentItem.properties ? { ...currentItem.properties } : {};
-      }
-      
-      setFormValues(itemData);
-      setPendingFormValues(itemData);
-      setOriginalValues(itemData);
-      setJsonEditValue(JSON.stringify(itemData, null, 2));
+      let itemData= currentItem.properties ? { ...currentItem.properties } : {};
+
+      const filteredItem = { ...itemData };
+      Object.keys(filteredItem).forEach(key => {
+        if (key.startsWith('__meta_data')) {
+          delete filteredItem[key];
+        }
+      });
+
+      setFormValues(filteredItem);
+      setPendingFormValues(filteredItem);
+      setOriginalValues(filteredItem);
+      setJsonEditValue(JSON.stringify(filteredItem, null, 2));
       setJsonError(null);
       setHasUnsavedChanges(false);
       isInitialFormMount.current = true;

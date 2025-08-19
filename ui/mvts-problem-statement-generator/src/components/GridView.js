@@ -12,7 +12,9 @@ const GridView = ({
   onRowsChange,
   onColsChange,
   onCellSizeChange,
-  
+  // center view on entity list double-click
+  centerTrigger,
+
   // Objects and handlers
   visualObjects,
   tasks,
@@ -70,6 +72,8 @@ const GridView = ({
             console.log('Drag start for object:', obj.id);
           }}
           onObjectDragEnd={updateObjectPosition}
+          // re-center trigger
+          centerTrigger={centerTrigger}
         />
       </div>
 
@@ -86,6 +90,7 @@ const GridView = ({
         localWarehouseData={localWarehouseData}
         localStateManager={localStateManager}
         cellSize={cellSize}
+        onEntityDoubleClick={handlers.handleEntityDoubleClick}
       />
     </div>
   );

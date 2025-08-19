@@ -15,7 +15,8 @@ const EntitiesList = ({
   onRemoveTask,
   onRemoveAssignment,
   warehouseData 
-}) => {
+  ,onEntityDoubleClick
+ }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [filter, setFilter] = useState('all');
 
@@ -197,31 +198,22 @@ const EntitiesList = ({
                   <div
                     key={`${entity.type}-${entity.id}`}
                     onClick={entity.onSelect}
+                    onDoubleClick={() => onEntityDoubleClick && onEntityDoubleClick(entity.data)}
                     className={`p-2 mb-1 border rounded cursor-pointer text-xs border-l-4 transition-colors ${
                       entity.isSelected 
-                        ? `border-2 ${style.bgClass} ${style.borderClass}` 
-                        : `border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 ${style.borderClass}`
+                        ? `${style.bgClass} ${style.colorClass} ${style.borderClass}`
+                        : `bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 border-gray-200 dark:border-gray-600`
                     }`}
                   >
-                    <div className="flex justify-between items-center mb-1">
-                      <div className={`font-bold ${style.colorClass} flex items-center gap-1`}>
-                        <span>{style.icon}</span>
-                        <span className="text-gray-900 dark:text-gray-100">{entity.displayName}</span>
+                    <div className="flex justify-between">
+                      <div>
+                        <span className="font-semibold">{style.icon}</span>
+                        <span className="ml-1">{entity.displayName}</span>
                       </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          entity.onRemove();
-                        }}
-                        className="py-0.5 px-1 bg-red-500 dark:bg-red-600 text-white border-none rounded cursor-pointer text-xs hover:bg-red-600 dark:hover:bg-red-700 transition-colors"
-                        title="Remove"
-                      >
-                        ×
-                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); entity.onRemove(); }} className="text-red-500 hover:text-red-700">×</button>
                     </div>
-                    
                     {entity.details && (
-                      <div className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                      <div className="text-gray-500 dark:text-gray-400 text-xs mt-1">
                         {entity.details}
                       </div>
                     )}

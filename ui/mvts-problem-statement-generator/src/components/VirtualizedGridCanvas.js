@@ -12,7 +12,8 @@ const VirtualizedGridCanvas = ({
   selectedObject,
   onObjectClick,
   onObjectDragStart,
-  onObjectDragEnd
+  onObjectDragEnd,
+  centerTrigger
 }) => {
   const { isDark } = useTheme();
 
@@ -197,6 +198,22 @@ const VirtualizedGridCanvas = ({
     // Limit visible objects for performance
     return filteredObjects.slice(0, renderingConfig.maxVisibleObjects);
   }, [objects, visibleRange, cellSize, renderingConfig.maxVisibleObjects]);
+
+  // Recenter when centerTrigger changes
+  useEffect(() => {
+    if (!stageRef.current || !selectedObject) return;
+    // compute offset to center selectedObject
+    const objX = selectedObject.x;
+    const objY = selectedObject.y;
+    const offsetX = viewport.width / 2 - objX * zoom - (cellSize / 2) * zoom;
+    const offsetY = viewport.height / 2 - objY * zoom - (cellSize / 2) * zoom;
+    stageRef.current.position({ x: offsetX, y: offsetY });
+    setViewport(prev => ({
+      ...prev,
+      x: -offsetX / zoom,
+      y: -offsetY / zoom
+    }));
+  }, [centerTrigger, selectedObject, viewport.width, viewport.height, zoom, cellSize]);
 
   // Handle stage events for panning and zooming
   const handleWheel = useCallback((e) => {

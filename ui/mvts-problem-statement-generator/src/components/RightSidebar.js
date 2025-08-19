@@ -13,7 +13,8 @@ const RightSidebar = ({
   filteredObjects,
   localWarehouseData,
   localStateManager,
-  cellSize
+  cellSize,
+  onEntityDoubleClick
 }) => {
   return (
     <div className="w-150 border-l border-gray-300 dark:border-gray-600 flex flex-row overflow-hidden bg-white dark:bg-gray-900">
@@ -33,6 +34,7 @@ const RightSidebar = ({
           onRemoveTask={objectManager.removeObject}
           onRemoveAssignment={handlers.handleRemoveAssignment}
           warehouseData={localWarehouseData}
+          onEntityDoubleClick={onEntityDoubleClick}
         />
       </div>
 

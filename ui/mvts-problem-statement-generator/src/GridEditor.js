@@ -25,7 +25,7 @@ const GridEditor = () => {
   // Initialize managers
   const schemaManager = useSchemaManager();
   const localStateManager = useLocalStateManager(schemaManager);
-  const { localWarehouseData } = localStateManager;
+  const { getFilteredWarehouseData, localWarehouseData } = localStateManager;
   const {
     initializationError: schemaError,
     isLoading: schemasLoading,
@@ -144,12 +144,12 @@ const GridEditor = () => {
           
           // UI actions
           onManageTemplates={() => setShowTemplateManager(true)}
-          onSolveProblem={() => handlers.handleSolveProblem(localWarehouseData)}
+          onSolveProblem={() => handlers.handleSolveProblem(getFilteredWarehouseData)}
           onClearData={handlers.handleClearData}
         />
       ) : activeTab === 'json' ? (
         <ProblemStatementViewer
-          warehouseData={localWarehouseData}
+          warehouseData={getFilteredWarehouseData}
           onClose={() => setActiveTab('grid')}
           onSave={handlers.handleJsonSave}
         />

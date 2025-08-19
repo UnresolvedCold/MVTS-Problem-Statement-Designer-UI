@@ -1,5 +1,5 @@
 // src/hooks/useLocalStateManager.js
-import { useState, useEffect, useCallback } from 'react';
+import {useState, useEffect, useCallback, useMemo} from 'react';
 import { getGridCfg } from '../utils/constants';
 
 // Default problem statement template
@@ -40,6 +40,73 @@ export const useLocalStateManager = (schemaManager = null) => {
       }
     };
   });
+
+  const getFilteredWarehouseData = useMemo(() => {
+    // returns everything except fields starting with "__meta_data" inside warehouse -> problem_statement -> list
+    return {
+      ...localWarehouseData,
+      warehouse: {
+        ...localWarehouseData.warehouse,
+        problem_statement: {
+          ...localWarehouseData.warehouse.problem_statement,
+          task_list: localWarehouseData.warehouse.problem_statement.task_list.map(task => {
+            const filteredTask = { ...task };
+            Object.keys(filteredTask).forEach(key => {
+              if (key.startsWith('__meta_data')) {
+                delete filteredTask[key];
+              }
+            });
+            return filteredTask;
+          }),
+          pps_list: localWarehouseData.warehouse.problem_statement.pps_list.map(pps => {
+            const filteredPPS = { ...pps };
+            Object.keys(filteredPPS).forEach(key => {
+              if (key.startsWith('__meta_data')) {
+                delete filteredPPS[key];
+              }
+            });
+            return filteredPPS;
+          }),
+          transport_entity_list: localWarehouseData.warehouse.problem_statement.transport_entity_list.map(msu => {
+            const filteredMSU = { ...msu };
+            Object.keys(filteredMSU).forEach(key => {
+              if (key.startsWith('__meta_data')) {
+                delete filteredMSU[key];
+              }
+            });
+            return filteredMSU;
+          }),
+          ranger_list: localWarehouseData.warehouse.problem_statement.ranger_list.map(bot => {
+            const filteredBot = { ...bot };
+            Object.keys(filteredBot).forEach(key => {
+              if (key.startsWith('__meta_data')) {
+                delete filteredBot[key];
+              }
+            });
+            return filteredBot;
+          }),
+          relay_point_list: localWarehouseData.warehouse.problem_statement.relay_point_list.map(relay => {
+            const filteredRelay = { ...relay };
+            Object.keys(filteredRelay).forEach(key => {
+              if (key.startsWith('__meta_data')) {
+                delete filteredRelay[key];
+              }
+            });
+            return filteredRelay;
+          }),
+          conveyor_list: localWarehouseData.warehouse.problem_statement.conveyor_list.map(conveyor => {
+            const filteredConveyor = { ...conveyor };
+            Object.keys(filteredConveyor).forEach(key => {
+              if (key.startsWith('__meta_data')) {
+                delete filteredConveyor[key];
+              }
+            });
+            return filteredConveyor;
+          })
+        }
+      }
+    };
+  }, [localWarehouseData]);
 
   // Templates from server
   const [templates, setTemplates] = useState({
@@ -568,6 +635,7 @@ export const useLocalStateManager = (schemaManager = null) => {
     addAssignmentToPPS,
     removeAssignmentFromPPS,
     updateAssignmentInPPS,
-    clearLocalData
+    clearLocalData,
+    getFilteredWarehouseData
   };
 };

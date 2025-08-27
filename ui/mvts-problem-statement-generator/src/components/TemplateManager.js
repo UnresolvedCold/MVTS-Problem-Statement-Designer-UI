@@ -200,14 +200,15 @@ const TemplateManager = ({ schemaManager, localStateManager, onClose }) => {
         </div>
 
         {isEditing ? (
-          <div>
+          <div className="flex flex-col">
             <textarea
               value={editingSchema}
               onChange={(e) => handleSchemaChange(e.target.value)}
-              className={`w-full h-40 p-2 font-mono text-xs rounded border resize-y bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors ${
+              className={`w-full min-h-[200px] max-h-[400px] p-2 font-mono text-xs rounded border resize-y bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors ${
                 jsonError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
               }`}
               placeholder="Enter valid JSON schema..."
+              style={{ lineHeight: '1.4' }}
             />
             {jsonError && (
               <div className="mt-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded text-red-600 dark:text-red-400 text-xs">
@@ -216,19 +217,21 @@ const TemplateManager = ({ schemaManager, localStateManager, onClose }) => {
             )}
           </div>
         ) : (
-          <pre className="max-h-48 overflow-auto font-mono text-xs bg-white dark:bg-gray-700 p-2 rounded border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
-            {JSON.stringify(schema, null, 2)}
-          </pre>
+          <div className="relative">
+            <pre className="max-h-[300px] overflow-auto font-mono text-xs bg-white dark:bg-gray-700 p-3 rounded border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 whitespace-pre-wrap scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-gray-800">
+              {JSON.stringify(schema, null, 2)}
+            </pre>
+          </div>
         )}
       </div>
     );
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-black dark:bg-opacity-70 flex justify-center items-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-4/5 max-w-4xl max-h-4/5 overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-black dark:bg-opacity-70 flex justify-center items-center z-50 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-6xl h-full max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="p-5 border-b border-gray-200 dark:border-gray-600 flex justify-between items-center bg-gray-50 dark:bg-gray-700">
+        <div className="p-5 border-b border-gray-200 dark:border-gray-600 flex justify-between items-center bg-gray-50 dark:bg-gray-700 flex-shrink-0">
           <h2 className="m-0 text-gray-900 dark:text-gray-100 text-xl">🔧 Schema Manager</h2>
           <div className="flex gap-2.5 items-center">
             {hasUnsavedChanges && (
@@ -257,7 +260,7 @@ const TemplateManager = ({ schemaManager, localStateManager, onClose }) => {
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-auto p-5 bg-white dark:bg-gray-800">
+        <div className="flex-1 min-h-0 overflow-y-auto p-5 bg-white dark:bg-gray-800">
           <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded text-sm text-blue-800 dark:text-blue-200">
             <strong>📋 Schema Management:</strong> Edit entity schemas to define the structure of objects that can be created in the grid.
             Changes are applied locally and used when creating new entities.

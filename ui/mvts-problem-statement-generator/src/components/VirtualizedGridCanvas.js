@@ -165,10 +165,9 @@ const VirtualizedGridCanvas = ({
     return filteredObjects.slice(0, renderingConfig.maxVisibleObjects);
   }, [objects, visibleRange, cellSize, renderingConfig.maxVisibleObjects]);
 
-  // Recenter when centerTrigger changes
+  // Recenter on selection for grid entities (bots, PPS, MSU) only
   useEffect(() => {
-    if (!stageRef.current || !selectedObject) return;
-    // compute offset to center selectedObject
+    if (!stageRef.current || selectedObject?.x == null) return;
     const objX = selectedObject.x;
     const objY = selectedObject.y;
     const offsetX = viewport.width / 2 - objX * zoom - (cellSize / 2) * zoom;
@@ -179,7 +178,23 @@ const VirtualizedGridCanvas = ({
       x: -offsetX / zoom,
       y: -offsetY / zoom
     }));
-  }, [centerTrigger, selectedObject, viewport.width, viewport.height, zoom, cellSize]);
+  }, [selectedObject]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Recenter only when centerTrigger changes (e.g., double-click from list)
+  useEffect(() => {
+    if (!stageRef.current || !selectedObject) return;
+    // compute offset to center selectedObject on double-click
+    const objX = selectedObject.x;
+    const objY = selectedObject.y;
+    const offsetX = viewport.width / 2 - objX * zoom - (cellSize / 2) * zoom;
+    const offsetY = viewport.height / 2 - objY * zoom - (cellSize / 2) * zoom;
+    stageRef.current.position({ x: offsetX, y: offsetY });
+    setViewport(prev => ({
+      ...prev,
+      x: -offsetX / zoom,
+      y: -offsetY / zoom
+    }));
+  }, [centerTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle stage events for panning and zooming
   const handleWheel = useCallback((e) => {

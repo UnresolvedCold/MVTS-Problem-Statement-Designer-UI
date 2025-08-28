@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "MVTS Studio",
+  "name": "MVTS Studio - Multi-Vehicle Task Scheduling Problem Statement Designer",
   "icons": [
     {
       "src": "favicon.ico",

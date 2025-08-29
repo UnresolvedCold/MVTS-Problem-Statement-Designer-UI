@@ -265,7 +265,6 @@ public class ProblemStatementStudio {
     com.greyorange.taskscheduler.core.ApplicationProperties.load(properties);
     com.greyorange.subtaskplanner.core.ApplicationProperties.load(properties);
     com.greyorange.multifleetplanner_common.core.ApplicationProperties.load(properties);
-    Optimizer.setUseOptaPlanner(false);
     BackToStorableCache.getInstance().clear();
     GoingToPPSCache.getInstance().clear();
     ChargeTaskCache.getInstance().clear();
